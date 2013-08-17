@@ -2,8 +2,8 @@
 #define GOAT3D_IMPL_H_
 
 #include <string>
+#include <vmath/vmath.h>
 #include "goat3d.h"
-#include "vmath.h"
 #include "mesh.h"
 #include "light.h"
 #include "camera.h"

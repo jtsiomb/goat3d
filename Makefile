@@ -27,6 +27,7 @@ else
 endif
 
 CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic)
+LDFLAGS = -lvmath -lanim
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
