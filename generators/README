@@ -1,0 +1,6 @@
+generators planned:
+- goatprim: primitive object generator
+- goatflake: sphereflake generator
+- goatpot: utah teapot generator
+- goatgoat: articulated goat generator w/anim
+- goatfly: camera flyby generator w/anim
