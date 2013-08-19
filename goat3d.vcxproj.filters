@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="src">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\camera.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\chunk.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\goat3d.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\goat3d_impl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\light.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\material.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\mesh.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\object.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\opengl.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\xform_node.h">
+      <Filter>src</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\goat3d.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\mesh.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\object.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\opengl.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\xform_node.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

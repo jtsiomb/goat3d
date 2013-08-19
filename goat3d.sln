@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goat3d", "goat3d.vcxproj", "{86BF319B-9222-4805-918D-DC1B9F77BCEF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maxgoat", "exporters\maxgoat\maxgoat.vcxproj", "{5BDDFFC1-7900-45D2-92F5-525361057554}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Debug|Win32.Build.0 = Debug|Win32
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Debug|x64.ActiveCfg = Debug|x64
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Debug|x64.Build.0 = Debug|x64
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Release|Win32.ActiveCfg = Release|Win32
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Release|Win32.Build.0 = Release|Win32
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Release|x64.ActiveCfg = Release|x64
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF}.Release|x64.Build.0 = Release|x64
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Debug|Win32.Build.0 = Debug|Win32
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Debug|x64.ActiveCfg = Debug|x64
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Debug|x64.Build.0 = Debug|x64
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Release|Win32.ActiveCfg = Release|Win32
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Release|Win32.Build.0 = Release|Win32
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Release|x64.ActiveCfg = Release|x64
+		{5BDDFFC1-7900-45D2-92F5-525361057554}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
