@@ -4,3 +4,6 @@
 \.a$
 \.so\.
 \.dylib$
+\.opensdf$
+\.sdf$
+\.suo$

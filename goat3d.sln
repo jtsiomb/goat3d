@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goat3d", "goat3d.vcxproj", "{86BF319B-9222-4805-918D-DC1B9F77BCEF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maxgoat", "exporters\maxgoat\maxgoat.vcxproj", "{5BDDFFC1-7900-45D2-92F5-525361057554}"
+	ProjectSection(ProjectDependencies) = postProject
+		{86BF319B-9222-4805-918D-DC1B9F77BCEF} = {86BF319B-9222-4805-918D-DC1B9F77BCEF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
