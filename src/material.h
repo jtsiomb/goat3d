@@ -26,6 +26,8 @@ private:
 	std::map<std::string, MaterialAttrib> attrib;
 
 public:
+	std::string name;
+
 	MaterialAttrib &operator [](const std::string &name)
 	{
 		return attrib[name];

@@ -57,6 +57,10 @@ enum {
 	CNK_MESH_SKINMATRIX_LIST,	// has a series of CNK_INT4 chunks (4 matrix indices)
 	CNK_MESH_COLOR_LIST,	// has a series of CNK_FLOAT4 chunks
 	CNK_MESH_BONES_LIST,	// has a series of CNK_INT or CNK_STRING chunks identifying the bone nodes
+	CNK_MESH_FACE_LIST,		// has a series of CNK_FACE chunks
+
+	// child of CNK_MESH_FACE_LIST
+	CNK_MESH_FACE,			// has three CNK_INT chunks
 
 	// children of CNK_LIGHT
 	CNK_LIGHT_NAME,			// has a single CNK_STRING

@@ -35,53 +35,53 @@ public:
 	XFormNode();
 	virtual ~XFormNode();
 
-	void set_name(const char *name);
-	const char *get_name() const;
+	virtual void set_name(const char *name);
+	virtual const char *get_name() const;
 
-	void set_interpolator(Interp in);
-	Interp get_interpolator() const;
-	void set_extrapolator(Extrap ex);
-	Extrap get_extrapolator() const;
+	virtual void set_interpolator(Interp in);
+	virtual Interp get_interpolator() const;
+	virtual void set_extrapolator(Extrap ex);
+	virtual Extrap get_extrapolator() const;
 
 	// children management
-	void add_child(XFormNode *child);
-	void remove_child(XFormNode *child);
+	virtual void add_child(XFormNode *child);
+	virtual void remove_child(XFormNode *child);
 
-	int get_children_count() const;
-	XFormNode *get_child(int idx);
-	const XFormNode *get_child(int idx) const;
+	virtual int get_children_count() const;
+	virtual XFormNode *get_child(int idx);
+	virtual const XFormNode *get_child(int idx) const;
 
 
-	void set_position(const Vector3 &pos, long tmsec = 0);
-	Vector3 get_node_position(long tmsec = 0) const;
+	virtual void set_position(const Vector3 &pos, long tmsec = 0);
+	virtual Vector3 get_node_position(long tmsec = 0) const;
 
-	void set_rotation(const Quaternion &quat, long tmsec = 0);
-	Quaternion get_node_rotation(long tmsec = 0) const;
+	virtual void set_rotation(const Quaternion &quat, long tmsec = 0);
+	virtual Quaternion get_node_rotation(long tmsec = 0) const;
 
-	void set_scaling(const Vector3 &pos, long tmsec = 0);
-	Vector3 get_node_scaling(long tmsec = 0) const;
+	virtual void set_scaling(const Vector3 &pos, long tmsec = 0);
+	virtual Vector3 get_node_scaling(long tmsec = 0) const;
 
 	// these take hierarchy into account
-	Vector3 get_position(long tmsec = 0) const;
-	Quaternion get_rotation(long tmsec = 0) const;
-	Vector3 get_scaling(long tmsec = 0) const;
+	virtual Vector3 get_position(long tmsec = 0) const;
+	virtual Quaternion get_rotation(long tmsec = 0) const;
+	virtual Vector3 get_scaling(long tmsec = 0) const;
 
-	void set_pivot(const Vector3 &pivot);
-	Vector3 get_pivot() const;
+	virtual void set_pivot(const Vector3 &pivot);
+	virtual Vector3 get_pivot() const;
 
 	// the local matrix is concatenated with the regular node/anim matrix
-	void set_local_matrix(const Matrix4x4 &mat);
-	const Matrix4x4 &get_local_matrix() const;
+	virtual void set_local_matrix(const Matrix4x4 &mat);
+	virtual const Matrix4x4 &get_local_matrix() const;
 
 	// for bone nodes, the transformation of the bone in bind position
-	void set_bone_matrix(const Matrix4x4 &bmat);
-	const Matrix4x4 &get_bone_matrix() const;
+	virtual void set_bone_matrix(const Matrix4x4 &bmat);
+	virtual const Matrix4x4 &get_bone_matrix() const;
 
 	// node transformation alone
-	void get_node_xform(long tmsec, Matrix4x4 *mat, Matrix4x4 *inv_mat = 0) const;
+	virtual void get_node_xform(long tmsec, Matrix4x4 *mat, Matrix4x4 *inv_mat = 0) const;
 
 	// node transformation taking hierarchy into account
-	void get_xform(long tmsec, Matrix4x4 *mat, Matrix4x4 *inv_mat = 0) const;
+	virtual void get_xform(long tmsec, Matrix4x4 *mat, Matrix4x4 *inv_mat = 0) const;
 };
 
 

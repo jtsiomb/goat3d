@@ -4,92 +4,28 @@
 
 Node::Node()
 {
-	parent = 0;
+	obj = 0;
 }
 
-Node::~Node()
+void Node::set_object(Object *obj)
 {
+	this->obj = obj;
 }
 
-void Node::set_name(const char *name)
+Object *Node::get_object()
 {
-	this->name = name;
+	return obj;
 }
 
-const char *Node::get_name() const
+const Object *Node::get_object() const
 {
-	return name.c_str();
+	return obj;
 }
 
-void Node::add_child(Node *c)
+void delete_node_tree(Node *n)
 {
-	// make sure we don't add it twice
-	if(std::find(children.begin(), children.end(), c) != children.end()) {
-		return;
+	for(int i=0; i<n->get_children_count(); i++) {
+		delete_node_tree((Node*)n->get_child(i));
 	}
-	children.push_back(c);
-	c->parent = this;
-}
-
-int Node::get_num_children() const
-{
-	return (int)children.size();
-}
-
-Node *Node::get_child(int idx) const
-{
-	if(idx < 0 || idx >= get_num_children()) {
-		return 0;
-	}
-	return children[idx];
-}
-
-Node *Node::get_child(const char *name) const
-{
-	for(size_t i=0; i<children.size(); i++) {
-		if(strcmp(children[i]->get_name(), name) == 0) {
-			return children[i];
-		}
-	}
-	return 0;
-}
-
-Node *Node::get_descendant(const char *name) const
-{
-	Node *c = get_child(name);
-	if(c) {
-		return c;
-	}
-
-	// depth first search might not be ideal in this case, but it's the simplest
-	for(size_t i=0; i<children.size(); i++) {
-		if((c = children[i]->get_descendant(name))) {
-			return c;
-		}
-	}
-	return 0;
-}
-
-Node *Node::get_parent() const
-{
-	return parent;
-}
-
-Node *Node::get_ancestor(const char *name) const
-{
-	Node *n = (Node*)this;
-
-	if(!name) {
-		// just return the root
-		while(n->parent) {
-			n = n->parent;
-		}
-		return n;
-	}
-
-	// otherwise we're looking for a specific ancestor
-	while(n && strcmp(n->get_name(), name) != 0) {
-		n = n->parent;
-	}
-	return n;
+	delete n;
 }
