@@ -36,22 +36,27 @@ public:
 	void add_material(Material *mat);
 	Material *get_material(int idx) const;
 	Material *get_material(const char *name) const;
+	int get_material_count() const;
 
 	void add_mesh(Mesh *mesh);
 	Mesh *get_mesh(int idx) const;
 	Mesh *get_mesh(const char *name) const;
+	int get_mesh_count() const;
 
 	void add_light(Light *light);
 	Light *get_light(int idx) const;
 	Light *get_light(const char *name) const;
+	int get_light_count() const;
 
 	void add_camera(Camera *cam);
 	Camera *get_camera(int idx) const;
 	Camera *get_camera(const char *name) const;
+	int get_camera_count() const;
 
 	void add_node(Node *node);
 	Node *get_node(int idx) const;
 	Node *get_node(const char *name) const;
+	int get_node_count() const;
 
 	bool load(goat3d_io *io);
 	bool save(goat3d_io *io) const;

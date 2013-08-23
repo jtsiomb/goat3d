@@ -1,6 +1,8 @@
 #ifndef CHUNK_H_
 #define CHUNK_H_
 
+#include <stdint.h>
+
 enum {
 	CNK_INVALID,		// this shouldn't appear in files
 	CNK_SCENE,			// the root chunk
@@ -100,6 +102,8 @@ enum {
 	MAX_NUM_CHUNKS
 };
 
+#define UNKNOWN_SIZE	((uint32_t)0xbaadf00d)
+
 struct ChunkHeader {
 	uint32_t id;
 	uint32_t size;
@@ -109,5 +113,7 @@ struct Chunk {
 	ChunkHeader hdr;
 	char data[1];
 };
+
+
 
 #endif	// CHUNK_H_

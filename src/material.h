@@ -28,19 +28,14 @@ private:
 public:
 	std::string name;
 
-	MaterialAttrib &operator [](const std::string &name)
-	{
-		return attrib[name];
-	}
+	int get_attrib_count() const;
+	const char *get_attrib_name(int idx) const;
 
-	const MaterialAttrib &operator [](const std::string &name) const
-	{
-		std::map<std::string, MaterialAttrib>::const_iterator it;
-		if((it = attrib.find(name)) != attrib.end()) {
-			return it->second;
-		}
-		return def_attr;
-	}
+	MaterialAttrib &operator [](int idx);
+	const MaterialAttrib &operator [](int idx) const;
+
+	MaterialAttrib &operator [](const std::string &name);
+	const MaterialAttrib &operator [](const std::string &name) const;
 };
 
 #endif	// MATERIAL_H_
