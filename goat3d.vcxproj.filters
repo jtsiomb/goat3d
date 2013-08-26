@@ -28,13 +28,13 @@
     <ClInclude Include="src\mesh.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="src\object.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="src\opengl.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\xform_node.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\node.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\object.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
@@ -45,13 +45,19 @@
     <ClCompile Include="src\mesh.cc">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\object.cc">
-      <Filter>src</Filter>
-    </ClCompile>
-    <ClCompile Include="src\opengl.cc">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\xform_node.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\camera.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\light.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\material.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\node.cc">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

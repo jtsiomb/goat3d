@@ -1,6 +1,7 @@
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "chunk.h"
+#include "node.h"
 
 Scene::Scene()
 	: name("unnamed"), ambient(0.05, 0.05, 0.05)

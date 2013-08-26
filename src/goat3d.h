@@ -9,8 +9,8 @@ struct goat3d;
 struct goat3d_io {
 	void *cls;	/* closure data */
 
-	ssize_t (*read)(void *buf, size_t bytes, void *uptr);
-	ssize_t (*write)(void *buf, size_t bytes, void *uptr);
+	long (*read)(void *buf, size_t bytes, void *uptr);
+	long (*write)(void *buf, size_t bytes, void *uptr);
 	long (*seek)(long offs, int whence, void *uptr);
 };
 

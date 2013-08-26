@@ -26,15 +26,17 @@
     <ClInclude Include="src\light.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\mesh.h" />
+    <ClInclude Include="src\node.h" />
     <ClInclude Include="src\object.h" />
-    <ClInclude Include="src\opengl.h" />
     <ClInclude Include="src\xform_node.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\camera.cc" />
     <ClCompile Include="src\goat3d.cc" />
+    <ClCompile Include="src\light.cc" />
+    <ClCompile Include="src\material.cc" />
     <ClCompile Include="src\mesh.cc" />
-    <ClCompile Include="src\object.cc" />
-    <ClCompile Include="src\opengl.cc" />
+    <ClCompile Include="src\node.cc" />
     <ClCompile Include="src\xform_node.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -112,7 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -146,7 +148,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
