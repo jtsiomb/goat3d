@@ -7,3 +7,5 @@
 \.opensdf$
 \.sdf$
 \.suo$
+x64/
+\.tlog$

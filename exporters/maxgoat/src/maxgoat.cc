@@ -10,6 +10,7 @@
 #include "IGame.h"
 #include "IGameExport.h"
 #include "IConversionmanager.h"
+#include "config.h"
 
 
 #pragma comment (lib, "core.lib")
@@ -23,6 +24,9 @@
 #pragma comment (lib, "igame.lib")
 #pragma comment (lib, "comctl32.lib")
 
+
+#define VERSION(major, minor) \
+	((major) * 100 + ((minor) < 10 ? (minor) * 10 : (minor)))
 
 static FILE *logfile;
 static HINSTANCE hinst;
@@ -90,7 +94,7 @@ const TCHAR *GoatExporter::OtherMessage2()
 
 unsigned int GoatExporter::Version()
 {
-	return 10;
+	return VERSION(VER_MAJOR, VER_MINOR);
 }
 
 void GoatExporter::ShowAbout(HWND win)

@@ -8,7 +8,7 @@
 #include "light.h"
 #include "camera.h"
 #include "material.h"
-#include "node.h"
+#include "object.h"
 
 class Scene {
 private:
@@ -19,7 +19,7 @@ private:
 	std::vector<Mesh*> meshes;
 	std::vector<Light*> lights;
 	std::vector<Camera*> cameras;
-	std::vector<Node*> nodes;
+	std::vector<Object*> objects;
 
 public:
 	Scene();

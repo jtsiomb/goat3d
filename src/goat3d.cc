@@ -34,10 +34,10 @@ void Scene::clear()
 	}
 	cameras.clear();
 
-	for(size_t i=0; i<nodes.size(); i++) {
-		delete_node_tree(nodes[i]);
+	for(size_t i=0; i<objects.size(); i++) {
+		delete_node_tree(objects[i]);
 	}
-	nodes.clear();
+	objects.clear();
 
 	name = "unnamed";
 }
