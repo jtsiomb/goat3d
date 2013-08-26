@@ -1,7 +1,6 @@
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "chunk.h"
-#include "node.h"
 
 Scene::Scene()
 	: name("unnamed"), ambient(0.05, 0.05, 0.05)
@@ -35,10 +34,10 @@ void Scene::clear()
 	}
 	cameras.clear();
 
-	for(size_t i=0; i<objects.size(); i++) {
-		delete_node_tree(objects[i]);
+	for(size_t i=0; i<nodes.size(); i++) {
+		delete_node_tree(nodes[i]);
 	}
-	objects.clear();
+	nodes.clear();
 
 	name = "unnamed";
 }
