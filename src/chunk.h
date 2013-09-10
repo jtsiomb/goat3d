@@ -115,5 +115,10 @@ struct Chunk {
 };
 
 
+ChunkHeader chunk_header(int id);
+bool write_chunk_header(const ChunkHeader *hdr, goat3d_io *io);
+bool read_chunk_header(ChunkHeader *hdr, goat3d_io *io);
+void skip_chunk(const ChunkHeader *hdr, goat3d_io *io);
+
 
 #endif	// CHUNK_H_
