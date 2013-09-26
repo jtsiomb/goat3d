@@ -8,6 +8,11 @@ src = $(wildcard src/*.cc)
 obj = $(src:.cc=.o)
 dep = $(obj:.o=.d)
 
+openctm = libs/openctm/libopenctm.a
+
+extinc = -Ilibs/openctm
+extlibs = $(openctm)
+
 name = goat3d
 so_major = 0
 so_minor = 1
@@ -26,17 +31,20 @@ else
 	pic = -fPIC
 endif
 
-CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic)
-LDFLAGS = -lvmath -lanim
+CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
+LDFLAGS = $(extlibs) -lvmath -lanim
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
 
-$(lib_so): $(obj)
+$(lib_so): $(obj) $(extlibs)
 	$(CXX) -o $@ $(shared) $(obj) $(LDFLAGS)
 
-$(lib_a): $(obj)
+$(lib_a): $(obj) $(extlibs)
 	$(AR) rcs $@ $(obj)
+
+$(openctm):
+	$(MAKE) -C libs/openctm
 
 -include $(dep)
 

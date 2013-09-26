@@ -60,7 +60,12 @@ public:
 
 	bool load(goat3d_io *io);
 	bool save(goat3d_io *io) const;
+
+	bool loadxml(goat3d_io *io);
+	bool savexml(goat3d_io *io) const;
 };
 
+void io_fprintf(goat3d_io *io, const char *fmt, ...);
+void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
 
 #endif	// GOAT3D_IMPL_H_

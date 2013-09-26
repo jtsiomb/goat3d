@@ -18,33 +18,28 @@ enum {
 	// --- first level chunks ---
 	// children of CNK_SCENE
 	CNK_ENV,			// environmental parameters
-	CNK_MTL_LIST,		// material library
-	CNK_MESH_LIST,		// all the meshes hang under this chunk
-	CNK_LIGHT_LIST,		// likewise for lights
-	CNK_CAMERA_LIST,	// likewise for cameras
-	CNK_NODE_LIST,		// likewise for nodes
+	CNK_MTL,			// material
+	CNK_MESH,
+	CNK_LIGHT,
+	CNK_CAMERA,
+	CNK_NODE,
 
 	// --- second level chunks ---
 	// children of CNK_ENV
 	CNK_ENV_AMBIENT,	// ambient color, contains a single CNK_FLOAT3
 	CNK_ENV_FOG,
 
-	// children of CNK_*_LIST
-	CNK_MTL,
-	CNK_MESH,
-	CNK_LIGHT,
-	CNK_CAMERA,
-	CNK_NODE,
-
 	// --- third level chunks ---
 	// children of CNK_FOG
 	CNK_FOG_COLOR,		// fog color, contains a single CNK_FLOAT3
-	CNK_FOG_EXP,		// fog exponent, contains a single CNK_REAL
+	CNK_FOG_EXP,		// fog exponent, contains a single CNK_FLOAT
 
 	// children of CNK_MTL
+	CNK_MTL_NAME,		// has a single CNK_STRING
 	CNK_MTL_ATTR,		// material attribute, has a CNK_STRING for its name,
 						// a CNK_MTL_ATTR_VAL, and optionally a CNK_MTL_ATTR_MAP
 	// children of CNK_MTL_ATTR
+	CNK_MTL_ATTR_NAME,	// has a single CNK_STRING
 	CNK_MTL_ATTR_VAL,	// can have a single CNK_FLOAT, CNK_FLOAT3, or CNK_FLOAT4
 	CNK_MTL_ATTR_MAP,	// has a single CNK_STRING
 
@@ -60,6 +55,7 @@ enum {
 	CNK_MESH_COLOR_LIST,	// has a series of CNK_FLOAT4 chunks
 	CNK_MESH_BONES_LIST,	// has a series of CNK_INT or CNK_STRING chunks identifying the bone nodes
 	CNK_MESH_FACE_LIST,		// has a series of CNK_FACE chunks
+	CNK_MESH_FILE,			// optionally mesh data may be in another file, has a CNK_STRING filename
 
 	// child of CNK_MESH_FACE_LIST
 	CNK_MESH_FACE,			// has three CNK_INT chunks
@@ -90,14 +86,14 @@ enum {
 	CNK_NODE_LIGHT,			// same as CNK_NODE_MESH
 	CNK_NODE_CAMERA,		// same as CNK_NODE_MESH
 
-	CNK_NODE_POS,			// has a CNK_VEC3, position vector
-	CNK_NODE_ROT,			// has a CNK_VEC4, rotation quaternion (x, y, z imaginary, w real)
-	CNK_NODE_SCALE,			// has a CNK_VEC3, scaling
-	CNK_NODE_PIVOT,			// has a CNK_VEC3, pivot point
+	CNK_NODE_POS,			// has a CNK_FLOAT3, position vector
+	CNK_NODE_ROT,			// has a CNK_FLOAT4, rotation quaternion (x, y, z imaginary, w real)
+	CNK_NODE_SCALE,			// has a CNK_FLOAT3, scaling
+	CNK_NODE_PIVOT,			// has a CNK_FLOAT3, pivot point
 
-	CNK_NODE_MATRIX0,		// has a CNK_VEC4, first matrix row (4x3)
-	CNK_NODE_MATRXI1,		// has a CNK_VEC4, second matrix row (4x3)
-	CNK_NODE_MATRIX2,		// has a CNK_VEC4, third matrix row (4x3)
+	CNK_NODE_MATRIX0,		// has a CNK_FLOAT4, first matrix row (4x3)
+	CNK_NODE_MATRXI1,		// has a CNK_FLOAT4, second matrix row (4x3)
+	CNK_NODE_MATRIX2,		// has a CNK_FLOAT4, third matrix row (4x3)
 
 	MAX_NUM_CHUNKS
 };

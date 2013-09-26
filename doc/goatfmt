@@ -1,0 +1,110 @@
+Chunk structure
+---------------
+
+Leaf nodes which carry actual data are marked with <SINGLE_CHILD>, or
+[MULTIPLE_CHILDREN]. Where choice is involved, options are seperated with the |
+symbol.
+
+SCENE
+ +--ENV
+ |   +--AMBIENT
+ |   |   +--<FLOAT3>
+ |   +--FOG
+ |       +--FOG_COLOR
+ |       |   +--<FLOAT3>
+ |       +--FOG_EXP
+ |           +--<FLOAT>
+ +--MTL
+ |   +--MTL_NAME
+ |   |   +--<STRING>
+ |   +--MTL_ATTR
+ |       +--MTL_ATTR_NAME
+ |       |   +--<STRING>
+ |       +--MTL_ATTR_VAL
+ |       |   +--<FLOAT|FLOAT3|FLOAT4>
+ |       +--MTL_ATTR_MAP
+ |           +--<STRING>      (filename)
+ +--MESH
+ |   +--MESH_NAME
+ |   |   +--<STRING>
+ |   +--MESH_MATERIAL
+ |   |   +--<STRING>          (material name)
+ |   +--MESH_VERTEX_LIST
+ |   |   +--[FLOAT3]
+ |   +--MESH_NORMAL_LIST
+ |   |   +--[FLOAT3]
+ |   +--MESH_TANGENT_LIST
+ |   |   +--[FLOAT3]
+ |   +--MESH_TEXCOORD_LIST
+ |   |   +--[FLOAT3]
+ |   +--MESH_SKINWEIGHT_LIST
+ |   |   +--[FLOAT4]          (vector elements are the 4 skin weights/vertex)
+ |   +--MESH_SKINMATRIX_LIST
+ |   |   +--[INT4]            (vector elements are the 4 matrix indices/vertex)
+ |   +--MESH_COLOR_LIST
+ |   |   +--[FLOAT4]
+ |   +--MESH_BONES_LIST
+ |   |   +--[INT|STRING]      (list of bone nodes by name or index)
+ |   +--MESH_FACE_LIST
+ |   |   +--MESH_FACE
+ |   |       +--[INT]         (three INT chunks for the vertex indices)
+ |   +--MESH_FILE
+ |       +--<STRING>          (filename of mesh file to get all the data from)
+ +--LIGHT
+ |   +--LIGHT_NAME
+ |   |   +--<STRING>
+ |   +--LIGHT_POS
+ |   |   +--<FLOAT3>
+ |   +--LIGHT_COLOR
+ |   |   +--<FLOAT3>
+ |   +--LIGHT_ATTEN
+ |   |   +--<FLOAT3>           (constant, linear, and quadratic attenuation)
+ |   +--LIGHT_DISTANCE
+ |   |   +--<FLOAT>
+ |   +--LIGHT_DIR
+ |   |   +--<FLOAT3>
+ |   +--LIGHT_CONE_INNER
+ |   |   +--<FLOAT>
+ |   +--LIGHT_CONE_OUTER
+ |       +--<FLOAT>
+ +--CAMERA
+ |   +--CAMERA_NAME
+ |   |   +--<STRING>
+ |   +--CAMERA_POS
+ |   |   +--<FLOAT3>
+ |   +--CAMERA_TARGET
+ |   |   +--<FLOAT3>
+ |   +--CAMERA_FOV
+ |   |   +--<FLOAT>
+ |   +--CAMERA_NEARCLIP
+ |   |   +--<FLOAT>
+ |   +--CAMERA_FARCLIP
+ |       +--<FLOAT>
+ +--NODE
+     +--NODE_NAME
+     |   +--<STRING>
+     +--NODE_PARENT
+     |   +--<INT|STRING>
+     +--NODE_MESH|NODE_LIGHT|NODE_CAMERA
+     |   +--<INT|STRING>
+     +--NODE_POS
+     |   +--<FLOAT3>
+     +--NODE_ROT
+     |   +--<FLOAT4>           ([x, y, z], w <- real part)
+     +--NODE_SCALE
+     |   +--<FLOAT3>
+     +--NODE_PIVOT
+     |   +--<FLOAT3>
+     +--NODE_MATRIX0
+     |   +--<FLOAT4>           (first row)
+     +--NODE_MATRIX1
+     |   +--<FLOAT4>           (second row)
+     +--NODE_MATRIX2
+         +--<FLOAT4>           (third row)
+
+NOTES:
+ * Name chunks are mandatory. If something doesn't have a name, one must be made
+   up, even if it's just "object%d".
+ * In node chunks, both POS/ROT/SCALE, and MATRIX0/MATRIX1/MATRIX2 are mandatory
+   and they must agree. Makes it easy for the reader to pick the transformation
+   data in whichever way is more convenient.
