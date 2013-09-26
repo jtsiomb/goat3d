@@ -1,6 +1,6 @@
 #include <stdarg.h>
 #include "goat3d_impl.h"
-#include "chunk.h"
+#include "log.h"
 #include "openctm.h"
 
 static bool write_material(const Scene *scn, goat3d_io *io, const Material *mat, int level);
@@ -76,7 +76,9 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 	// then refer to that filename in the XML tags
 	xmlout(io, level, "<mesh>\n");
 	xmlout(io, level + 1, "<name string=\"%s\"/>\n", mesh->name.c_str());
-	xmlout(io, level + 1, "<material string=\"%s\"/>\n", mesh->material->name.c_str());
+	if(mesh->material) {
+		xmlout(io, level + 1, "<material string=\"%s\"/>\n", mesh->material->name.c_str());
+	}
 	xmlout(io, level + 1, "<file string=\"%s\"/>\n", mesh_filename);
 	xmlout(io, level, "</mesh>\n");
 	return true;
@@ -145,6 +147,7 @@ static void write_ctm_mesh(const Mesh *mesh, const char *fname)
 	 * probably in the comment field?
 	 */
 
+	logmsg(LOG_INFO, "saving CTM mesh file: %s\n", fname);
 	ctmSave(ctm, fname);
 
 	ctmFreeContext(ctm);

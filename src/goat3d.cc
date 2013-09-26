@@ -360,42 +360,44 @@ void goat3d_begin(struct goat3d_mesh *mesh, enum goat3d_im_primitive prim)
 
 void goat3d_end(void)
 {
-	static int tri_offs[] = {0, 1, 2};
-	static int quad_offs[] = {0, 1, 2, 0, 2, 3};
-	int *index_offs;
-
-	int num_faces, in_face_verts, out_face_verts;
 	switch(im_prim) {
 	case GOAT3D_TRIANGLES:
-		in_face_verts = 3;
-		out_face_verts = 3;
-		index_offs = tri_offs;
+		{
+			int num_faces = (int)im_mesh->vertices.size() / 3;
+			im_mesh->faces.resize(num_faces);
+
+			int vidx = 0;
+			for(int i=0; i<num_faces; i++) {
+				im_mesh->faces[i].v[0] = vidx++;
+				im_mesh->faces[i].v[1] = vidx++;
+				im_mesh->faces[i].v[2] = vidx++;
+			}
+		}
 		break;
 
 	case GOAT3D_QUADS:
-		in_face_verts = 4;
-		out_face_verts = 6;
-		index_offs = quad_offs;
+		{
+			int num_quads = (int)im_mesh->vertices.size() / 4;
+			im_mesh->faces.resize(num_quads * 2);
+
+			int vidx = 0;
+			for(int i=0; i<num_quads; i++) {
+				im_mesh->faces[i * 2].v[0] = vidx;
+				im_mesh->faces[i * 2].v[1] = vidx + 1;
+				im_mesh->faces[i * 2].v[2] = vidx + 2;
+
+				im_mesh->faces[i * 2 + 1].v[0] = vidx;
+				im_mesh->faces[i * 2 + 1].v[1] = vidx + 2;
+				im_mesh->faces[i * 2 + 1].v[2] = vidx + 3;
+
+				vidx += 4;
+			}
+		}
 		break;
 
 	default:
 		return;
 	};
-
-	num_faces = (int)im_mesh->vertices.size() / in_face_verts;
-	if(!num_faces) {
-		return;
-	}
-
-	im_mesh->faces.resize(num_faces);
-
-	int vidx = 0;
-	for(int i=0; i<num_faces; i++) {
-		for(int j=0; j<out_face_verts; j++) {
-			im_mesh->faces[i].v[j] = vidx + index_offs[j];
-		}
-		vidx += 4;
-	}
 }
 
 void goat3d_vertex3f(float x, float y, float z)
@@ -424,21 +426,25 @@ void goat3d_vertex3f(float x, float y, float z)
 void goat3d_normal3f(float x, float y, float z)
 {
 	im_norm = Vector3(x, y, z);
+	im_use[GOAT3D_MESH_ATTR_NORMAL] = true;
 }
 
 void goat3d_tangent3f(float x, float y, float z)
 {
 	im_tang = Vector3(x, y, z);
+	im_use[GOAT3D_MESH_ATTR_TANGENT] = true;
 }
 
 void goat3d_texcoord2f(float x, float y)
 {
 	im_texcoord = Vector2(x, y);
+	im_use[GOAT3D_MESH_ATTR_TEXCOORD] = true;
 }
 
 void goat3d_skin_weight4f(float x, float y, float z, float w)
 {
 	im_skinw = Vector4(x, y, z, w);
+	im_use[GOAT3D_MESH_ATTR_SKIN_WEIGHT] = true;
 }
 
 void goat3d_skin_matrix4i(int x, int y, int z, int w)
@@ -447,16 +453,18 @@ void goat3d_skin_matrix4i(int x, int y, int z, int w)
 	im_skinmat.y = y;
 	im_skinmat.z = z;
 	im_skinmat.w = w;
+	im_use[GOAT3D_MESH_ATTR_SKIN_MATRIX] = true;
 }
 
 void goat3d_color3f(float x, float y, float z)
 {
-	im_color = Vector4(x, y, z, 1.0f);
+	goat3d_color4f(x, y, z, 1.0f);
 }
 
 void goat3d_color4f(float x, float y, float z, float w)
 {
 	im_color = Vector4(x, y, z, w);
+	im_use[GOAT3D_MESH_ATTR_COLOR] = true;
 }
 
 void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
