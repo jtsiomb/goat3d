@@ -28,7 +28,7 @@ SCENE
  |   +--MESH_NAME
  |   |   +--<STRING>
  |   +--MESH_MATERIAL
- |   |   +--<STRING>          (material name)
+ |   |   +--<STRING|INT>      (material name or index)
  |   +--MESH_VERTEX_LIST
  |   |   +--[FLOAT3]
  |   +--MESH_NORMAL_LIST

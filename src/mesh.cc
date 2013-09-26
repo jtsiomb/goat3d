@@ -5,8 +5,6 @@ Mesh::Mesh()
 	material = 0;
 }
 
-Mesh::~Mesh() {}
-
 void Mesh::set_material(Material *mat)
 {
 	material = mat;

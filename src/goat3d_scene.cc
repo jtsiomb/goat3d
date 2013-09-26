@@ -198,6 +198,11 @@ bool Scene::load(goat3d_io *io)
 	return false;
 }
 
+bool Scene::loadxml(goat3d_io *io)
+{
+	return false;
+}
+
 // Scene::save is defined in goat3d_write.cc
 
 
@@ -244,7 +249,7 @@ void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap)
 		} while(retsz <= 0);
 	}
 
-	io->write(buf, sz, io->cls);
+	io->write(buf, retsz, io->cls);
 
 	if(buf != smallbuf) {
 		delete [] buf;

@@ -22,19 +22,19 @@ public:
 	std::vector<Vector3> vertices;
 	std::vector<Vector3> normals;
 	std::vector<Vector3> tangents;
-	std::vector<Vector3> texcoords;
+	std::vector<Vector2> texcoords;
 	std::vector<Vector4> skin_weights;
 	std::vector<Int4> skin_matrices;
 	std::vector<Vector4> colors;
-	std::vector<Node*> bones;
 	std::vector<Face> faces;
 
-	Mesh();
-	virtual ~Mesh();
+	std::vector<Node*> bones;
 
-	virtual void set_material(Material *mat);
-	virtual Material *get_material();
-	virtual const Material *get_material() const;
+	Mesh();
+
+	void set_material(Material *mat);
+	Material *get_material();
+	const Material *get_material() const;
 };
 
 #endif	// MESH_H_

@@ -10,6 +10,8 @@
 #include "material.h"
 #include "node.h"
 
+extern int goat_log_level;
+
 class Scene {
 private:
 	std::string name;

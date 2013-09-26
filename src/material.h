@@ -8,16 +8,9 @@
 struct MaterialAttrib {
 	Vector4 value;
 	std::string map;
-};
 
-#define MAT_ATTR_DIFFUSE		"diffuse"
-#define MAT_ATTR_SPECULAR		"specular"
-#define MAT_ATTR_SHININESS		"shininess"
-#define MAT_ATTR_NORMAL			"normal"
-#define MAT_ATTR_BUMP			"bump"
-#define MAT_ATTR_REFLECTION		"reflection"
-#define MAT_ATTR_TRANSMISSION	"transmission"
-#define MAT_ATTR_IOR			"ior"
+	MaterialAttrib() : value(1, 1, 1, 1) {}
+};
 
 class Material {
 private:

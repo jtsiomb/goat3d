@@ -31,6 +31,8 @@ else
 	pic = -fPIC
 endif
 
+CC = clang
+CXX = clang++
 CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
 LDFLAGS = $(extlibs) -lvmath -lanim
 
@@ -41,7 +43,7 @@ $(lib_so): $(obj) $(extlibs)
 	$(CXX) -o $@ $(shared) $(obj) $(LDFLAGS)
 
 $(lib_a): $(obj) $(extlibs)
-	$(AR) rcs $@ $(obj)
+	$(AR) rcs $@ $(obj) $(openctm)
 
 $(openctm):
 	$(MAKE) -C libs/openctm

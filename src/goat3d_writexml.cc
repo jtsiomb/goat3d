@@ -49,7 +49,7 @@ static bool write_material(const Scene *scn, goat3d_io *io, const Material *mat,
 		xmlout(io, level + 2, "<name string=\"%s\"/>\n", mat->get_attrib_name(i));
 
 		const MaterialAttrib &attr = (*mat)[i];
-		xmlout(io, level + 2, "<val float4=\"%.3f %.3f %.3f\"/>\n", attr.value.x,
+		xmlout(io, level + 2, "<val float4=\"%.3f %.3f %.3f %.3f\"/>\n", attr.value.x,
 				attr.value.y, attr.value.z, attr.value.w);
 		if(!attr.map.empty()) {
 			xmlout(io, level + 2, "<map string=\"%s\"/>\n", attr.map.c_str());
@@ -94,15 +94,7 @@ static void write_ctm_mesh(const Mesh *mesh, const char *fname)
 
 	// texture coordinates
 	if(!mesh->texcoords.empty()) {
-		CTMfloat *uvarray = new CTMfloat[vnum * 2 * sizeof *uvarray];
-		CTMfloat *uvptr = uvarray;
-
-		for(int i=0; i<vnum; i++) {
-			*uvptr++ = mesh->texcoords[i].x;
-			*uvptr++ = mesh->texcoords[i].y;
-		}
-		ctmAddUVMap(ctm, uvarray, "texcoord", 0);
-		delete [] uvarray;
+		ctmAddUVMap(ctm, &mesh->texcoords[0].x, "texcoord", 0);
 	}
 
 	// vertex colors
