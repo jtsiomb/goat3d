@@ -2,12 +2,17 @@ obj = main.o
 bin = goatprim
 
 goat_root = ../..
-libgoat = $(goat_root)/libgoat3d.so.0.1
+
+ifeq ($(shell uname -s), Darwin)
+	libgoat = $(goat_root)/libgoat3d.dylib
+else
+	libgoat = $(goat_root)/libgoat3d.so.0.1
+endif
 
 CC = clang
 CXX = clang++
 CFLAGS = -pedantic -Wall -g -I$(goat_root)/src
-LDFLAGS = $(libgoat) -Wl,-rpath=$(goat_root)
+LDFLAGS = $(libgoat) -Wl,-rpath $(goat_root)
 
 $(bin): $(obj) $(libgoat)
 	$(CXX) -o $@ $(obj) $(LDFLAGS)
