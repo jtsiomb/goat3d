@@ -32,6 +32,9 @@ public:
 
 	Mesh();
 
+	bool load(const char *fname);
+	bool save(const char *fname) const;
+
 	void set_material(Material *mat);
 	Material *get_material();
 	const Material *get_material() const;

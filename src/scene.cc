@@ -65,6 +65,11 @@ const Vector3 &Scene::get_ambient() const
 
 void Scene::add_material(Material *mat)
 {
+	if(mat->name.empty()) {
+		char buf[64];
+		sprintf(buf, "material%04d", (int)materials.size());
+		mat->name = std::string(buf);
+	}
 	materials.push_back(mat);
 }
 
@@ -91,6 +96,11 @@ int Scene::get_material_count() const
 
 void Scene::add_mesh(Mesh *mesh)
 {
+	if(mesh->name.empty()) {
+		char buf[64];
+		sprintf(buf, "mesh%04d", (int)meshes.size());
+		mesh->name = std::string(buf);
+	}
 	meshes.push_back(mesh);
 }
 
@@ -198,12 +208,9 @@ bool Scene::load(goat3d_io *io)
 	return false;
 }
 
-bool Scene::loadxml(goat3d_io *io)
-{
-	return false;
-}
-
+// Scene::loadxml is defined in goat3d_readxml.cc
 // Scene::save is defined in goat3d_write.cc
+// Scene::savexml is defined in goat3d_writexml.cc
 
 
 void io_fprintf(goat3d_io *io, const char *fmt, ...)

@@ -9,9 +9,10 @@ obj = $(src:.cc=.o)
 dep = $(obj:.o=.d)
 
 openctm = libs/openctm/libopenctm.a
+tinyxml2 = libs/tinyxml2/libtinyxml2.a
 
-extinc = -Ilibs/openctm
-extlibs = $(openctm)
+extinc = -Ilibs/openctm -Ilibs/tinyxml2
+extlibs = $(openctm) $(tinyxml2)
 
 name = goat3d
 so_major = 0
@@ -47,6 +48,9 @@ $(lib_a): $(obj) $(extlibs)
 
 $(openctm):
 	$(MAKE) -C libs/openctm
+
+$(tinyxml2):
+	$(MAKE) -C libs/tinyxml2
 
 -include $(dep)
 

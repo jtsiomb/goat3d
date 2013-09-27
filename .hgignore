@@ -10,3 +10,7 @@
 x64/
 \.tlog$
 ^tags$
+\.xml$
+\.ctm$
+goatprim$
+goatview$
