@@ -4,17 +4,18 @@ dep = $(obj:.o=.d)
 bin = goatview
 
 goat_root = ..
-libgoat = $(goat_root)/libgoat3d.so.0.1
 
 CC = clang
 CPP = clang -E
 CFLAGS = -pedantic -Wall -g -I$(goat_root)/src
-LDFLAGS = $(libgoat) -Wl,-rpath=$(goat_root) $(libgl)
+LDFLAGS = $(libgoat) $(libgl)
 
 ifeq ($(shell uname -s), Darwin)
 	libgl = -framework OpenGL -framework GLUT -lGLEW
+	libgoat = $(goat_root)/libgoat3d.dylib
 else
 	libgl = -lGL -lGLU -lglut -lGLEW
+	libgoat = $(goat_root)/libgoat3d.so.0.1 -Wl,-rpath=$(goat_root) 
 endif
 
 $(bin): $(obj) $(libgoat)
