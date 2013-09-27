@@ -208,12 +208,9 @@ bool Scene::load(goat3d_io *io)
 	return false;
 }
 
-bool Scene::loadxml(goat3d_io *io)
-{
-	return false;
-}
-
+// Scene::loadxml is defined in goat3d_readxml.cc
 // Scene::save is defined in goat3d_write.cc
+// Scene::savexml is defined in goat3d_writexml.cc
 
 
 void io_fprintf(goat3d_io *io, const char *fmt, ...)

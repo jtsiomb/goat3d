@@ -1,11 +1,9 @@
 #include <stdarg.h>
 #include "goat3d_impl.h"
 #include "log.h"
-#include "openctm.h"
 
 static bool write_material(const Scene *scn, goat3d_io *io, const Material *mat, int level);
 static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int idx, int level);
-static void write_ctm_mesh(const Mesh *mesh, const char *fname);
 static bool write_light(const Scene *scn, goat3d_io *io, const Light *light, int level);
 static bool write_camera(const Scene *scn, goat3d_io *io, const Camera *cam, int level);
 static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int level);
@@ -72,7 +70,9 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 	char *mesh_filename = (char*)alloca(strlen(prefix) + 32);
 	sprintf(mesh_filename, "%s-mesh%04d.ctm", prefix, idx);
 
-	write_ctm_mesh(mesh, mesh_filename);
+	if(!mesh->save(mesh_filename)) {
+		return false;
+	}
 
 	// then refer to that filename in the XML tags
 	xmlout(io, level, "<mesh>\n");
@@ -83,75 +83,6 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 	xmlout(io, level + 1, "<file string=\"%s\"/>\n", mesh_filename);
 	xmlout(io, level, "</mesh>\n\n");
 	return true;
-}
-
-static void write_ctm_mesh(const Mesh *mesh, const char *fname)
-{
-	int vnum = (int)mesh->vertices.size();
-
-	CTMcontext ctm = ctmNewContext(CTM_EXPORT);
-
-	// vertices, normals, and face-vertex indices
-	ctmDefineMesh(ctm, &mesh->vertices[0].x, vnum, (CTMuint*)mesh->faces[0].v,
-			mesh->faces.size(), mesh->normals.empty() ? 0 : &mesh->normals[0].x);
-
-	// texture coordinates
-	if(!mesh->texcoords.empty()) {
-		ctmAddUVMap(ctm, &mesh->texcoords[0].x, "texcoord", 0);
-	}
-
-	// vertex colors
-	if(!mesh->colors.empty()) {
-		ctmAddAttribMap(ctm, &mesh->colors[0].x, "color");
-	}
-
-	// skin weights
-	if(!mesh->skin_weights.empty()) {
-		ctmAddAttribMap(ctm, &mesh->skin_weights[0].x, "skin_weight");
-	}
-
-	// if either of the non-float4 attributes are present we need to make a tmp array
-	CTMfloat *attr_array = 0;
-	if(!mesh->tangents.empty() || !mesh->skin_matrices.empty()) {
-		attr_array = new CTMfloat[vnum * 4 * sizeof *attr_array];
-	}
-
-	// tangents
-	if(!mesh->tangents.empty()) {
-		CTMfloat *ptr = attr_array;
-
-		for(int i=0; i<vnum; i++) {
-			*ptr++ = mesh->tangents[i].x;
-			*ptr++ = mesh->tangents[i].y;
-			*ptr++ = mesh->tangents[i].z;
-			*ptr++ = 1.0;
-		}
-		ctmAddAttribMap(ctm, attr_array, "tangent");
-	}
-
-	// skin matrix indices (4 per vertex)
-	if(!mesh->skin_matrices.empty()) {
-		CTMfloat *ptr = attr_array;
-
-		for(int i=0; i<vnum; i++) {
-			*ptr++ = (float)mesh->skin_matrices[i].x;
-			*ptr++ = (float)mesh->skin_matrices[i].y;
-			*ptr++ = (float)mesh->skin_matrices[i].z;
-			*ptr++ = (float)mesh->skin_matrices[i].w;
-		}
-		ctmAddAttribMap(ctm, attr_array, "skin_matrix");
-	}
-
-	delete [] attr_array;
-
-	/* TODO find a way to specify the nodes participating in the skinning of this mesh
-	 * probably in the comment field?
-	 */
-
-	logmsg(LOG_INFO, "saving CTM mesh file: %s\n", fname);
-	ctmSave(ctm, fname);
-
-	ctmFreeContext(ctm);
 }
 
 static bool write_light(const Scene *scn, goat3d_io *io, const Light *light, int level)

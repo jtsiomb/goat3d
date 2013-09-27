@@ -155,6 +155,9 @@ void goat3d_color4f(float x, float y, float z, float w);
 
 void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
 
+int goat3d_get_mesh_count(struct goat3d *g);
+struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx);
+
 #ifdef __cplusplus
 }
 #endif

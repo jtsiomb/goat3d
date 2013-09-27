@@ -243,15 +243,7 @@ int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh)
 	return (int)mesh->faces.size();
 }
 
-#if __cplusplus >= 201103L
-#define MOVE(x)	std::move(x)
-#else
-#define MOVE(x) x
-#endif
-
-#define VECDATA(type, data, num) \
-	MOVE(std::vector<type>((type*)(data), (type*)(data) + (num)))
-
+// VECDATA is in goat3d_impl.h
 void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, const void *data, int vnum)
 {
 	if(attrib == GOAT3D_MESH_ATTR_VERTEX) {
@@ -470,6 +462,16 @@ void goat3d_color4f(float x, float y, float z, float w)
 void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
 {
 	g->scn->add_mesh(mesh);
+}
+
+int goat3d_get_mesh_count(struct goat3d *g)
+{
+	return g->scn->get_mesh_count();
+}
+
+struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx)
+{
+	return (goat3d_mesh*)g->scn->get_mesh(idx);
 }
 
 

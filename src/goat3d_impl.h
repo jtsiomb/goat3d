@@ -12,6 +12,16 @@
 
 extern int goat_log_level;
 
+#if __cplusplus >= 201103L
+#define MOVE(x)	std::move(x)
+#else
+#define MOVE(x) x
+#endif
+
+#define VECDATA(type, data, num) \
+	MOVE(std::vector<type>((type*)(data), (type*)(data) + (num)))
+
+
 class Scene {
 private:
 	std::string name;
