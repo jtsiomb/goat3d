@@ -17,7 +17,8 @@ bool Scene::savexml(goat3d_io *io) const
 
 	// write environment stuff
 	xmlout(io, 1, "<env>\n");
-	xmlout(io, 1, "</env>\n");
+	xmlout(io, 2, "<ambient float3=\"%g %g %g\"/>\n", ambient.x, ambient.y, ambient.z);
+	xmlout(io, 1, "</env>\n\n");
 
 	for(size_t i=0; i<materials.size(); i++) {
 		write_material(this, io, materials[i], 1);
@@ -49,14 +50,14 @@ static bool write_material(const Scene *scn, goat3d_io *io, const Material *mat,
 		xmlout(io, level + 2, "<name string=\"%s\"/>\n", mat->get_attrib_name(i));
 
 		const MaterialAttrib &attr = (*mat)[i];
-		xmlout(io, level + 2, "<val float4=\"%.3f %.3f %.3f %.3f\"/>\n", attr.value.x,
+		xmlout(io, level + 2, "<val float4=\"%g %g %g %g\"/>\n", attr.value.x,
 				attr.value.y, attr.value.z, attr.value.w);
 		if(!attr.map.empty()) {
 			xmlout(io, level + 2, "<map string=\"%s\"/>\n", attr.map.c_str());
 		}
 		xmlout(io, level + 1, "</attr>\n");
 	}
-	xmlout(io, level, "</mtl>\n");
+	xmlout(io, level, "</mtl>\n\n");
 	return true;
 }
 
@@ -80,7 +81,7 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 		xmlout(io, level + 1, "<material string=\"%s\"/>\n", mesh->material->name.c_str());
 	}
 	xmlout(io, level + 1, "<file string=\"%s\"/>\n", mesh_filename);
-	xmlout(io, level, "</mesh>\n");
+	xmlout(io, level, "</mesh>\n\n");
 	return true;
 }
 

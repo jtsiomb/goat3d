@@ -4,10 +4,17 @@
 #include <math.h>
 #include "goat3d.h"
 
-#define DEF_USUB	16
-#define DEF_VSUB	8
-#define DEF_SIZE	1.0
-#define DEF_OUTER	0.25
+#define DEF_USUB		16
+#define DEF_VSUB		8
+#define DEF_SIZE		1.0
+#define DEF_OUTER		0.25
+#define DEF_DIFFUSE_R	0.6
+#define DEF_DIFFUSE_G	0.6
+#define DEF_DIFFUSE_B	0.6
+#define DEF_SPECULAR_R	0.8
+#define DEF_SPECULAR_G	0.8
+#define DEF_SPECULAR_B	0.8
+#define DEF_SHININESS	60.0
 
 enum { BOX, SPHERE, TORUS };
 
@@ -26,6 +33,9 @@ int main(int argc, char **argv)
 	int vsub = DEF_VSUB;
 	float size = DEF_SIZE;
 	float outer = DEF_OUTER;
+	float diffuse[] = {DEF_DIFFUSE_R, DEF_DIFFUSE_G, DEF_DIFFUSE_B, 1.0};
+	float specular[] = {DEF_SPECULAR_R, DEF_SPECULAR_G, DEF_SPECULAR_B, 1.0};
+	float shininess = DEF_SHININESS;
 	struct goat3d *goat;
 	struct goat3d_material *mtl;
 	struct goat3d_mesh *mesh;
@@ -66,6 +76,31 @@ int main(int argc, char **argv)
 				return 1;
 			}
 
+		} else if(strcmp(argv[i], "-diffuse") == 0) {
+			if(!argv[i + 1] || !argv[i + 2] || !argv[i + 3]) {
+				fprintf(stderr, "-diffuse must be followed by 3 numbers (r, g, b)\n");
+				return 1;
+			}
+			diffuse[0] = atof(argv[++i]);
+			diffuse[1] = atof(argv[++i]);
+			diffuse[2] = atof(argv[++i]);
+
+		} else if(strcmp(argv[i], "-specular") == 0) {
+			if(!argv[i + 1] || !argv[i + 2] || !argv[i + 3]) {
+				fprintf(stderr, "-specular must be followed by 3 numbers (r, g, b)\n");
+				return 1;
+			}
+			specular[0] = atof(argv[++i]);
+			specular[1] = atof(argv[++i]);
+			specular[2] = atof(argv[++i]);
+
+		} else if(strcmp(argv[i], "-shininess") == 0) {
+			if(!argv[i + 1]) {
+				fprintf(stderr, "-shininess must be followed by a number\n");
+				return 1;
+			}
+			shininess = atof(argv[++i]);
+
 		} else if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "-help") == 0) {
 			printf("Usage: %s [filename] [options]\n", argv[0]);
 			printf("Options:\n");
@@ -76,6 +111,9 @@ int main(int argc, char **argv)
 			printf(" -outer <n>    torus outer radius (default: %g)\n", DEF_OUTER);
 			printf(" -usub <n>     subdivisions along the horizontal direction (default: %d)\n", DEF_USUB);
 			printf(" -vsub <n>     subdivisions along the vertical direction (default: %d)\n", DEF_VSUB);
+			printf(" -diffuse <r> <g> <b>    material diffuse color (default: %g %g %g)\n", DEF_DIFFUSE_R, DEF_DIFFUSE_G, DEF_DIFFUSE_B);
+			printf(" -specular <r> <g> <b>   material specular color (default: %g %g %g)\n", DEF_SPECULAR_R, DEF_SPECULAR_G, DEF_SPECULAR_B);
+			printf(" -shininess <n>          material shininess (default: %g)\n", DEF_SHININESS);
 			printf(" -h, -help     print usage information and exit\n");
 			return 0;
 
@@ -97,7 +135,9 @@ int main(int argc, char **argv)
 
 	mtl = goat3d_create_mtl();
 	goat3d_set_mtl_name(mtl, "mat");
-	goat3d_set_mtl_attrib4f(mtl, GOAT3D_MAT_ATTR_DIFFUSE, 1, 0, 0, 1);
+	goat3d_set_mtl_attrib(mtl, GOAT3D_MAT_ATTR_DIFFUSE, diffuse);
+	goat3d_set_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SPECULAR, specular);
+	goat3d_set_mtl_attrib1f(mtl, GOAT3D_MAT_ATTR_SHININESS, shininess);
 	goat3d_add_mtl(goat, mtl);
 
 	mesh = goat3d_create_mesh();
