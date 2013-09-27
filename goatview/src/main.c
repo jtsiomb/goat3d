@@ -102,7 +102,24 @@ static void draw_mesh(struct goat3d_mesh *mesh)
 	int *vidx;
 
 	if((mtl = goat3d_get_mesh_mtl(mesh))) {
-		/* TODO */
+		float white[] = {1, 1, 1, 1};
+		float black[] = {0, 0, 0, 0};
+		float zero = 0.0;
+		const float *diffuse, *specular, *shininess;
+
+		if(!(diffuse = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_DIFFUSE))) {
+			diffuse = white;
+		}
+		if(!(specular = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SPECULAR))) {
+			specular = black;
+		}
+		if(!(shininess = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SHININESS))) {
+			shininess = &zero;
+		}
+
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffuse);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specular);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, *shininess);
 	}
 
 	vnum = goat3d_get_mesh_attrib_count(mesh, GOAT3D_MESH_ATTR_VERTEX);
