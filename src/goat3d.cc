@@ -487,7 +487,7 @@ void goat3d_set_node_name(struct goat3d_node *node, const char *name)
 	node->set_name(name);
 }
 
-const char *goat3d_get_node_name(struct goat3d_node *node)
+const char *goat3d_get_node_name(const struct goat3d_node *node)
 {
 	return node->get_name();
 }
@@ -497,68 +497,100 @@ void goat3d_set_node_object(struct goat3d_node *node, enum goat3d_node_type type
 	node->set_object((Object*)obj);
 }
 
-// TODO cont.
-
-void *goat3d_get_node_object(struct goat3d_node *node)
+void *goat3d_get_node_object(const struct goat3d_node *node)
 {
-	return 0;
+	return (void*)node->get_object();
 }
 
-enum goat3d_node_type goat3d_get_node_type(struct goat3d_node *node)
+enum goat3d_node_type goat3d_get_node_type(const struct goat3d_node *node)
 {
-	return GOAT3D_NODE_MESH;	// TODO
+	const Object *obj = node->get_object();
+	if(dynamic_cast<const Mesh*>(obj)) {
+		return GOAT3D_NODE_MESH;
+	}
+	if(dynamic_cast<const Light*>(obj)) {
+		return GOAT3D_NODE_LIGHT;
+	}
+	if(dynamic_cast<const Camera*>(obj)) {
+		return GOAT3D_NODE_CAMERA;
+	}
+
+	return GOAT3D_NODE_NULL;
 }
 
 void goat3d_add_node_child(struct goat3d_node *node, struct goat3d_node *child)
 {
+	node->add_child(node);
 }
 
-int goat3d_get_node_child_count(struct goat3d_node *node)
+int goat3d_get_node_child_count(const struct goat3d_node *node)
 {
-	return 0;
+	return node->get_children_count();
 }
 
-struct goat3d_node *goat3d_get_node_child(struct goat3d_node *node, int idx)
+struct goat3d_node *goat3d_get_node_child(const struct goat3d_node *node, int idx)
 {
-	return 0;
+	return (goat3d_node*)node->get_child(idx);
 }
 
 void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec)
 {
+	node->set_position(Vector3(x, y, z), tmsec);
 }
 
 void goat3d_set_node_rotation(struct goat3d_node *node, float qx, float qy, float qz, float qw, long tmsec)
 {
+	node->set_rotation(Quaternion(qw, qx, qy, qz), tmsec);
 }
 
 void goat3d_set_node_scaling(struct goat3d_node *node, float sx, float sy, float sz, long tmsec)
 {
+	node->set_scaling(Vector3(sx, sy, sz), tmsec);
 }
 
 void goat3d_set_node_pivot(struct goat3d_node *node, float px, float py, float pz)
 {
+	node->set_pivot(Vector3(px, py, pz));
 }
 
 
-void goat3d_get_node_position(struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
+void goat3d_get_node_position(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
+	Vector3 pos = node->get_position(tmsec);
+	*xptr = pos.x;
+	*yptr = pos.y;
+	*zptr = pos.z;
 }
 
-void goat3d_get_node_rotation(struct goat3d_node *node, float *xptr, float *yptr, float *zptr, float *wptr, long tmsec)
+void goat3d_get_node_rotation(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, float *wptr, long tmsec)
 {
+	Quaternion q = node->get_rotation(tmsec);
+	*xptr = q.v.x;
+	*yptr = q.v.y;
+	*zptr = q.v.z;
+	*wptr = q.s;
 }
 
-void goat3d_get_node_scaling(struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
+void goat3d_get_node_scaling(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
+	Vector3 scale = node->get_scaling(tmsec);
+	*xptr = scale.x;
+	*yptr = scale.y;
+	*zptr = scale.z;
 }
 
-void goat3d_get_node_pivot(struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
+void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
 {
+	Vector3 pivot = node->get_pivot();
+	*xptr = pivot.x;
+	*yptr = pivot.y;
+	*zptr = pivot.z;
 }
 
 
-void goat3d_get_node_matrix(struct goat3d_node *node, float *matrix, long tmsec)
+void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec)
 {
+	node->get_xform(tmsec, (Matrix4x4*)matrix);
 }
 
 

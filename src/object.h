@@ -10,6 +10,8 @@ public:
 
 	Vector3 pos;
 	Quaternion rot;
+
+	virtual ~Object() {};
 };
 
 #endif	// OBJECT_H_
