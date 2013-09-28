@@ -5,6 +5,18 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{bbf568eb-077e-4cb6-8607-e6a016ab7360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\tinyxml2">
+      <UniqueIdentifier>{8215d0ae-e53d-4dd7-8ca0-ba4470326776}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\openctm">
+      <UniqueIdentifier>{d8a998b8-6390-40ac-b62a-8e5dbf61d437}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\openctm\liblzma">
+      <UniqueIdentifier>{18a85bea-ddb2-49a1-a7b1-bd11b23d5549}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h">
@@ -37,6 +49,45 @@
     <ClInclude Include="src\object.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\log.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\tinyxml2\tinyxml2.h">
+      <Filter>libs\tinyxml2</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\internal.h">
+      <Filter>libs\openctm</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\openctm.h">
+      <Filter>libs\openctm</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\openctmpp.h">
+      <Filter>libs\openctm</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\Alloc.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\LzFind.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\LzHash.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\LzmaDec.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\LzmaEnc.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\LzmaLib.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\NameMangle.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\openctm\liblzma\Types.h">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\goat3d.cc">
@@ -59,6 +110,57 @@
     </ClCompile>
     <ClCompile Include="src\node.cc">
       <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\chunk.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\goat3d_readxml.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\goat3d_write.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\goat3d_writexml.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\log.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scene.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\tinyxml2\tinyxml2.cpp">
+      <Filter>libs\tinyxml2</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\compressMG1.c">
+      <Filter>libs\openctm</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\compressMG2.c">
+      <Filter>libs\openctm</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\compressRAW.c">
+      <Filter>libs\openctm</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\openctm.c">
+      <Filter>libs\openctm</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\stream.c">
+      <Filter>libs\openctm</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\liblzma\Alloc.c">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\liblzma\LzFind.c">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\liblzma\LzmaDec.c">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\liblzma\LzmaEnc.c">
+      <Filter>libs\openctm\liblzma</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\openctm\liblzma\LzmaLib.c">
+      <Filter>libs\openctm\liblzma</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

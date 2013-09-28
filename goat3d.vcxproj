@@ -19,11 +19,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libs\openctm\internal.h" />
+    <ClInclude Include="libs\openctm\liblzma\Alloc.h" />
+    <ClInclude Include="libs\openctm\liblzma\LzFind.h" />
+    <ClInclude Include="libs\openctm\liblzma\LzHash.h" />
+    <ClInclude Include="libs\openctm\liblzma\LzmaDec.h" />
+    <ClInclude Include="libs\openctm\liblzma\LzmaEnc.h" />
+    <ClInclude Include="libs\openctm\liblzma\LzmaLib.h" />
+    <ClInclude Include="libs\openctm\liblzma\NameMangle.h" />
+    <ClInclude Include="libs\openctm\liblzma\Types.h" />
+    <ClInclude Include="libs\openctm\openctm.h" />
+    <ClInclude Include="libs\openctm\openctmpp.h" />
+    <ClInclude Include="libs\tinyxml2\tinyxml2.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\chunk.h" />
     <ClInclude Include="src\goat3d.h" />
     <ClInclude Include="src\goat3d_impl.h" />
     <ClInclude Include="src\light.h" />
+    <ClInclude Include="src\log.h" />
     <ClInclude Include="src\material.h" />
     <ClInclude Include="src\mesh.h" />
     <ClInclude Include="src\node.h" />
@@ -31,12 +44,29 @@
     <ClInclude Include="src\xform_node.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libs\openctm\compressMG1.c" />
+    <ClCompile Include="libs\openctm\compressMG2.c" />
+    <ClCompile Include="libs\openctm\compressRAW.c" />
+    <ClCompile Include="libs\openctm\liblzma\Alloc.c" />
+    <ClCompile Include="libs\openctm\liblzma\LzFind.c" />
+    <ClCompile Include="libs\openctm\liblzma\LzmaDec.c" />
+    <ClCompile Include="libs\openctm\liblzma\LzmaEnc.c" />
+    <ClCompile Include="libs\openctm\liblzma\LzmaLib.c" />
+    <ClCompile Include="libs\openctm\openctm.c" />
+    <ClCompile Include="libs\openctm\stream.c" />
+    <ClCompile Include="libs\tinyxml2\tinyxml2.cpp" />
     <ClCompile Include="src\camera.cc" />
+    <ClCompile Include="src\chunk.cc" />
     <ClCompile Include="src\goat3d.cc" />
+    <ClCompile Include="src\goat3d_readxml.cc" />
+    <ClCompile Include="src\goat3d_write.cc" />
+    <ClCompile Include="src\goat3d_writexml.cc" />
     <ClCompile Include="src\light.cc" />
+    <ClCompile Include="src\log.cc" />
     <ClCompile Include="src\material.cc" />
     <ClCompile Include="src\mesh.cc" />
     <ClCompile Include="src\node.cc" />
+    <ClCompile Include="src\scene.cc" />
     <ClCompile Include="src\xform_node.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -113,8 +143,9 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -147,8 +178,9 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
