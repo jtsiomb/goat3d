@@ -10,6 +10,7 @@
 #include "IGame.h"
 #include "IGameExport.h"
 #include "IConversionmanager.h"
+#include "goat3d.h"
 #include "config.h"
 
 
@@ -48,7 +49,9 @@ public:
 
 	int DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent = FALSE, DWORD opt = 0);
 
-	bool export_materials(FILE *fp);
+	void export_materials(goat3d *goat);
+	void export_meshes(goat3d *goat);
+	void process_node(goat3d *goat, IGameNode *maxnode);
 };
 
 
@@ -108,15 +111,8 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	char fname[512];
 	wcstombs(fname, name, sizeof fname - 1);
 
-	FILE *fp = fopen(fname, "wb");
-	if(!fp) {
-		fprintf(logfile, "failed to open %s for writting: %s", fname, strerror(errno));
-		return IMPEXP_FAIL;
-	}
-
 	if(!(igame = GetIGameInterface())) {
 		fprintf(logfile, "failed to get the igame interface\n");
-		fclose(fp);
 		return IMPEXP_FAIL;
 	}
 	IGameConversionManager *cm = GetConversionManager();
@@ -124,64 +120,128 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	igame->InitialiseIGame();
 	igame->SetStaticFrame(0);
 
-	export_materials(fp);
+	goat3d *goat = goat3d_create();
 
-	fclose(fp);
+	export_materials(goat);
+	export_meshes(goat);
 
+	if(goat3d_save(goat, fname) == -1) {
+		goat3d_free(goat);
+		return IMPEXP_FAIL;
+	}
+
+	// process all nodes
+	for(int i=0; i<igame->GetTopLevelNodeCount(); i++) {
+		IGameNode *node = igame->GetTopLevelNode(i);
+		process_node(goat, node);
+	}
+
+	goat3d_free(goat);
 	return IMPEXP_SUCCESS;
 }
 
-bool GoatExporter::export_materials(FILE *fp)
+static const char *max_string(const MCHAR *wstr)
+{
+	if(!wstr) return 0;
+	static char str[512];
+	wcstombs(str, wstr, sizeof str - 1);
+	return str;
+}
+
+void GoatExporter::export_materials(goat3d *goat)
 {
 	IGameProperty *prop;
 
 	int num_mtl = igame->GetRootMaterialCount();
-	fprintf(fp, "number of materials: %d\n", num_mtl);
-
 	for(int i=0; i<num_mtl; i++) {
-		IGameMaterial *mtl = igame->GetRootMaterial(i);
-		if(mtl) {
-			Point3 diffuse(1, 1, 1);
-			Point3 specular(0, 0, 0);
-			float shin = 1.0, sstr = 1.0;
-			char name[512] = "unnamed";
+		IGameMaterial *maxmtl = igame->GetRootMaterial(i);
+		if(maxmtl) {
+			goat3d_material *mtl = goat3d_create_mtl();
 
-			const MCHAR *wname = mtl->GetMaterialName();
-			if(wname) {
-				wcstombs(name, wname, sizeof name - 1);
+			const char *name = max_string(maxmtl->GetMaterialName());
+			if(name) {
+				goat3d_set_mtl_name(mtl, name);
 			}
 
-			if((prop = mtl->GetDiffuseData())) {
+			// diffuse
+			if((prop = maxmtl->GetDiffuseData())) {
+				Point3 diffuse(1, 1, 1);
 				prop->GetPropertyValue(diffuse);
+				goat3d_set_mtl_attrib3f(mtl, GOAT3D_MAT_ATTR_DIFFUSE, diffuse[0],
+					diffuse[1], diffuse[2]);
 			}
-			if((prop = mtl->GetSpecularData())) {
+			// specular
+			if((prop = maxmtl->GetSpecularData())) {
+				Point3 specular(0, 0, 0);
 				prop->GetPropertyValue(specular);
+
+				float sstr = 1.0;
+				if((prop = maxmtl->GetSpecularLevelData())) {
+					prop->GetPropertyValue(sstr);
+				}
+				goat3d_set_mtl_attrib3f(mtl, GOAT3D_MAT_ATTR_SPECULAR, specular[0] * sstr,
+					specular[1] * sstr, specular[2] * sstr);
 			}
-			if((prop = mtl->GetSpecularLevelData())) {
-				prop->GetPropertyValue(sstr);
-			}
-			if((prop = mtl->GetGlossinessData())) {
+			// shininess
+			if((prop = maxmtl->GetGlossinessData())) {
+				float shin;
 				prop->GetPropertyValue(shin);
+				goat3d_set_mtl_attrib1f(mtl, GOAT3D_MAT_ATTR_SHININESS, shin * 100.0);
 			}
 
-			fprintf(fp, "Material %d (%s):\n", i, name);
-			fprintf(fp, "  diffuse: %f %f %f\n", diffuse[0], diffuse[1], diffuse[2]);
-			fprintf(fp, "  specular: %f %f %f\n", specular[0] * sstr, specular[1] * sstr, specular[2] * sstr);
-			fprintf(fp, "  shininess: %f\n", shin * 100.0);
+			// textures
+			for(int j=0; j<maxmtl->GetNumberOfTextureMaps(); j++) {
+				IGameTextureMap *tex = maxmtl->GetIGameTextureMap(j);
 
-			for(int j=0; j<mtl->GetNumberOfTextureMaps(); j++) {
-				IGameTextureMap *tex = mtl->GetIGameTextureMap(j);
-				const MCHAR *wfname = tex->GetBitmapFileName();
-				if(wfname) {
-					char fname[512];
-					wcstombs(fname, wfname, sizeof fname - 1);
-					fprintf(fp, "  texture%d: %s\n", j, fname);
+				const char *fname = max_string(tex->GetBitmapFileName());
+				if(!fname) {
+					continue;
+				}
+
+				int slot = tex->GetStdMapSlot();
+				switch(slot) {
+				case ID_DI:	// diffuse
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_DIFFUSE, fname);
+					break;
+
+				case ID_SP:
+				case ID_SS:
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_SPECULAR, fname);
+					break;
+
+				case ID_SH:
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_SHININESS, fname);
+					break;
+
+				case ID_BU:
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_NORMAL, fname);
+					break;
+
+				case ID_RL:
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_REFLECTION, fname);
+					break;
+
+				case ID_RR:
+					goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_TRANSMISSION, fname);
+					break;
+
+				default:
+					break;
 				}
 			}
+
+			goat3d_add_mtl(goat, mtl);
 		}
 	}
+}
 
-	return true;
+void GoatExporter::export_meshes(goat3d *goat)
+{
+	Tab<IGameNode*> meshes = igame->GetIGameNodeByType(IGameObject::IGAME_MESH);
+
+	for(int i=0; i<meshes.Count(); i++) {
+		const char *name = max_string(meshes[i]->GetName());
+	}
 }
 
 // ------------------------------------------
