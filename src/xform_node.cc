@@ -11,6 +11,8 @@ XFormNode::XFormNode()
 {
 	anm = new anm_node;
 	anm_init_node(anm);
+
+	parent = 0;
 }
 
 XFormNode::~XFormNode()
@@ -55,6 +57,7 @@ void XFormNode::add_child(XFormNode *child)
 {
 	children.push_back(child);
 	anm_link_node(anm, child->anm);
+	child->parent = this;
 }
 
 void XFormNode::remove_child(XFormNode *child)
@@ -65,6 +68,7 @@ void XFormNode::remove_child(XFormNode *child)
 		children.erase(it);
 		anm_unlink_node(anm, child->anm);
 	}
+	child->parent = 0;
 }
 
 int XFormNode::get_children_count() const
@@ -86,6 +90,11 @@ const XFormNode *XFormNode::get_child(int idx) const
 		return children[idx];
 	}
 	return 0;
+}
+
+XFormNode *XFormNode::get_parent() const
+{
+	return parent;
 }
 
 void XFormNode::set_position(const Vector3 &pos, long tmsec)

@@ -21,6 +21,7 @@ class XFormNode {
 private:
 	struct anm_node *anm;
 	std::vector<XFormNode*> children;
+	XFormNode *parent;
 
 	Interp interp;
 	Extrap extrap;
@@ -51,6 +52,7 @@ public:
 	virtual XFormNode *get_child(int idx);
 	virtual const XFormNode *get_child(int idx) const;
 
+	virtual XFormNode *get_parent() const;
 
 	virtual void set_position(const Vector3 &pos, long tmsec = 0);
 	virtual Vector3 get_node_position(long tmsec = 0) const;

@@ -97,6 +97,46 @@ static bool write_camera(const Scene *scn, goat3d_io *io, const Camera *cam, int
 
 static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int level)
 {
+	xmlout(io, level, "<node>\n");
+	xmlout(io, level + 1, "<name string=\"%s\"/>\n", node->get_name());
+
+	XFormNode *parent = node->get_parent();
+	if(parent) {
+		xmlout(io, level + 1, "<parent string=\"%s\"/>\n", parent->get_name());
+	}
+
+	const char *type = 0;
+	const Object *obj = node->get_object();
+	if(dynamic_cast<const Mesh*>(obj)) {
+		type = "mesh";
+	} else if(dynamic_cast<const Light*>(obj)) {
+		type = "light";
+	} else if(dynamic_cast<const Camera*>(obj)) {
+		type = "camera";
+	}
+
+	if(type) {
+		xmlout(io, level + 1, "<%s string=\"%s\"/>\n", type, obj->name.c_str());
+	}
+
+	Vector3 pos = node->get_node_position();
+	Quaternion rot = node->get_node_rotation();
+	Vector3 scale = node->get_node_scaling();
+	Vector3 pivot = node->get_pivot();
+
+	Matrix4x4 xform;
+	node->get_node_xform(0, &xform);
+
+	xmlout(io, level + 1, "<pos float3=\"%g %g %g\"/>\n", pos.x, pos.y, pos.z);
+	xmlout(io, level + 1, "<rot float4=\"%g %g %g %g\"/>\n", rot.v.x, rot.v.y, rot.v.z, rot.s);
+	xmlout(io, level + 1, "<scale float3=\"%g %g %g\"/>\n", scale.x, scale.y, scale.z);
+	xmlout(io, level + 1, "<pivot float3=\"%g %g %g\"/>\n", pivot.x, pivot.y, pivot.z);
+
+	xmlout(io, level + 1, "<matrix0 float4=\"%g %g %g %g\"/>\n", xform[0][0], xform[0][1], xform[0][2], xform[0][3]);
+	xmlout(io, level + 1, "<matrix1 float4=\"%g %g %g %g\"/>\n", xform[1][0], xform[1][1], xform[1][2], xform[1][3]);
+	xmlout(io, level + 1, "<matrix2 float4=\"%g %g %g %g\"/>\n", xform[2][0], xform[2][1], xform[2][2], xform[2][3]);
+
+	xmlout(io, level, "</node>\n");
 	return true;
 }
 

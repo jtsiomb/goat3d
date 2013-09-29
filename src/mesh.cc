@@ -110,11 +110,16 @@ bool Mesh::load(const char *fname)
 bool Mesh::save(const char *fname) const
 {
 	int vnum = (int)vertices.size();
+	int fnum = (int)faces.size();
+
+	if(!vnum || !fnum) {
+		return false;
+	}
 
 	CTMcontext ctm = ctmNewContext(CTM_EXPORT);
 
 	// vertices, normals, and face-vertex indices
-	ctmDefineMesh(ctm, &vertices[0].x, vnum, (CTMuint*)faces[0].v, faces.size(),
+	ctmDefineMesh(ctm, &vertices[0].x, vnum, (CTMuint*)faces[0].v, fnum,
 			normals.empty() ? 0 : &normals[0].x);
 
 	// texture coordinates
