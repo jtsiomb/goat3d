@@ -10,9 +10,11 @@ dep = $(obj:.o=.d)
 
 openctm = libs/openctm/libopenctm.a
 tinyxml2 = libs/tinyxml2/libtinyxml2.a
+vmath = libs/vmath/libvmath.a
+anim = libs/anim/libanim.a
 
-extinc = -Ilibs/openctm -Ilibs/tinyxml2
-extlibs = $(openctm) $(tinyxml2)
+extinc = -Ilibs/openctm -Ilibs/tinyxml2 -Ilibs/anim
+extlibs = $(openctm) $(tinyxml2) $(anim) $(vmath)
 
 name = goat3d
 so_major = 0
@@ -35,7 +37,7 @@ endif
 CC = clang
 CXX = clang++
 CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
-LDFLAGS = $(extlibs) -lvmath -lanim
+LDFLAGS = $(extlibs)
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
@@ -44,13 +46,19 @@ $(lib_so): $(obj) $(extlibs)
 	$(CXX) -o $@ $(shared) $(obj) $(LDFLAGS)
 
 $(lib_a): $(obj) $(extlibs)
-	$(AR) rcs $@ $(obj) $(openctm)
+	$(AR) rcs $@ $(obj) $(extlibs)
 
 $(openctm):
 	$(MAKE) -C libs/openctm
 
 $(tinyxml2):
 	$(MAKE) -C libs/tinyxml2
+
+$(vmath):
+	$(MAKE) -C libs/vmath
+
+$(anim):
+	$(MAKE) -C libs/anim
 
 -include $(dep)
 
@@ -64,3 +72,26 @@ clean:
 .PHONY: cleandep
 cleandep:
 	rm -f $(dep)
+
+.PHONY: install
+install: $(lib_so) $(lib_a)
+	mkdir -p $(DESTDIR)$(PREFIX)/lib $(DESTDIR)$(PREFIX)/include
+	cp src/goat3d.h $(DESTDIR)$(PREFIX)/include/goat3d.h
+	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
+	cp $(lib_so) $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	[ -n "$(devlink)" ] && \
+		cd $(DESTDIR)$(PREFIX)/lib && \
+		rm -f $(soname) $(devlink) && \
+		ln -s $(lib_so) $(soname) && \
+		ln -s $(soname) $(devlink) || \
+		true
+
+.PHONY: uninstall
+uninstall:
+	rm -f $(DESTDIR)$(PREFIX)/include/goat3d.h
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_so)
+	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_a)
+	[ -n "$(devlink)" ] && \
+		rm -f $(DESTDIR)$(PREFIX)/lib/$(soname) && \
+		rm -f $(DESTDIR)$(PREFIX)/lib/$(devlink) || \
+		true

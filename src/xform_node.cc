@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <algorithm>
 #include "xform_node.h"
-#include "anim/anim.h"
-#include "anim/track.h"
+#include "anim.h"
+#include "track.h"
 
 static inline anm_interpolator track_interpolator(Interp in);
 static inline anm_extrapolator track_extrapolator(Extrap ex);
