@@ -27,57 +27,57 @@ extern "C" {
 #endif	/* __cplusplus */
 
 /* C 2D vector functions */
-static inline vec2_t v2_cons(scalar_t x, scalar_t y);
-static inline void v2_print(FILE *fp, vec2_t v);
+static VMATH_INLINE vec2_t v2_cons(scalar_t x, scalar_t y);
+static VMATH_INLINE void v2_print(FILE *fp, vec2_t v);
 
-static inline vec2_t v2_add(vec2_t v1, vec2_t v2);
-static inline vec2_t v2_sub(vec2_t v1, vec2_t v2);
-static inline vec2_t v2_scale(vec2_t v, scalar_t s);
-static inline scalar_t v2_dot(vec2_t v1, vec2_t v2);
-static inline scalar_t v2_length(vec2_t v);
-static inline scalar_t v2_length_sq(vec2_t v);
-static inline vec2_t v2_normalize(vec2_t v);
+static VMATH_INLINE vec2_t v2_add(vec2_t v1, vec2_t v2);
+static VMATH_INLINE vec2_t v2_sub(vec2_t v1, vec2_t v2);
+static VMATH_INLINE vec2_t v2_scale(vec2_t v, scalar_t s);
+static VMATH_INLINE scalar_t v2_dot(vec2_t v1, vec2_t v2);
+static VMATH_INLINE scalar_t v2_length(vec2_t v);
+static VMATH_INLINE scalar_t v2_length_sq(vec2_t v);
+static VMATH_INLINE vec2_t v2_normalize(vec2_t v);
 
-static inline vec2_t v2_lerp(vec2_t v1, vec2_t v2, scalar_t t);
+static VMATH_INLINE vec2_t v2_lerp(vec2_t v1, vec2_t v2, scalar_t t);
 
 /* C 3D vector functions */
-static inline vec3_t v3_cons(scalar_t x, scalar_t y, scalar_t z);
-static inline void v3_print(FILE *fp, vec3_t v);
+static VMATH_INLINE vec3_t v3_cons(scalar_t x, scalar_t y, scalar_t z);
+static VMATH_INLINE void v3_print(FILE *fp, vec3_t v);
 
-static inline vec3_t v3_add(vec3_t v1, vec3_t v2);
-static inline vec3_t v3_sub(vec3_t v1, vec3_t v2);
-static inline vec3_t v3_neg(vec3_t v);
-static inline vec3_t v3_mul(vec3_t v1, vec3_t v2);
-static inline vec3_t v3_scale(vec3_t v1, scalar_t s);
-static inline scalar_t v3_dot(vec3_t v1, vec3_t v2);
-static inline vec3_t v3_cross(vec3_t v1, vec3_t v2);
-static inline scalar_t v3_length(vec3_t v);
-static inline scalar_t v3_length_sq(vec3_t v);
-static inline vec3_t v3_normalize(vec3_t v);
-static inline vec3_t v3_transform(vec3_t v, mat4_t m);
+static VMATH_INLINE vec3_t v3_add(vec3_t v1, vec3_t v2);
+static VMATH_INLINE vec3_t v3_sub(vec3_t v1, vec3_t v2);
+static VMATH_INLINE vec3_t v3_neg(vec3_t v);
+static VMATH_INLINE vec3_t v3_mul(vec3_t v1, vec3_t v2);
+static VMATH_INLINE vec3_t v3_scale(vec3_t v1, scalar_t s);
+static VMATH_INLINE scalar_t v3_dot(vec3_t v1, vec3_t v2);
+static VMATH_INLINE vec3_t v3_cross(vec3_t v1, vec3_t v2);
+static VMATH_INLINE scalar_t v3_length(vec3_t v);
+static VMATH_INLINE scalar_t v3_length_sq(vec3_t v);
+static VMATH_INLINE vec3_t v3_normalize(vec3_t v);
+static VMATH_INLINE vec3_t v3_transform(vec3_t v, mat4_t m);
 
-static inline vec3_t v3_rotate(vec3_t v, scalar_t x, scalar_t y, scalar_t z);
-static inline vec3_t v3_rotate_axis(vec3_t v, scalar_t angle, scalar_t x, scalar_t y, scalar_t z);
-static inline vec3_t v3_rotate_quat(vec3_t v, quat_t q);
+static VMATH_INLINE vec3_t v3_rotate(vec3_t v, scalar_t x, scalar_t y, scalar_t z);
+static VMATH_INLINE vec3_t v3_rotate_axis(vec3_t v, scalar_t angle, scalar_t x, scalar_t y, scalar_t z);
+static VMATH_INLINE vec3_t v3_rotate_quat(vec3_t v, quat_t q);
 
-static inline vec3_t v3_reflect(vec3_t v, vec3_t n);
+static VMATH_INLINE vec3_t v3_reflect(vec3_t v, vec3_t n);
 
-static inline vec3_t v3_lerp(vec3_t v1, vec3_t v2, scalar_t t);
+static VMATH_INLINE vec3_t v3_lerp(vec3_t v1, vec3_t v2, scalar_t t);
 
 /* C 4D vector functions */
-static inline vec4_t v4_cons(scalar_t x, scalar_t y, scalar_t z, scalar_t w);
-static inline void v4_print(FILE *fp, vec4_t v);
+static VMATH_INLINE vec4_t v4_cons(scalar_t x, scalar_t y, scalar_t z, scalar_t w);
+static VMATH_INLINE void v4_print(FILE *fp, vec4_t v);
 
-static inline vec4_t v4_add(vec4_t v1, vec4_t v2);
-static inline vec4_t v4_sub(vec4_t v1, vec4_t v2);
-static inline vec4_t v4_neg(vec4_t v);
-static inline vec4_t v4_mul(vec4_t v1, vec4_t v2);
-static inline vec4_t v4_scale(vec4_t v, scalar_t s);
-static inline scalar_t v4_dot(vec4_t v1, vec4_t v2);
-static inline scalar_t v4_length(vec4_t v);
-static inline scalar_t v4_length_sq(vec4_t v);
-static inline vec4_t v4_normalize(vec4_t v);
-static inline vec4_t v4_transform(vec4_t v, mat4_t m);
+static VMATH_INLINE vec4_t v4_add(vec4_t v1, vec4_t v2);
+static VMATH_INLINE vec4_t v4_sub(vec4_t v1, vec4_t v2);
+static VMATH_INLINE vec4_t v4_neg(vec4_t v);
+static VMATH_INLINE vec4_t v4_mul(vec4_t v1, vec4_t v2);
+static VMATH_INLINE vec4_t v4_scale(vec4_t v, scalar_t s);
+static VMATH_INLINE scalar_t v4_dot(vec4_t v1, vec4_t v2);
+static VMATH_INLINE scalar_t v4_length(vec4_t v);
+static VMATH_INLINE scalar_t v4_length_sq(vec4_t v);
+static VMATH_INLINE vec4_t v4_normalize(vec4_t v);
+static VMATH_INLINE vec4_t v4_transform(vec4_t v, mat4_t m);
 
 #ifdef __cplusplus
 }	/* extern "C" */
@@ -95,11 +95,11 @@ public:
 	Vector2(const Vector3 &vec);
 	Vector2(const Vector4 &vec);
 
-	inline scalar_t &operator [](int elem);
-	inline const scalar_t &operator [](int elem) const;
+	VMATH_INLINE scalar_t &operator [](int elem);
+	VMATH_INLINE const scalar_t &operator [](int elem) const;
 
-	inline scalar_t length() const;
-	inline scalar_t length_sq() const;
+	VMATH_INLINE scalar_t length() const;
+	VMATH_INLINE scalar_t length_sq() const;
 	void normalize();
 	Vector2 normalized() const;
 
@@ -114,39 +114,39 @@ public:
 };
 
 /* unary operations */
-inline Vector2 operator -(const Vector2 &vec);
+VMATH_INLINE Vector2 operator -(const Vector2 &vec);
 
 /* binary vector (op) vector operations */
-inline scalar_t dot_product(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE scalar_t dot_product(const Vector2 &v1, const Vector2 &v2);
 
-inline Vector2 operator +(const Vector2 &v1, const Vector2 &v2);
-inline Vector2 operator -(const Vector2 &v1, const Vector2 &v2);
-inline Vector2 operator *(const Vector2 &v1, const Vector2 &v2);
-inline Vector2 operator /(const Vector2 &v1, const Vector2 &v2);
-inline bool operator ==(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE Vector2 operator +(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE Vector2 operator -(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE Vector2 operator *(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE Vector2 operator /(const Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE bool operator ==(const Vector2 &v1, const Vector2 &v2);
 
-inline void operator +=(Vector2 &v1, const Vector2 &v2);
-inline void operator -=(Vector2 &v1, const Vector2 &v2);
-inline void operator *=(Vector2 &v1, const Vector2 &v2);
-inline void operator /=(Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE void operator +=(Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE void operator -=(Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE void operator *=(Vector2 &v1, const Vector2 &v2);
+VMATH_INLINE void operator /=(Vector2 &v1, const Vector2 &v2);
 
 /* binary vector (op) scalar and scalar (op) vector operations */
-inline Vector2 operator +(const Vector2 &vec, scalar_t scalar);
-inline Vector2 operator +(scalar_t scalar, const Vector2 &vec);
-inline Vector2 operator -(const Vector2 &vec, scalar_t scalar);
-inline Vector2 operator *(const Vector2 &vec, scalar_t scalar);
-inline Vector2 operator *(scalar_t scalar, const Vector2 &vec);
-inline Vector2 operator /(const Vector2 &vec, scalar_t scalar);
+VMATH_INLINE Vector2 operator +(const Vector2 &vec, scalar_t scalar);
+VMATH_INLINE Vector2 operator +(scalar_t scalar, const Vector2 &vec);
+VMATH_INLINE Vector2 operator -(const Vector2 &vec, scalar_t scalar);
+VMATH_INLINE Vector2 operator *(const Vector2 &vec, scalar_t scalar);
+VMATH_INLINE Vector2 operator *(scalar_t scalar, const Vector2 &vec);
+VMATH_INLINE Vector2 operator /(const Vector2 &vec, scalar_t scalar);
 
-inline void operator +=(Vector2 &vec, scalar_t scalar);
-inline void operator -=(Vector2 &vec, scalar_t scalar);
-inline void operator *=(Vector2 &vec, scalar_t scalar);
-inline void operator /=(Vector2 &vec, scalar_t scalar);
+VMATH_INLINE void operator +=(Vector2 &vec, scalar_t scalar);
+VMATH_INLINE void operator -=(Vector2 &vec, scalar_t scalar);
+VMATH_INLINE void operator *=(Vector2 &vec, scalar_t scalar);
+VMATH_INLINE void operator /=(Vector2 &vec, scalar_t scalar);
 
 std::ostream &operator <<(std::ostream &out, const Vector2 &vec);
 
-inline Vector2 lerp(const Vector2 &a, const Vector2 &b, scalar_t t);
-inline Vector2 catmull_rom_spline(const Vector2 &v0, const Vector2 &v1,
+VMATH_INLINE Vector2 lerp(const Vector2 &a, const Vector2 &b, scalar_t t);
+VMATH_INLINE Vector2 catmull_rom_spline(const Vector2 &v0, const Vector2 &v1,
 		const Vector2 &v2, const Vector2 &v3, scalar_t t);
 
 /* 3D Vector */
@@ -162,11 +162,11 @@ public:
 
 	Vector3 &operator =(const SphVector &sph);
 
-	inline scalar_t &operator [](int elem);
-	inline const scalar_t &operator [](int elem) const;
+	VMATH_INLINE scalar_t &operator [](int elem);
+	VMATH_INLINE const scalar_t &operator [](int elem) const;
 
-	inline scalar_t length() const;
-	inline scalar_t length_sq() const;
+	VMATH_INLINE scalar_t length() const;
+	VMATH_INLINE scalar_t length_sq() const;
 	void normalize();
 	Vector3 normalized() const;
 
@@ -186,40 +186,40 @@ public:
 };
 
 /* unary operations */
-inline Vector3 operator -(const Vector3 &vec);
+VMATH_INLINE Vector3 operator -(const Vector3 &vec);
 
 /* binary vector (op) vector operations */
-inline scalar_t dot_product(const Vector3 &v1, const Vector3 &v2);
-inline Vector3 cross_product(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE scalar_t dot_product(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE Vector3 cross_product(const Vector3 &v1, const Vector3 &v2);
 
-inline Vector3 operator +(const Vector3 &v1, const Vector3 &v2);
-inline Vector3 operator -(const Vector3 &v1, const Vector3 &v2);
-inline Vector3 operator *(const Vector3 &v1, const Vector3 &v2);
-inline Vector3 operator /(const Vector3 &v1, const Vector3 &v2);
-inline bool operator ==(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE Vector3 operator +(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE Vector3 operator -(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE Vector3 operator *(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE Vector3 operator /(const Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE bool operator ==(const Vector3 &v1, const Vector3 &v2);
 
-inline void operator +=(Vector3 &v1, const Vector3 &v2);
-inline void operator -=(Vector3 &v1, const Vector3 &v2);
-inline void operator *=(Vector3 &v1, const Vector3 &v2);
-inline void operator /=(Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE void operator +=(Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE void operator -=(Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE void operator *=(Vector3 &v1, const Vector3 &v2);
+VMATH_INLINE void operator /=(Vector3 &v1, const Vector3 &v2);
 
 /* binary vector (op) scalar and scalar (op) vector operations */
-inline Vector3 operator +(const Vector3 &vec, scalar_t scalar);
-inline Vector3 operator +(scalar_t scalar, const Vector3 &vec);
-inline Vector3 operator -(const Vector3 &vec, scalar_t scalar);
-inline Vector3 operator *(const Vector3 &vec, scalar_t scalar);
-inline Vector3 operator *(scalar_t scalar, const Vector3 &vec);
-inline Vector3 operator /(const Vector3 &vec, scalar_t scalar);
+VMATH_INLINE Vector3 operator +(const Vector3 &vec, scalar_t scalar);
+VMATH_INLINE Vector3 operator +(scalar_t scalar, const Vector3 &vec);
+VMATH_INLINE Vector3 operator -(const Vector3 &vec, scalar_t scalar);
+VMATH_INLINE Vector3 operator *(const Vector3 &vec, scalar_t scalar);
+VMATH_INLINE Vector3 operator *(scalar_t scalar, const Vector3 &vec);
+VMATH_INLINE Vector3 operator /(const Vector3 &vec, scalar_t scalar);
 
-inline void operator +=(Vector3 &vec, scalar_t scalar);
-inline void operator -=(Vector3 &vec, scalar_t scalar);
-inline void operator *=(Vector3 &vec, scalar_t scalar);
-inline void operator /=(Vector3 &vec, scalar_t scalar);
+VMATH_INLINE void operator +=(Vector3 &vec, scalar_t scalar);
+VMATH_INLINE void operator -=(Vector3 &vec, scalar_t scalar);
+VMATH_INLINE void operator *=(Vector3 &vec, scalar_t scalar);
+VMATH_INLINE void operator /=(Vector3 &vec, scalar_t scalar);
 
 std::ostream &operator <<(std::ostream &out, const Vector3 &vec);
 
-inline Vector3 lerp(const Vector3 &a, const Vector3 &b, scalar_t t);
-inline Vector3 catmull_rom_spline(const Vector3 &v0, const Vector3 &v1,
+VMATH_INLINE Vector3 lerp(const Vector3 &a, const Vector3 &b, scalar_t t);
+VMATH_INLINE Vector3 catmull_rom_spline(const Vector3 &v0, const Vector3 &v1,
 		const Vector3 &v2, const Vector3 &v3, scalar_t t);
 
 /* 4D Vector */
@@ -232,11 +232,11 @@ public:
 	Vector4(const Vector2 &vec);
 	Vector4(const Vector3 &vec);
 
-	inline scalar_t &operator [](int elem);
-	inline const scalar_t &operator [](int elem) const;
+	VMATH_INLINE scalar_t &operator [](int elem);
+	VMATH_INLINE const scalar_t &operator [](int elem) const;
 
-	inline scalar_t length() const;
-	inline scalar_t length_sq() const;
+	VMATH_INLINE scalar_t length() const;
+	VMATH_INLINE scalar_t length_sq() const;
 	void normalize();
 	Vector4 normalized() const;
 
@@ -249,40 +249,40 @@ public:
 
 
 /* unary operations */
-inline Vector4 operator -(const Vector4 &vec);
+VMATH_INLINE Vector4 operator -(const Vector4 &vec);
 
 /* binary vector (op) vector operations */
-inline scalar_t dot_product(const Vector4 &v1, const Vector4 &v2);
-inline Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3);
+VMATH_INLINE scalar_t dot_product(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3);
 
-inline Vector4 operator +(const Vector4 &v1, const Vector4 &v2);
-inline Vector4 operator -(const Vector4 &v1, const Vector4 &v2);
-inline Vector4 operator *(const Vector4 &v1, const Vector4 &v2);
-inline Vector4 operator /(const Vector4 &v1, const Vector4 &v2);
-inline bool operator ==(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE Vector4 operator +(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE Vector4 operator -(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE Vector4 operator *(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE Vector4 operator /(const Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE bool operator ==(const Vector4 &v1, const Vector4 &v2);
 
-inline void operator +=(Vector4 &v1, const Vector4 &v2);
-inline void operator -=(Vector4 &v1, const Vector4 &v2);
-inline void operator *=(Vector4 &v1, const Vector4 &v2);
-inline void operator /=(Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE void operator +=(Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE void operator -=(Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE void operator *=(Vector4 &v1, const Vector4 &v2);
+VMATH_INLINE void operator /=(Vector4 &v1, const Vector4 &v2);
 
 /* binary vector (op) scalar and scalar (op) vector operations */
-inline Vector4 operator +(const Vector4 &vec, scalar_t scalar);
-inline Vector4 operator +(scalar_t scalar, const Vector4 &vec);
-inline Vector4 operator -(const Vector4 &vec, scalar_t scalar);
-inline Vector4 operator *(const Vector4 &vec, scalar_t scalar);
-inline Vector4 operator *(scalar_t scalar, const Vector4 &vec);
-inline Vector4 operator /(const Vector4 &vec, scalar_t scalar);
+VMATH_INLINE Vector4 operator +(const Vector4 &vec, scalar_t scalar);
+VMATH_INLINE Vector4 operator +(scalar_t scalar, const Vector4 &vec);
+VMATH_INLINE Vector4 operator -(const Vector4 &vec, scalar_t scalar);
+VMATH_INLINE Vector4 operator *(const Vector4 &vec, scalar_t scalar);
+VMATH_INLINE Vector4 operator *(scalar_t scalar, const Vector4 &vec);
+VMATH_INLINE Vector4 operator /(const Vector4 &vec, scalar_t scalar);
 
-inline void operator +=(Vector4 &vec, scalar_t scalar);
-inline void operator -=(Vector4 &vec, scalar_t scalar);
-inline void operator *=(Vector4 &vec, scalar_t scalar);
-inline void operator /=(Vector4 &vec, scalar_t scalar);
+VMATH_INLINE void operator +=(Vector4 &vec, scalar_t scalar);
+VMATH_INLINE void operator -=(Vector4 &vec, scalar_t scalar);
+VMATH_INLINE void operator *=(Vector4 &vec, scalar_t scalar);
+VMATH_INLINE void operator /=(Vector4 &vec, scalar_t scalar);
 
 std::ostream &operator <<(std::ostream &out, const Vector4 &vec);
 
-inline Vector4 lerp(const Vector4 &v0, const Vector4 &v1, scalar_t t);
-inline Vector4 catmull_rom_spline(const Vector4 &v0, const Vector4 &v1,
+VMATH_INLINE Vector4 lerp(const Vector4 &v0, const Vector4 &v1, scalar_t t);
+VMATH_INLINE Vector4 catmull_rom_spline(const Vector4 &v0, const Vector4 &v1,
 		const Vector4 &v2, const Vector4 &v3, scalar_t t);
 
 #endif	/* __cplusplus */

@@ -36,8 +36,8 @@ static HINSTANCE hinst;
 
 class GoatExporter : public SceneExport {
 private:
-	//std::map<IGameMaterial*, goat3d_material*> mtlmap;
-	//std::map<IGameNode*, goat3d_node*> nodemap;
+	std::map<IGameMaterial*, goat3d_material*> mtlmap;
+	std::map<IGameNode*, goat3d_node*> nodemap;
 
 public:
 	IGameScene *igame;
@@ -118,8 +118,8 @@ void GoatExporter::ShowAbout(HWND win)
 int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
 		BOOL non_interactive, DWORD opt)
 {
-	//mtlmap.clear();
-	//nodemap.clear();
+	mtlmap.clear();
+	nodemap.clear();
 
 	char fname[512];
 	wcstombs(fname, name, sizeof fname - 1);
@@ -243,7 +243,7 @@ void GoatExporter::process_materials(goat3d *goat)
 			}
 
 			goat3d_add_mtl(goat, mtl);
-			//mtlmap[maxmtl] = mtl;
+			mtlmap[maxmtl] = mtl;
 		}
 	}
 }
@@ -280,7 +280,7 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 
 			// get the node material and assign it to the mesh
 			IGameMaterial *maxmtl = maxnode->GetNodeMaterial();
-			goat3d_material *mtl = 0;//mtlmap[maxmtl];
+			goat3d_material *mtl = mtlmap[maxmtl];
 			if(mtl) {
 				goat3d_set_mesh_mtl(mesh, mtl);
 			}
@@ -328,11 +328,11 @@ void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *ma
 	maxobj->InitializeData();
 
 	int num_verts = maxmesh->GetNumberOfVerts();
-	assert(maxmesh->GetNumberOfTexVerts() == num_verts);
+	//assert(maxmesh->GetNumberOfTexVerts() == num_verts);
 
 	float *vertices = new float[num_verts * 3];
 	float *normals = new float[num_verts * 3];
-	float *texcoords = new float[num_verts * 2];
+	//float *texcoords = new float[num_verts * 2];
 
 	for(int i=0; i<num_verts; i++) {
 		Point3 v = maxmesh->GetVertex(i, true);
@@ -350,20 +350,20 @@ void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *ma
 		normals[vidx * 3 + 2] = norm.z;
 	}
 
-	for(int i=0; i<maxmesh->GetNumberOfTexVerts(); i++) {
+	/*for(int i=0; i<maxmesh->GetNumberOfTexVerts(); i++) {
 		Point3 tex = maxmesh->GetTexVertex(i);
 
 		texcoords[i * 2] = tex.x;
 		texcoords[i * 2 + 1] = tex.y;
-	}
+	}*/
 
 	goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_VERTEX, vertices, num_verts);
 	goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_NORMAL, normals, num_verts);
-	goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_TEXCOORD, texcoords, num_verts);
+	//goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_TEXCOORD, texcoords, num_verts);
 
 	delete [] vertices;
 	delete [] normals;
-	delete [] texcoords;
+	//delete [] texcoords;
 }
 
 void GoatExporter::process_light(goat3d *goat, goat3d_light *light, IGameObject *maxobj)

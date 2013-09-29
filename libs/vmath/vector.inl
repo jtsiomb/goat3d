@@ -23,7 +23,7 @@ extern "C" {
 #endif	/* __cplusplus */
 
 /* C 2D vector functions */
-static inline vec2_t v2_cons(scalar_t x, scalar_t y)
+static VMATH_INLINE vec2_t v2_cons(scalar_t x, scalar_t y)
 {
 	vec2_t v;
 	v.x = x;
@@ -31,12 +31,12 @@ static inline vec2_t v2_cons(scalar_t x, scalar_t y)
 	return v;
 }
 
-static inline void v2_print(FILE *fp, vec2_t v)
+static VMATH_INLINE void v2_print(FILE *fp, vec2_t v)
 {
 	fprintf(fp, "[ %.4f %.4f ]", v.x, v.y);
 }
 
-static inline vec2_t v2_add(vec2_t v1, vec2_t v2)
+static VMATH_INLINE vec2_t v2_add(vec2_t v1, vec2_t v2)
 {
 	vec2_t res;
 	res.x = v1.x + v2.x;
@@ -44,7 +44,7 @@ static inline vec2_t v2_add(vec2_t v1, vec2_t v2)
 	return res;
 }
 
-static inline vec2_t v2_sub(vec2_t v1, vec2_t v2)
+static VMATH_INLINE vec2_t v2_sub(vec2_t v1, vec2_t v2)
 {
 	vec2_t res;
 	res.x = v1.x - v2.x;
@@ -52,7 +52,7 @@ static inline vec2_t v2_sub(vec2_t v1, vec2_t v2)
 	return res;
 }
 
-static inline vec2_t v2_scale(vec2_t v, scalar_t s)
+static VMATH_INLINE vec2_t v2_scale(vec2_t v, scalar_t s)
 {
 	vec2_t res;
 	res.x = v.x * s;
@@ -60,22 +60,22 @@ static inline vec2_t v2_scale(vec2_t v, scalar_t s)
 	return res;
 }
 
-static inline scalar_t v2_dot(vec2_t v1, vec2_t v2)
+static VMATH_INLINE scalar_t v2_dot(vec2_t v1, vec2_t v2)
 {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
-static inline scalar_t v2_length(vec2_t v)
+static VMATH_INLINE scalar_t v2_length(vec2_t v)
 {
 	return sqrt(v.x * v.x + v.y * v.y);
 }
 
-static inline scalar_t v2_length_sq(vec2_t v)
+static VMATH_INLINE scalar_t v2_length_sq(vec2_t v)
 {
 	return v.x * v.x + v.y * v.y;
 }
 
-static inline vec2_t v2_normalize(vec2_t v)
+static VMATH_INLINE vec2_t v2_normalize(vec2_t v)
 {
 	scalar_t len = (scalar_t)sqrt(v.x * v.x + v.y * v.y);
 	v.x /= len;
@@ -83,7 +83,7 @@ static inline vec2_t v2_normalize(vec2_t v)
 	return v;
 }
 
-static inline vec2_t v2_lerp(vec2_t v1, vec2_t v2, scalar_t t)
+static VMATH_INLINE vec2_t v2_lerp(vec2_t v1, vec2_t v2, scalar_t t)
 {
 	vec2_t res;
 	res.x = v1.x + (v2.x - v1.x) * t;
@@ -93,7 +93,7 @@ static inline vec2_t v2_lerp(vec2_t v1, vec2_t v2, scalar_t t)
 
 
 /* C 3D vector functions */
-static inline vec3_t v3_cons(scalar_t x, scalar_t y, scalar_t z)
+static VMATH_INLINE vec3_t v3_cons(scalar_t x, scalar_t y, scalar_t z)
 {
 	vec3_t v;
 	v.x = x;
@@ -102,12 +102,12 @@ static inline vec3_t v3_cons(scalar_t x, scalar_t y, scalar_t z)
 	return v;
 }
 
-static inline void v3_print(FILE *fp, vec3_t v)
+static VMATH_INLINE void v3_print(FILE *fp, vec3_t v)
 {
 	fprintf(fp, "[ %.4f %.4f %.4f ]", v.x, v.y, v.z);
 }
 
-static inline vec3_t v3_add(vec3_t v1, vec3_t v2)
+static VMATH_INLINE vec3_t v3_add(vec3_t v1, vec3_t v2)
 {
 	v1.x += v2.x;
 	v1.y += v2.y;
@@ -115,7 +115,7 @@ static inline vec3_t v3_add(vec3_t v1, vec3_t v2)
 	return v1;
 }
 
-static inline vec3_t v3_sub(vec3_t v1, vec3_t v2)
+static VMATH_INLINE vec3_t v3_sub(vec3_t v1, vec3_t v2)
 {
 	v1.x -= v2.x;
 	v1.y -= v2.y;
@@ -123,7 +123,7 @@ static inline vec3_t v3_sub(vec3_t v1, vec3_t v2)
 	return v1;
 }
 
-static inline vec3_t v3_neg(vec3_t v)
+static VMATH_INLINE vec3_t v3_neg(vec3_t v)
 {
 	v.x = -v.x;
 	v.y = -v.y;
@@ -131,7 +131,7 @@ static inline vec3_t v3_neg(vec3_t v)
 	return v;
 }
 
-static inline vec3_t v3_mul(vec3_t v1, vec3_t v2)
+static VMATH_INLINE vec3_t v3_mul(vec3_t v1, vec3_t v2)
 {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
@@ -139,7 +139,7 @@ static inline vec3_t v3_mul(vec3_t v1, vec3_t v2)
 	return v1;
 }
 
-static inline vec3_t v3_scale(vec3_t v1, scalar_t s)
+static VMATH_INLINE vec3_t v3_scale(vec3_t v1, scalar_t s)
 {
 	v1.x *= s;
 	v1.y *= s;
@@ -147,12 +147,12 @@ static inline vec3_t v3_scale(vec3_t v1, scalar_t s)
 	return v1;
 }
 
-static inline scalar_t v3_dot(vec3_t v1, vec3_t v2)
+static VMATH_INLINE scalar_t v3_dot(vec3_t v1, vec3_t v2)
 {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-static inline vec3_t v3_cross(vec3_t v1, vec3_t v2)
+static VMATH_INLINE vec3_t v3_cross(vec3_t v1, vec3_t v2)
 {
 	vec3_t v;
 	v.x = v1.y * v2.z - v1.z * v2.y;
@@ -161,17 +161,17 @@ static inline vec3_t v3_cross(vec3_t v1, vec3_t v2)
 	return v;
 }
 
-static inline scalar_t v3_length(vec3_t v)
+static VMATH_INLINE scalar_t v3_length(vec3_t v)
 {
 	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 }
 
-static inline scalar_t v3_length_sq(vec3_t v)
+static VMATH_INLINE scalar_t v3_length_sq(vec3_t v)
 {
 	return v.x * v.x + v.y * v.y + v.z * v.z;
 }
 
-static inline vec3_t v3_normalize(vec3_t v)
+static VMATH_INLINE vec3_t v3_normalize(vec3_t v)
 {
 	scalar_t len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
 	v.x /= len;
@@ -180,7 +180,7 @@ static inline vec3_t v3_normalize(vec3_t v)
 	return v;
 }
 
-static inline vec3_t v3_transform(vec3_t v, mat4_t m)
+static VMATH_INLINE vec3_t v3_transform(vec3_t v, mat4_t m)
 {
 	vec3_t res;
 	res.x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3];
@@ -189,7 +189,7 @@ static inline vec3_t v3_transform(vec3_t v, mat4_t m)
 	return res;
 }
 
-static inline vec3_t v3_rotate(vec3_t v, scalar_t x, scalar_t y, scalar_t z)
+static VMATH_INLINE vec3_t v3_rotate(vec3_t v, scalar_t x, scalar_t y, scalar_t z)
 {
 	void m4_rotate(mat4_t, scalar_t, scalar_t, scalar_t);
 
@@ -198,7 +198,7 @@ static inline vec3_t v3_rotate(vec3_t v, scalar_t x, scalar_t y, scalar_t z)
 	return v3_transform(v, m);
 }
 
-static inline vec3_t v3_rotate_axis(vec3_t v, scalar_t angle, scalar_t x, scalar_t y, scalar_t z)
+static VMATH_INLINE vec3_t v3_rotate_axis(vec3_t v, scalar_t angle, scalar_t x, scalar_t y, scalar_t z)
 {
 	void m4_rotate_axis(mat4_t, scalar_t, scalar_t, scalar_t, scalar_t);
 
@@ -207,7 +207,7 @@ static inline vec3_t v3_rotate_axis(vec3_t v, scalar_t angle, scalar_t x, scalar
 	return v3_transform(v, m);
 }
 
-static inline vec3_t v3_rotate_quat(vec3_t v, quat_t q)
+static VMATH_INLINE vec3_t v3_rotate_quat(vec3_t v, quat_t q)
 {
 	quat_t quat_rotate_quat(quat_t, quat_t);
 
@@ -216,13 +216,13 @@ static inline vec3_t v3_rotate_quat(vec3_t v, quat_t q)
 	return v3_cons(res.x, res.y, res.z);
 }
 
-static inline vec3_t v3_reflect(vec3_t v, vec3_t n)
+static VMATH_INLINE vec3_t v3_reflect(vec3_t v, vec3_t n)
 {
 	scalar_t dot = v3_dot(v, n);
 	return v3_sub(v3_scale(n, dot * 2.0), v);
 }
 
-static inline vec3_t v3_lerp(vec3_t v1, vec3_t v2, scalar_t t)
+static VMATH_INLINE vec3_t v3_lerp(vec3_t v1, vec3_t v2, scalar_t t)
 {
 	v1.x += (v2.x - v1.x) * t;
 	v1.y += (v2.y - v1.y) * t;
@@ -231,7 +231,7 @@ static inline vec3_t v3_lerp(vec3_t v1, vec3_t v2, scalar_t t)
 }
 
 /* C 4D vector functions */
-static inline vec4_t v4_cons(scalar_t x, scalar_t y, scalar_t z, scalar_t w)
+static VMATH_INLINE vec4_t v4_cons(scalar_t x, scalar_t y, scalar_t z, scalar_t w)
 {
 	vec4_t v;
 	v.x = x;
@@ -241,12 +241,12 @@ static inline vec4_t v4_cons(scalar_t x, scalar_t y, scalar_t z, scalar_t w)
 	return v;
 }
 
-static inline void v4_print(FILE *fp, vec4_t v)
+static VMATH_INLINE void v4_print(FILE *fp, vec4_t v)
 {
 	fprintf(fp, "[ %.4f %.4f %.4f %.4f ]", v.x, v.y, v.z, v.w);
 }
 
-static inline vec4_t v4_add(vec4_t v1, vec4_t v2)
+static VMATH_INLINE vec4_t v4_add(vec4_t v1, vec4_t v2)
 {
 	v1.x += v2.x;
 	v1.y += v2.y;
@@ -255,7 +255,7 @@ static inline vec4_t v4_add(vec4_t v1, vec4_t v2)
 	return v1;
 }
 
-static inline vec4_t v4_sub(vec4_t v1, vec4_t v2)
+static VMATH_INLINE vec4_t v4_sub(vec4_t v1, vec4_t v2)
 {
 	v1.x -= v2.x;
 	v1.y -= v2.y;
@@ -264,7 +264,7 @@ static inline vec4_t v4_sub(vec4_t v1, vec4_t v2)
 	return v1;
 }
 
-static inline vec4_t v4_neg(vec4_t v)
+static VMATH_INLINE vec4_t v4_neg(vec4_t v)
 {
 	v.x = -v.x;
 	v.y = -v.y;
@@ -273,7 +273,7 @@ static inline vec4_t v4_neg(vec4_t v)
 	return v;
 }
 
-static inline vec4_t v4_mul(vec4_t v1, vec4_t v2)
+static VMATH_INLINE vec4_t v4_mul(vec4_t v1, vec4_t v2)
 {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
@@ -282,7 +282,7 @@ static inline vec4_t v4_mul(vec4_t v1, vec4_t v2)
 	return v1;
 }
 
-static inline vec4_t v4_scale(vec4_t v, scalar_t s)
+static VMATH_INLINE vec4_t v4_scale(vec4_t v, scalar_t s)
 {
 	v.x *= s;
 	v.y *= s;
@@ -291,22 +291,22 @@ static inline vec4_t v4_scale(vec4_t v, scalar_t s)
 	return v;
 }
 
-static inline scalar_t v4_dot(vec4_t v1, vec4_t v2)
+static VMATH_INLINE scalar_t v4_dot(vec4_t v1, vec4_t v2)
 {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-static inline scalar_t v4_length(vec4_t v)
+static VMATH_INLINE scalar_t v4_length(vec4_t v)
 {
 	return sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 }
 
-static inline scalar_t v4_length_sq(vec4_t v)
+static VMATH_INLINE scalar_t v4_length_sq(vec4_t v)
 {
 	return v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w;
 }
 
-static inline vec4_t v4_normalize(vec4_t v)
+static VMATH_INLINE vec4_t v4_normalize(vec4_t v)
 {
 	scalar_t len = sqrt(v.x * v.x + v.y * v.y + v.z * v.z + v.w * v.w);
 	v.x /= len;
@@ -316,7 +316,7 @@ static inline vec4_t v4_normalize(vec4_t v)
 	return v;
 }
 
-static inline vec4_t v4_transform(vec4_t v, mat4_t m)
+static VMATH_INLINE vec4_t v4_transform(vec4_t v, mat4_t m)
 {
 	vec4_t res;
 	res.x = m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3] * v.w;
@@ -332,120 +332,120 @@ static inline vec4_t v4_transform(vec4_t v, mat4_t m)
 
 /* --------------- C++ part -------------- */
 
-inline scalar_t &Vector2::operator [](int elem) {
+VMATH_INLINE scalar_t &Vector2::operator [](int elem) {
 	return elem ? y : x;
 }
 
-inline const scalar_t &Vector2::operator [](int elem) const {
+VMATH_INLINE const scalar_t &Vector2::operator [](int elem) const {
 	return elem ? y : x;
 }
 
-inline Vector2 operator -(const Vector2 &vec) {
+VMATH_INLINE Vector2 operator -(const Vector2 &vec) {
 	return Vector2(-vec.x, -vec.y);
 }
 
-inline scalar_t dot_product(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE scalar_t dot_product(const Vector2 &v1, const Vector2 &v2) {
 	return v1.x * v2.x + v1.y * v2.y;
 }
 
-inline Vector2 operator +(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE Vector2 operator +(const Vector2 &v1, const Vector2 &v2) {
 	return Vector2(v1.x + v2.x, v1.y + v2.y);
 }
 
-inline Vector2 operator -(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE Vector2 operator -(const Vector2 &v1, const Vector2 &v2) {
 	return Vector2(v1.x - v2.x, v1.y - v2.y);
 }
 
-inline Vector2 operator *(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE Vector2 operator *(const Vector2 &v1, const Vector2 &v2) {
 	return Vector2(v1.x * v2.x, v1.y * v2.y);
 }
 
-inline Vector2 operator /(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE Vector2 operator /(const Vector2 &v1, const Vector2 &v2) {
 	return Vector2(v1.x / v2.x, v1.y / v2.y);
 }
 
-inline bool operator ==(const Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE bool operator ==(const Vector2 &v1, const Vector2 &v2) {
 	return (fabs(v1.x - v2.x) < XSMALL_NUMBER) && (fabs(v1.y - v2.x) < XSMALL_NUMBER);
 }
 
-inline void operator +=(Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE void operator +=(Vector2 &v1, const Vector2 &v2) {
 	v1.x += v2.x;
 	v1.y += v2.y;
 }
 
-inline void operator -=(Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE void operator -=(Vector2 &v1, const Vector2 &v2) {
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 }
 
-inline void operator *=(Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE void operator *=(Vector2 &v1, const Vector2 &v2) {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
 }
 
-inline void operator /=(Vector2 &v1, const Vector2 &v2) {
+VMATH_INLINE void operator /=(Vector2 &v1, const Vector2 &v2) {
 	v1.x /= v2.x;
 	v1.y /= v2.y;
 }
 
-inline Vector2 operator +(const Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE Vector2 operator +(const Vector2 &vec, scalar_t scalar) {
 	return Vector2(vec.x + scalar, vec.y + scalar);
 }
 
-inline Vector2 operator +(scalar_t scalar, const Vector2 &vec) {
+VMATH_INLINE Vector2 operator +(scalar_t scalar, const Vector2 &vec) {
 	return Vector2(vec.x + scalar, vec.y + scalar);
 }
 
-inline Vector2 operator -(scalar_t scalar, const Vector2 &vec) {
+VMATH_INLINE Vector2 operator -(scalar_t scalar, const Vector2 &vec) {
 	return Vector2(vec.x - scalar, vec.y - scalar);
 }
 
-inline Vector2 operator *(const Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE Vector2 operator *(const Vector2 &vec, scalar_t scalar) {
 	return Vector2(vec.x * scalar, vec.y * scalar);
 }
 
-inline Vector2 operator *(scalar_t scalar, const Vector2 &vec) {
+VMATH_INLINE Vector2 operator *(scalar_t scalar, const Vector2 &vec) {
 	return Vector2(vec.x * scalar, vec.y * scalar);
 }
 
-inline Vector2 operator /(const Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE Vector2 operator /(const Vector2 &vec, scalar_t scalar) {
 	return Vector2(vec.x / scalar, vec.y / scalar);
 }
 
-inline void operator +=(Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE void operator +=(Vector2 &vec, scalar_t scalar) {
 	vec.x += scalar;
 	vec.y += scalar;
 }
 
-inline void operator -=(Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE void operator -=(Vector2 &vec, scalar_t scalar) {
 	vec.x -= scalar;
 	vec.y -= scalar;
 }
 
-inline void operator *=(Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE void operator *=(Vector2 &vec, scalar_t scalar) {
 	vec.x *= scalar;
 	vec.y *= scalar;
 }
 
-inline void operator /=(Vector2 &vec, scalar_t scalar) {
+VMATH_INLINE void operator /=(Vector2 &vec, scalar_t scalar) {
 	vec.x /= scalar;
 	vec.y /= scalar;
 }
 
-inline scalar_t Vector2::length() const {
+VMATH_INLINE scalar_t Vector2::length() const {
 	return sqrt(x*x + y*y);
 }
 
-inline scalar_t Vector2::length_sq() const {
+VMATH_INLINE scalar_t Vector2::length_sq() const {
 	return x*x + y*y;
 }
 
-inline Vector2 lerp(const Vector2 &a, const Vector2 &b, scalar_t t)
+VMATH_INLINE Vector2 lerp(const Vector2 &a, const Vector2 &b, scalar_t t)
 {
 	return a + (b - a) * t;
 }
 
-inline Vector2 catmull_rom_spline(const Vector2 &v0, const Vector2 &v1,
+VMATH_INLINE Vector2 catmull_rom_spline(const Vector2 &v0, const Vector2 &v1,
 		const Vector2 &v2, const Vector2 &v3, scalar_t t)
 {
 	scalar_t spline(scalar_t, scalar_t, scalar_t, scalar_t, scalar_t);
@@ -457,133 +457,133 @@ inline Vector2 catmull_rom_spline(const Vector2 &v0, const Vector2 &v1,
 
 /* ------------- Vector3 -------------- */
 
-inline scalar_t &Vector3::operator [](int elem) {
+VMATH_INLINE scalar_t &Vector3::operator [](int elem) {
 	return elem ? (elem == 1 ? y : z) : x;
 }
 
-inline const scalar_t &Vector3::operator [](int elem) const {
+VMATH_INLINE const scalar_t &Vector3::operator [](int elem) const {
 	return elem ? (elem == 1 ? y : z) : x;
 }
 
 /* unary operations */
-inline Vector3 operator -(const Vector3 &vec) {
+VMATH_INLINE Vector3 operator -(const Vector3 &vec) {
 	return Vector3(-vec.x, -vec.y, -vec.z);
 }
 
 /* binary vector (op) vector operations */
-inline scalar_t dot_product(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE scalar_t dot_product(const Vector3 &v1, const Vector3 &v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 }
 
-inline Vector3 cross_product(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE Vector3 cross_product(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.y * v2.z - v1.z * v2.y,  v1.z * v2.x - v1.x * v2.z,  v1.x * v2.y - v1.y * v2.x);
 }
 
 
-inline Vector3 operator +(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE Vector3 operator +(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
 }
 
-inline Vector3 operator -(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE Vector3 operator -(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 }
 
-inline Vector3 operator *(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE Vector3 operator *(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z);
 }
 
-inline Vector3 operator /(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE Vector3 operator /(const Vector3 &v1, const Vector3 &v2) {
 	return Vector3(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z);
 }
 
-inline bool operator ==(const Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE bool operator ==(const Vector3 &v1, const Vector3 &v2) {
 	return (fabs(v1.x - v2.x) < XSMALL_NUMBER) && (fabs(v1.y - v2.y) < XSMALL_NUMBER) && (fabs(v1.z - v2.z) < XSMALL_NUMBER);
 }
 
-inline void operator +=(Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE void operator +=(Vector3 &v1, const Vector3 &v2) {
 	v1.x += v2.x;
 	v1.y += v2.y;
 	v1.z += v2.z;
 }
 
-inline void operator -=(Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE void operator -=(Vector3 &v1, const Vector3 &v2) {
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 	v1.z -= v2.z;
 }
 
-inline void operator *=(Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE void operator *=(Vector3 &v1, const Vector3 &v2) {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
 	v1.z *= v2.z;
 }
 
-inline void operator /=(Vector3 &v1, const Vector3 &v2) {
+VMATH_INLINE void operator /=(Vector3 &v1, const Vector3 &v2) {
 	v1.x /= v2.x;
 	v1.y /= v2.y;
 	v1.z /= v2.z;
 }
 /* binary vector (op) scalar and scalar (op) vector operations */
-inline Vector3 operator +(const Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE Vector3 operator +(const Vector3 &vec, scalar_t scalar) {
 	return Vector3(vec.x + scalar, vec.y + scalar, vec.z + scalar);
 }
 
-inline Vector3 operator +(scalar_t scalar, const Vector3 &vec) {
+VMATH_INLINE Vector3 operator +(scalar_t scalar, const Vector3 &vec) {
 	return Vector3(vec.x + scalar, vec.y + scalar, vec.z + scalar);
 }
 
-inline Vector3 operator -(const Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE Vector3 operator -(const Vector3 &vec, scalar_t scalar) {
 	return Vector3(vec.x - scalar, vec.y - scalar, vec.z - scalar);
 }
 
-inline Vector3 operator *(const Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE Vector3 operator *(const Vector3 &vec, scalar_t scalar) {
 	return Vector3(vec.x * scalar, vec.y * scalar, vec.z * scalar);
 }
 
-inline Vector3 operator *(scalar_t scalar, const Vector3 &vec) {
+VMATH_INLINE Vector3 operator *(scalar_t scalar, const Vector3 &vec) {
 	return Vector3(vec.x * scalar, vec.y * scalar, vec.z * scalar);
 }
 
-inline Vector3 operator /(const Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE Vector3 operator /(const Vector3 &vec, scalar_t scalar) {
 	return Vector3(vec.x / scalar, vec.y / scalar, vec.z / scalar);
 }
 
-inline void operator +=(Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE void operator +=(Vector3 &vec, scalar_t scalar) {
 	vec.x += scalar;
 	vec.y += scalar;
 	vec.z += scalar;
 }
 
-inline void operator -=(Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE void operator -=(Vector3 &vec, scalar_t scalar) {
 	vec.x -= scalar;
 	vec.y -= scalar;
 	vec.z -= scalar;
 }
 
-inline void operator *=(Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE void operator *=(Vector3 &vec, scalar_t scalar) {
 	vec.x *= scalar;
 	vec.y *= scalar;
 	vec.z *= scalar;
 }
 
-inline void operator /=(Vector3 &vec, scalar_t scalar) {
+VMATH_INLINE void operator /=(Vector3 &vec, scalar_t scalar) {
 	vec.x /= scalar;
 	vec.y /= scalar;
 	vec.z /= scalar;
 }
 
-inline scalar_t Vector3::length() const {
+VMATH_INLINE scalar_t Vector3::length() const {
 	return sqrt(x*x + y*y + z*z);
 }
-inline scalar_t Vector3::length_sq() const {
+VMATH_INLINE scalar_t Vector3::length_sq() const {
 	return x*x + y*y + z*z;
 }
 
-inline Vector3 lerp(const Vector3 &a, const Vector3 &b, scalar_t t) {
+VMATH_INLINE Vector3 lerp(const Vector3 &a, const Vector3 &b, scalar_t t) {
 	return a + (b - a) * t;
 }
 
-inline Vector3 catmull_rom_spline(const Vector3 &v0, const Vector3 &v1,
+VMATH_INLINE Vector3 catmull_rom_spline(const Vector3 &v0, const Vector3 &v1,
 		const Vector3 &v2, const Vector3 &v3, scalar_t t)
 {
 	scalar_t spline(scalar_t, scalar_t, scalar_t, scalar_t, scalar_t);
@@ -595,23 +595,23 @@ inline Vector3 catmull_rom_spline(const Vector3 &v0, const Vector3 &v1,
 
 /* ----------- Vector4 ----------------- */
 
-inline scalar_t &Vector4::operator [](int elem) {
+VMATH_INLINE scalar_t &Vector4::operator [](int elem) {
 	return elem ? (elem == 1 ? y : (elem == 2 ? z : w)) : x;
 }
 
-inline const scalar_t &Vector4::operator [](int elem) const {
+VMATH_INLINE const scalar_t &Vector4::operator [](int elem) const {
 	return elem ? (elem == 1 ? y : (elem == 2 ? z : w)) : x;
 }
 
-inline Vector4 operator -(const Vector4 &vec) {
+VMATH_INLINE Vector4 operator -(const Vector4 &vec) {
 	return Vector4(-vec.x, -vec.y, -vec.z, -vec.w);
 }
 
-inline scalar_t dot_product(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE scalar_t dot_product(const Vector4 &v1, const Vector4 &v2) {
 	return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
 }
 
-inline Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3) {
+VMATH_INLINE Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4 &v3) {
 	scalar_t a, b, c, d, e, f;       /* Intermediate Values */
     Vector4 result;
 
@@ -631,51 +631,51 @@ inline Vector4 cross_product(const Vector4 &v1, const Vector4 &v2, const Vector4
     return result;
 }
 
-inline Vector4 operator +(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE Vector4 operator +(const Vector4 &v1, const Vector4 &v2) {
 	return Vector4(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w);
 }
 
-inline Vector4 operator -(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE Vector4 operator -(const Vector4 &v1, const Vector4 &v2) {
 	return Vector4(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w);
 }
 
-inline Vector4 operator *(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE Vector4 operator *(const Vector4 &v1, const Vector4 &v2) {
 	return Vector4(v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.w);
 }
 
-inline Vector4 operator /(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE Vector4 operator /(const Vector4 &v1, const Vector4 &v2) {
 	return Vector4(v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w);
 }
 
-inline bool operator ==(const Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE bool operator ==(const Vector4 &v1, const Vector4 &v2) {
 	return	(fabs(v1.x - v2.x) < XSMALL_NUMBER) &&
 			(fabs(v1.y - v2.y) < XSMALL_NUMBER) &&
 			(fabs(v1.z - v2.z) < XSMALL_NUMBER) &&
 			(fabs(v1.w - v2.w) < XSMALL_NUMBER);
 }
 
-inline void operator +=(Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE void operator +=(Vector4 &v1, const Vector4 &v2) {
 	v1.x += v2.x;
 	v1.y += v2.y;
 	v1.z += v2.z;
 	v1.w += v2.w;
 }
 
-inline void operator -=(Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE void operator -=(Vector4 &v1, const Vector4 &v2) {
 	v1.x -= v2.x;
 	v1.y -= v2.y;
 	v1.z -= v2.z;
 	v1.w -= v2.w;
 }
 
-inline void operator *=(Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE void operator *=(Vector4 &v1, const Vector4 &v2) {
 	v1.x *= v2.x;
 	v1.y *= v2.y;
 	v1.z *= v2.z;
 	v1.w *= v2.w;
 }
 
-inline void operator /=(Vector4 &v1, const Vector4 &v2) {
+VMATH_INLINE void operator /=(Vector4 &v1, const Vector4 &v2) {
 	v1.x /= v2.x;
 	v1.y /= v2.y;
 	v1.z /= v2.z;
@@ -683,71 +683,71 @@ inline void operator /=(Vector4 &v1, const Vector4 &v2) {
 }
 
 /* binary vector (op) scalar and scalar (op) vector operations */
-inline Vector4 operator +(const Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE Vector4 operator +(const Vector4 &vec, scalar_t scalar) {
 	return Vector4(vec.x + scalar, vec.y + scalar, vec.z + scalar, vec.w + scalar);
 }
 
-inline Vector4 operator +(scalar_t scalar, const Vector4 &vec) {
+VMATH_INLINE Vector4 operator +(scalar_t scalar, const Vector4 &vec) {
 	return Vector4(vec.x + scalar, vec.y + scalar, vec.z + scalar, vec.w + scalar);
 }
 
-inline Vector4 operator -(const Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE Vector4 operator -(const Vector4 &vec, scalar_t scalar) {
 	return Vector4(vec.x - scalar, vec.y - scalar, vec.z - scalar, vec.w - scalar);
 }
 
-inline Vector4 operator *(const Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE Vector4 operator *(const Vector4 &vec, scalar_t scalar) {
 	return Vector4(vec.x * scalar, vec.y * scalar, vec.z * scalar, vec.w * scalar);
 }
 
-inline Vector4 operator *(scalar_t scalar, const Vector4 &vec) {
+VMATH_INLINE Vector4 operator *(scalar_t scalar, const Vector4 &vec) {
 	return Vector4(vec.x * scalar, vec.y * scalar, vec.z * scalar, vec.w * scalar);
 }
 
-inline Vector4 operator /(const Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE Vector4 operator /(const Vector4 &vec, scalar_t scalar) {
 	return Vector4(vec.x / scalar, vec.y / scalar, vec.z / scalar, vec.w / scalar);
 }
 
-inline void operator +=(Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE void operator +=(Vector4 &vec, scalar_t scalar) {
 	vec.x += scalar;
 	vec.y += scalar;
 	vec.z += scalar;
 	vec.w += scalar;
 }
 
-inline void operator -=(Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE void operator -=(Vector4 &vec, scalar_t scalar) {
 	vec.x -= scalar;
 	vec.y -= scalar;
 	vec.z -= scalar;
 	vec.w -= scalar;
 }
 
-inline void operator *=(Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE void operator *=(Vector4 &vec, scalar_t scalar) {
 	vec.x *= scalar;
 	vec.y *= scalar;
 	vec.z *= scalar;
 	vec.w *= scalar;
 }
 
-inline void operator /=(Vector4 &vec, scalar_t scalar) {
+VMATH_INLINE void operator /=(Vector4 &vec, scalar_t scalar) {
 	vec.x /= scalar;
 	vec.y /= scalar;
 	vec.z /= scalar;
 	vec.w /= scalar;
 }
 
-inline scalar_t Vector4::length() const {
+VMATH_INLINE scalar_t Vector4::length() const {
 	return sqrt(x*x + y*y + z*z + w*w);
 }
-inline scalar_t Vector4::length_sq() const {
+VMATH_INLINE scalar_t Vector4::length_sq() const {
 	return x*x + y*y + z*z + w*w;
 }
 
-inline Vector4 lerp(const Vector4 &v0, const Vector4 &v1, scalar_t t)
+VMATH_INLINE Vector4 lerp(const Vector4 &v0, const Vector4 &v1, scalar_t t)
 {
 	return v0 + (v1 - v0) * t;
 }
 
-inline Vector4 catmull_rom_spline(const Vector4 &v0, const Vector4 &v1,
+VMATH_INLINE Vector4 catmull_rom_spline(const Vector4 &v0, const Vector4 &v1,
 		const Vector4 &v2, const Vector4 &v3, scalar_t t)
 {
 	scalar_t spline(scalar_t, scalar_t, scalar_t, scalar_t, scalar_t);

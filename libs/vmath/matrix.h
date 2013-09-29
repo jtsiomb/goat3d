@@ -27,27 +27,27 @@ extern "C" {
 #endif	/* __cplusplus */
 
 /* C matrix 3x3 functions */
-static inline void m3_identity(mat3_t m);
-static inline void m3_cons(mat3_t m,
+static VMATH_INLINE void m3_identity(mat3_t m);
+static VMATH_INLINE void m3_cons(mat3_t m,
 		scalar_t m11, scalar_t m12, scalar_t m13,
 		scalar_t m21, scalar_t m22, scalar_t m23,
 		scalar_t m31, scalar_t m32, scalar_t m33);
-static inline void m3_copy(mat3_t dest, mat3_t src);
+static VMATH_INLINE void m3_copy(mat3_t dest, mat3_t src);
 void m3_to_m4(mat4_t dest, mat3_t src);
 
 void m3_print(FILE *fp, mat3_t m);
 
 /* C matrix 4x4 functions */
-static inline void m4_identity(mat4_t m);
-static inline void m4_cons(mat4_t m,
+static VMATH_INLINE void m4_identity(mat4_t m);
+static VMATH_INLINE void m4_cons(mat4_t m,
 		scalar_t m11, scalar_t m12, scalar_t m13, scalar_t m14,
 		scalar_t m21, scalar_t m22, scalar_t m23, scalar_t m24,
 		scalar_t m31, scalar_t m32, scalar_t m33, scalar_t m34,
 		scalar_t m41, scalar_t m42, scalar_t m43, scalar_t m44);
-static inline void m4_copy(mat4_t dest, mat4_t src);
+static VMATH_INLINE void m4_copy(mat4_t dest, mat4_t src);
 void m4_to_m3(mat3_t dest, mat4_t src);
 
-static inline void m4_mult(mat4_t res, mat4_t m1, mat4_t m2);
+static VMATH_INLINE void m4_mult(mat4_t res, mat4_t m1, mat4_t m2);
 
 void m4_set_translation(mat4_t m, scalar_t x, scalar_t y, scalar_t z);
 void m4_translate(mat4_t m, scalar_t x, scalar_t y, scalar_t z);
@@ -69,8 +69,8 @@ void m4_rotate_quat(mat4_t m, quat_t q);
 void m4_set_scaling(mat4_t m, scalar_t x, scalar_t y, scalar_t z);
 void m4_scale(mat4_t m, scalar_t x, scalar_t y, scalar_t z);
 
-static inline void m4_set_column(mat4_t m, vec4_t v, int idx);
-static inline void m4_set_row(mat4_t m, vec4_t v, int idx);
+static VMATH_INLINE void m4_set_column(mat4_t m, vec4_t v, int idx);
+static VMATH_INLINE void m4_set_row(mat4_t m, vec4_t v, int idx);
 
 void m4_transpose(mat4_t res, mat4_t m);
 scalar_t m4_determinant(mat4_t m);
@@ -116,10 +116,10 @@ public:
 
 	friend void operator *=(Matrix3x3 &mat, scalar_t scalar);
 
-	inline scalar_t *operator [](int index);
-	inline const scalar_t *operator [](int index) const;
+	VMATH_INLINE scalar_t *operator [](int index);
+	VMATH_INLINE const scalar_t *operator [](int index) const;
 
-	inline void reset_identity();
+	VMATH_INLINE void reset_identity();
 
 	void translate(const Vector2 &trans);
 	void set_translation(const Vector2 &trans);
@@ -190,7 +190,7 @@ public:
 
 	friend void operator +=(Matrix4x4 &m1, const Matrix4x4 &m2);
 	friend void operator -=(Matrix4x4 &m1, const Matrix4x4 &m2);
-	friend inline void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2);
+	friend VMATH_INLINE void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2);
 
 	/* binary operations matrix (op) scalar and scalar (op) matrix */
 	friend Matrix4x4 operator *(const Matrix4x4 &mat, scalar_t scalar);
@@ -198,10 +198,10 @@ public:
 
 	friend void operator *=(Matrix4x4 &mat, scalar_t scalar);
 
-	inline scalar_t *operator [](int index);
-	inline const scalar_t *operator [](int index) const;
+	VMATH_INLINE scalar_t *operator [](int index);
+	VMATH_INLINE const scalar_t *operator [](int index) const;
 
-	inline void reset_identity();
+	VMATH_INLINE void reset_identity();
 
 	void translate(const Vector3 &trans);
 	void set_translation(const Vector3 &trans);
@@ -239,11 +239,11 @@ public:
 /* binary operations matrix (op) matrix */
 Matrix4x4 operator +(const Matrix4x4 &m1, const Matrix4x4 &m2);
 Matrix4x4 operator -(const Matrix4x4 &m1, const Matrix4x4 &m2);
-inline Matrix4x4 operator *(const Matrix4x4 &m1, const Matrix4x4 &m2);
+VMATH_INLINE Matrix4x4 operator *(const Matrix4x4 &m1, const Matrix4x4 &m2);
 
 void operator +=(Matrix4x4 &m1, const Matrix4x4 &m2);
 void operator -=(Matrix4x4 &m1, const Matrix4x4 &m2);
-inline void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2);
+VMATH_INLINE void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2);
 
 /* binary operations matrix (op) scalar and scalar (op) matrix */
 Matrix4x4 operator *(const Matrix4x4 &mat, scalar_t scalar);

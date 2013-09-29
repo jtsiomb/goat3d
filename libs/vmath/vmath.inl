@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 
-static inline scalar_t smoothstep(float a, float b, float x)
+static VMATH_INLINE scalar_t smoothstep(float a, float b, float x)
 {
 	if(x < a) return 0.0;
 	if(x >= b) return 1.0;
@@ -28,13 +28,13 @@ static inline scalar_t smoothstep(float a, float b, float x)
 }
 
 /** Generates a random number in [0, range) */
-static inline scalar_t frand(scalar_t range)
+static VMATH_INLINE scalar_t frand(scalar_t range)
 {
 	return range * (scalar_t)rand() / (scalar_t)RAND_MAX;
 }
 
 /** Generates a random vector on the surface of a sphere */
-static inline vec3_t sphrand(scalar_t rad)
+static VMATH_INLINE vec3_t sphrand(scalar_t rad)
 {
 	scalar_t u = (scalar_t)rand() / RAND_MAX;
 	scalar_t v = (scalar_t)rand() / RAND_MAX;
@@ -50,7 +50,7 @@ static inline vec3_t sphrand(scalar_t rad)
 }
 
 /** linear interpolation */
-static inline scalar_t lerp(scalar_t a, scalar_t b, scalar_t t)
+static VMATH_INLINE scalar_t lerp(scalar_t a, scalar_t b, scalar_t t)
 {
 	return a + (b - a) * t;
 }

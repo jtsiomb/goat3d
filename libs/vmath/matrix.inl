@@ -23,13 +23,13 @@ extern "C" {
 #endif	/* __cplusplus */
 
 /* C matrix 3x3 functions */
-static inline void m3_identity(mat3_t m)
+static VMATH_INLINE void m3_identity(mat3_t m)
 {
 	static const mat3_t id = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 	memcpy(m, id, sizeof id);
 }
 
-static inline void m3_cons(mat3_t m,
+static VMATH_INLINE void m3_cons(mat3_t m,
 		scalar_t m11, scalar_t m12, scalar_t m13,
 		scalar_t m21, scalar_t m22, scalar_t m23,
 		scalar_t m31, scalar_t m32, scalar_t m33)
@@ -39,20 +39,20 @@ static inline void m3_cons(mat3_t m,
 	m[2][0] = m31; m[2][1] = m32; m[2][2] = m33;
 }
 
-static inline void m3_copy(mat3_t dest, mat3_t src)
+static VMATH_INLINE void m3_copy(mat3_t dest, mat3_t src)
 {
 	memcpy(dest, src, sizeof(mat3_t));
 }
 
 
 /* C matrix 4x4 functions */
-static inline void m4_identity(mat4_t m)
+static VMATH_INLINE void m4_identity(mat4_t m)
 {
 	static const mat4_t id = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
 	memcpy(m, id, sizeof id);
 }
 
-static inline void m4_cons(mat4_t m,
+static VMATH_INLINE void m4_cons(mat4_t m,
 		scalar_t m11, scalar_t m12, scalar_t m13, scalar_t m14,
 		scalar_t m21, scalar_t m22, scalar_t m23, scalar_t m24,
 		scalar_t m31, scalar_t m32, scalar_t m33, scalar_t m34,
@@ -64,12 +64,12 @@ static inline void m4_cons(mat4_t m,
 	m[3][0] = m41; m[3][1] = m42; m[3][2] = m43; m[3][3] = m44;
 }
 
-static inline void m4_copy(mat4_t dest, mat4_t src)
+static VMATH_INLINE void m4_copy(mat4_t dest, mat4_t src)
 {
 	memcpy(dest, src, sizeof(mat4_t));
 }
 
-static inline void m4_mult(mat4_t res, mat4_t m1, mat4_t m2)
+static VMATH_INLINE void m4_mult(mat4_t res, mat4_t m1, mat4_t m2)
 {
 	mat4_t tmp;
 
@@ -105,7 +105,7 @@ static inline void m4_mult(mat4_t res, mat4_t m1, mat4_t m2)
 	m4_copy(res, tmp);
 }
 
-static inline void m4_set_column(mat4_t m, vec4_t v, int idx)
+static VMATH_INLINE void m4_set_column(mat4_t m, vec4_t v, int idx)
 {
 	m[0][idx] = v.x;
 	m[1][idx] = v.y;
@@ -113,7 +113,7 @@ static inline void m4_set_column(mat4_t m, vec4_t v, int idx)
 	m[3][idx] = v.w;
 }
 
-static inline void m4_set_row(mat4_t m, vec4_t v, int idx)
+static VMATH_INLINE void m4_set_row(mat4_t m, vec4_t v, int idx)
 {
 	m[idx][0] = v.x;
 	m[idx][1] = v.y;
@@ -125,8 +125,8 @@ static inline void m4_set_row(mat4_t m, vec4_t v, int idx)
 }	/* extern "C" */
 
 
-/* unrolled to hell and inline */
-inline Matrix4x4 operator *(const Matrix4x4 &m1, const Matrix4x4 &m2)
+/* unrolled to hell and VMATH_INLINE */
+VMATH_INLINE Matrix4x4 operator *(const Matrix4x4 &m1, const Matrix4x4 &m2)
 {
 	Matrix4x4 res;
 
@@ -161,39 +161,39 @@ inline Matrix4x4 operator *(const Matrix4x4 &m1, const Matrix4x4 &m2)
 	return res;
 }
 
-inline void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2)
+VMATH_INLINE void operator *=(Matrix4x4 &m1, const Matrix4x4 &m2)
 {
 	Matrix4x4 res = m1 * m2;
 	m1 = res;
 }
 
 
-inline scalar_t *Matrix3x3::operator [](int index)
+VMATH_INLINE scalar_t *Matrix3x3::operator [](int index)
 {
 	return m[index];
 }
 
-inline const scalar_t *Matrix3x3::operator [](int index) const
+VMATH_INLINE const scalar_t *Matrix3x3::operator [](int index) const
 {
 	return m[index];
 }
 
-inline void Matrix3x3::reset_identity()
+VMATH_INLINE void Matrix3x3::reset_identity()
 {
 	*this = identity;
 }
 
-inline scalar_t *Matrix4x4::operator [](int index)
+VMATH_INLINE scalar_t *Matrix4x4::operator [](int index)
 {
 	return m[index];
 }
 
-inline const scalar_t *Matrix4x4::operator [](int index) const
+VMATH_INLINE const scalar_t *Matrix4x4::operator [](int index) const
 {
 	return m[index];
 }
 
-inline void Matrix4x4::reset_identity()
+VMATH_INLINE void Matrix4x4::reset_identity()
 {
 	*this = identity;
 }

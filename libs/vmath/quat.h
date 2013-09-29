@@ -37,21 +37,21 @@ void quat_print(FILE *fp, quat_t q);
 #define quat_sub		v4_sub
 #define quat_neg		v4_neg
 
-static inline quat_t quat_mul(quat_t q1, quat_t q2);
+static VMATH_INLINE quat_t quat_mul(quat_t q1, quat_t q2);
 
-static inline quat_t quat_conjugate(quat_t q);
+static VMATH_INLINE quat_t quat_conjugate(quat_t q);
 
 #define quat_length		v4_length
 #define quat_length_sq	v4_length_sq
 
 #define quat_normalize	v4_normalize
-static inline quat_t quat_inverse(quat_t q);
+static VMATH_INLINE quat_t quat_inverse(quat_t q);
 
 quat_t quat_rotate(quat_t q, scalar_t angle, scalar_t x, scalar_t y, scalar_t z);
 quat_t quat_rotate_quat(quat_t q, quat_t rotq);
 
-static inline void quat_to_mat3(mat3_t res, quat_t q);
-static inline void quat_to_mat4(mat4_t res, quat_t q);
+static VMATH_INLINE void quat_to_mat3(mat3_t res, quat_t q);
+static VMATH_INLINE void quat_to_mat4(mat4_t res, quat_t q);
 
 #define quat_lerp quat_slerp
 quat_t quat_slerp(quat_t q1, quat_t q2, scalar_t t);
@@ -107,7 +107,7 @@ public:
 };
 
 Quaternion slerp(const Quaternion &q1, const Quaternion &q2, scalar_t t);
-inline Quaternion lerp(const Quaternion &q1, const Quaternion &q2, scalar_t t);
+VMATH_INLINE Quaternion lerp(const Quaternion &q1, const Quaternion &q2, scalar_t t);
 
 std::ostream &operator <<(std::ostream &out, const Quaternion &q);
 

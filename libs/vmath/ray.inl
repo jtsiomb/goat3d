@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif	/* __cplusplus */
 
-static inline ray_t ray_cons(vec3_t origin, vec3_t dir)
+static VMATH_INLINE ray_t ray_cons(vec3_t origin, vec3_t dir)
 {
 	ray_t r;
 	r.origin = origin;
@@ -31,14 +31,14 @@ static inline ray_t ray_cons(vec3_t origin, vec3_t dir)
 #ifdef __cplusplus
 }
 
-inline Ray reflect_ray(const Ray &inray, const Vector3 &norm)
+VMATH_INLINE Ray reflect_ray(const Ray &inray, const Vector3 &norm)
 {
 	Ray ray = inray;
 	ray.dir = ray.dir.reflection(norm);
 	return ray;
 }
 
-inline Ray refract_ray(const Ray &inray, const Vector3 &norm, scalar_t from_ior, scalar_t to_ior)
+VMATH_INLINE Ray refract_ray(const Ray &inray, const Vector3 &norm, scalar_t from_ior, scalar_t to_ior)
 {
 	Ray ray = inray;
 	ray.dir = ray.dir.refraction(norm, from_ior, to_ior);

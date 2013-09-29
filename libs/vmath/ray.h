@@ -30,7 +30,7 @@ typedef struct {
 extern "C" {
 #endif	/* __cplusplus */
 
-static inline ray_t ray_cons(vec3_t origin, vec3_t dir);
+static VMATH_INLINE ray_t ray_cons(vec3_t origin, vec3_t dir);
 ray_t ray_transform(ray_t r, mat4_t m);
 
 #ifdef __cplusplus
@@ -55,8 +55,8 @@ public:
 	Ray transformed(const Matrix4x4 &xform) const;
 };
 
-inline Ray reflect_ray(const Ray &inray, const Vector3 &norm);
-inline Ray refract_ray(const Ray &inray, const Vector3 &norm, scalar_t from_ior, scalar_t to_ior);
+VMATH_INLINE Ray reflect_ray(const Ray &inray, const Vector3 &norm);
+VMATH_INLINE Ray refract_ray(const Ray &inray, const Vector3 &norm, scalar_t from_ior, scalar_t to_ior);
 #endif	/* __cplusplus */
 
 #include "ray.inl"

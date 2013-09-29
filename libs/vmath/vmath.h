@@ -52,15 +52,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif	/* __cplusplus */
 
-static inline scalar_t smoothstep(float a, float b, float x);
+static VMATH_INLINE scalar_t smoothstep(float a, float b, float x);
 
-static inline scalar_t frand(scalar_t range);
-static inline vec3_t sphrand(scalar_t rad);
+static VMATH_INLINE scalar_t frand(scalar_t range);
+static VMATH_INLINE vec3_t sphrand(scalar_t rad);
 
 scalar_t integral(scalar_t (*f)(scalar_t), scalar_t low, scalar_t high, int samples);
 scalar_t gaussian(scalar_t x, scalar_t mean, scalar_t sdev);
 
-static inline scalar_t lerp(scalar_t a, scalar_t b, scalar_t t);
+static VMATH_INLINE scalar_t lerp(scalar_t a, scalar_t b, scalar_t t);
 
 scalar_t bspline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);
 scalar_t spline(scalar_t a, scalar_t b, scalar_t c, scalar_t d, scalar_t t);

@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif	/* __cplusplus */
 
-static inline quat_t quat_mul(quat_t q1, quat_t q2)
+static VMATH_INLINE quat_t quat_mul(quat_t q1, quat_t q2)
 {
 	quat_t res;
 	vec3_t v1 = quat_vec(q1);
@@ -37,7 +37,7 @@ static inline quat_t quat_mul(quat_t q1, quat_t q2)
 	return res;
 }
 
-static inline quat_t quat_conjugate(quat_t q)
+static VMATH_INLINE quat_t quat_conjugate(quat_t q)
 {
 	q.x = -q.x;
 	q.y = -q.y;
@@ -45,7 +45,7 @@ static inline quat_t quat_conjugate(quat_t q)
 	return q;
 }
 
-static inline quat_t quat_inverse(quat_t q)
+static VMATH_INLINE quat_t quat_inverse(quat_t q)
 {
 	scalar_t lensq = quat_length_sq(q);
 	q = quat_conjugate(q);
@@ -56,14 +56,14 @@ static inline quat_t quat_inverse(quat_t q)
 	return q;
 }
 
-static inline void quat_to_mat3(mat3_t res, quat_t q)
+static VMATH_INLINE void quat_to_mat3(mat3_t res, quat_t q)
 {
 	m3_cons(res, 1.0 - 2.0 * q.y*q.y - 2.0 * q.z*q.z, 2.0 * q.x * q.y - 2.0 * q.w * q.z,   2.0 * q.z * q.x + 2.0 * q.w * q.y,
 				 2.0 * q.x * q.y + 2.0 * q.w * q.z,   1.0 - 2.0 * q.x*q.x - 2.0 * q.z*q.z, 2.0 * q.y * q.z - 2.0 * q.w * q.x,
 				 2.0 * q.z * q.x - 2.0 * q.w * q.y,   2.0 * q.y * q.z + 2.0 * q.w * q.x,   1.0 - 2.0 * q.x*q.x - 2.0 * q.y*q.y);
 }
 
-static inline void quat_to_mat4(mat4_t res, quat_t q)
+static VMATH_INLINE void quat_to_mat4(mat4_t res, quat_t q)
 {
 	m4_cons(res, 1.0 - 2.0 * q.y*q.y - 2.0 * q.z*q.z, 2.0 * q.x * q.y - 2.0 * q.w * q.z,   2.0 * q.z * q.x + 2.0 * q.w * q.y,   0,
 				 2.0 * q.x * q.y + 2.0 * q.w * q.z,   1.0 - 2.0 * q.x*q.x - 2.0 * q.z*q.z, 2.0 * q.y * q.z - 2.0 * q.w * q.x,   0,
@@ -74,7 +74,7 @@ static inline void quat_to_mat4(mat4_t res, quat_t q)
 #ifdef __cplusplus
 }	/* extern "C" */
 
-inline Quaternion lerp(const Quaternion &a, const Quaternion &b, scalar_t t)
+VMATH_INLINE Quaternion lerp(const Quaternion &a, const Quaternion &b, scalar_t t)
 {
 	return slerp(a, b, t);
 }
