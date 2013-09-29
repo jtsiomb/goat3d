@@ -17,6 +17,12 @@
     <Filter Include="libs\openctm\liblzma">
       <UniqueIdentifier>{18a85bea-ddb2-49a1-a7b1-bd11b23d5549}</UniqueIdentifier>
     </Filter>
+    <Filter Include="libs\vmath">
+      <UniqueIdentifier>{dc4ab435-af1e-4786-8011-a7a793e229eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs\anim">
+      <UniqueIdentifier>{05d8010d-b4d9-4829-80ea-8c8d018e1e04}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\camera.h">
@@ -87,6 +93,45 @@
     </ClInclude>
     <ClInclude Include="libs\openctm\liblzma\Types.h">
       <Filter>libs\openctm\liblzma</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\anim\anim.h">
+      <Filter>libs\anim</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\anim\dynarr.h">
+      <Filter>libs\anim</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\anim\track.h">
+      <Filter>libs\anim</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\basis.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\geom.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\matrix.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\quat.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\ray.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\sphvec.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\vector.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\vmath.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\vmath_config.h">
+      <Filter>libs\vmath</Filter>
+    </ClInclude>
+    <ClInclude Include="libs\vmath\vmath_types.h">
+      <Filter>libs\vmath</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -162,5 +207,67 @@
     <ClCompile Include="libs\openctm\liblzma\LzmaLib.c">
       <Filter>libs\openctm\liblzma</Filter>
     </ClCompile>
+    <ClCompile Include="libs\anim\anim.c">
+      <Filter>libs\anim</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\anim\dynarr.c">
+      <Filter>libs\anim</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\anim\track.c">
+      <Filter>libs\anim</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\basis.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\basis_c.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\geom.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\matrix.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\matrix_c.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\quat.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\quat_c.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\ray.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\ray_c.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\sphvec.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\vector.cc">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+    <ClCompile Include="libs\vmath\vmath.c">
+      <Filter>libs\vmath</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libs\vmath\matrix.inl">
+      <Filter>libs\vmath</Filter>
+    </None>
+    <None Include="libs\vmath\quat.inl">
+      <Filter>libs\vmath</Filter>
+    </None>
+    <None Include="libs\vmath\ray.inl">
+      <Filter>libs\vmath</Filter>
+    </None>
+    <None Include="libs\vmath\vector.inl">
+      <Filter>libs\vmath</Filter>
+    </None>
+    <None Include="libs\vmath\vmath.inl">
+      <Filter>libs\vmath</Filter>
+    </None>
   </ItemGroup>
 </Project>

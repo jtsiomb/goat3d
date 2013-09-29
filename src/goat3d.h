@@ -90,6 +90,8 @@ void goat3d_set_ambient3f(struct goat3d *g, float ar, float ag, float ab);
 const float *goat3d_get_ambient(const struct goat3d *g);
 
 /* materials */
+void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
+
 struct goat3d_material *goat3d_create_mtl(void);
 void goat3d_destroy_mtl(struct goat3d_material *mtl);
 
@@ -105,9 +107,12 @@ const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attr
 void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname);
 const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib);
 
-void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
-
 /* meshes */
+void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
+int goat3d_get_mesh_count(struct goat3d *g);
+struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx);
+struct goat3d_mesh *goat3d_get_mesh_by_name(struct goat3d *g, const char *name);
+
 struct goat3d_mesh *goat3d_create_mesh(void);
 void goat3d_destroy_mesh(struct goat3d_mesh *mesh);
 
@@ -160,13 +165,32 @@ void goat3d_skin_matrix4i(int x, int y, int z, int w);
 void goat3d_color3f(float x, float y, float z);
 void goat3d_color4f(float x, float y, float z, float w);
 
-void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
+/* lights */
+void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt);
+int goat3d_get_light_count(struct goat3d *g);
+struct goat3d_light *goat3d_get_light(struct goat3d *g, int idx);
+struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const char *name);
 
-int goat3d_get_mesh_count(struct goat3d *g);
-struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx);
+struct goat3d_light *goat3d_create_light(void);
+void goat3d_destroy_light(struct goat3d_light *lt);
+
+/* cameras */
+void goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam);
+int goat3d_get_camera_count(struct goat3d *g);
+struct goat3d_camera *goat3d_get_camera(struct goat3d *g, int idx);
+struct goat3d_camera *goat3d_get_camera_by_name(struct goat3d *g, const char *name);
+
+struct goat3d_camera *goat3d_create_camera(void);
+void goat3d_destroy_camera(struct goat3d_camera *cam);
 
 /* nodes */
+void goat3d_add_node(struct goat3d *g, struct goat3d_node *node);
+int goat3d_get_node_count(struct goat3d *g);
+struct goat3d_node *goat3d_get_node(struct goat3d *g, int idx);
+struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const char *name);
+
 struct goat3d_node *goat3d_create_node(void);
+void goat3d_destroy_node(struct goat3d_node *node);
 
 void goat3d_set_node_name(struct goat3d_node *node, const char *name);
 const char *goat3d_get_node_name(const struct goat3d_node *node);

@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="libs\anim\anim.h" />
+    <ClInclude Include="libs\anim\dynarr.h" />
+    <ClInclude Include="libs\anim\track.h" />
     <ClInclude Include="libs\openctm\internal.h" />
     <ClInclude Include="libs\openctm\liblzma\Alloc.h" />
     <ClInclude Include="libs\openctm\liblzma\LzFind.h" />
@@ -31,6 +34,16 @@
     <ClInclude Include="libs\openctm\openctm.h" />
     <ClInclude Include="libs\openctm\openctmpp.h" />
     <ClInclude Include="libs\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="libs\vmath\basis.h" />
+    <ClInclude Include="libs\vmath\geom.h" />
+    <ClInclude Include="libs\vmath\matrix.h" />
+    <ClInclude Include="libs\vmath\quat.h" />
+    <ClInclude Include="libs\vmath\ray.h" />
+    <ClInclude Include="libs\vmath\sphvec.h" />
+    <ClInclude Include="libs\vmath\vector.h" />
+    <ClInclude Include="libs\vmath\vmath.h" />
+    <ClInclude Include="libs\vmath\vmath_config.h" />
+    <ClInclude Include="libs\vmath\vmath_types.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\chunk.h" />
     <ClInclude Include="src\goat3d.h" />
@@ -44,6 +57,9 @@
     <ClInclude Include="src\xform_node.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="libs\anim\anim.c" />
+    <ClCompile Include="libs\anim\dynarr.c" />
+    <ClCompile Include="libs\anim\track.c" />
     <ClCompile Include="libs\openctm\compressMG1.c" />
     <ClCompile Include="libs\openctm\compressMG2.c" />
     <ClCompile Include="libs\openctm\compressRAW.c" />
@@ -55,6 +71,18 @@
     <ClCompile Include="libs\openctm\openctm.c" />
     <ClCompile Include="libs\openctm\stream.c" />
     <ClCompile Include="libs\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="libs\vmath\basis.cc" />
+    <ClCompile Include="libs\vmath\basis_c.c" />
+    <ClCompile Include="libs\vmath\geom.c" />
+    <ClCompile Include="libs\vmath\matrix.cc" />
+    <ClCompile Include="libs\vmath\matrix_c.c" />
+    <ClCompile Include="libs\vmath\quat.cc" />
+    <ClCompile Include="libs\vmath\quat_c.c" />
+    <ClCompile Include="libs\vmath\ray.cc" />
+    <ClCompile Include="libs\vmath\ray_c.c" />
+    <ClCompile Include="libs\vmath\sphvec.cc" />
+    <ClCompile Include="libs\vmath\vector.cc" />
+    <ClCompile Include="libs\vmath\vmath.c" />
     <ClCompile Include="src\camera.cc" />
     <ClCompile Include="src\chunk.cc" />
     <ClCompile Include="src\goat3d.cc" />
@@ -68,6 +96,13 @@
     <ClCompile Include="src\node.cc" />
     <ClCompile Include="src\scene.cc" />
     <ClCompile Include="src\xform_node.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libs\vmath\matrix.inl" />
+    <None Include="libs\vmath\quat.inl" />
+    <None Include="libs\vmath\ray.inl" />
+    <None Include="libs\vmath\vector.inl" />
+    <None Include="libs\vmath\vmath.inl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{86BF319B-9222-4805-918D-DC1B9F77BCEF}</ProjectGuid>
@@ -84,7 +119,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -97,7 +132,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -143,14 +178,18 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC;BUILD_MAXPLUGIN</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -180,7 +219,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -188,6 +227,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

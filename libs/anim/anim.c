@@ -1,0 +1,455 @@
+#include <stdlib.h>
+#include <limits.h>
+#include <assert.h>
+#include "anim.h"
+#include "dynarr.h"
+
+#define ROT_USE_SLERP
+
+static void invalidate_cache(struct anm_node *node);
+
+int anm_init_node(struct anm_node *node)
+{
+	int i, j;
+	static const float defaults[] = {
+		0.0f, 0.0f, 0.0f,		/* default position */
+		0.0f, 0.0f, 0.0f, 1.0f,	/* default rotation quat */
+		1.0f, 1.0f, 1.0f		/* default scale factor */
+	};
+
+	memset(node, 0, sizeof *node);
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		if(anm_init_track(node->tracks + i) == -1) {
+			for(j=0; j<i; j++) {
+				anm_destroy_track(node->tracks + i);
+			}
+		}
+		anm_set_track_default(node->tracks + i, defaults[i]);
+	}
+
+	node->cache.time = ANM_TIME_INVAL;
+	node->cache.inv_time = ANM_TIME_INVAL;
+	return 0;
+}
+
+void anm_destroy_node(struct anm_node *node)
+{
+	int i;
+	free(node->name);
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		anm_destroy_track(node->tracks + i);
+	}
+}
+
+void anm_destroy_node_tree(struct anm_node *tree)
+{
+	struct anm_node *c, *tmp;
+
+	if(!tree) return;
+
+	c = tree->child;
+	while(c) {
+		tmp = c;
+		c = c->next;
+
+		anm_destroy_node_tree(tmp);
+	}
+	anm_destroy_node(tree);
+}
+
+struct anm_node *anm_create_node(void)
+{
+	struct anm_node *n;
+
+	if((n = malloc(sizeof *n))) {
+		if(anm_init_node(n) == -1) {
+			free(n);
+			return 0;
+		}
+	}
+	return n;
+}
+
+void anm_free_node(struct anm_node *node)
+{
+	anm_destroy_node(node);
+	free(node);
+}
+
+void anm_free_node_tree(struct anm_node *tree)
+{
+	struct anm_node *c, *tmp;
+
+	if(!tree) return;
+
+	c = tree->child;
+	while(c) {
+		tmp = c;
+		c = c->next;
+
+		anm_free_node_tree(tmp);
+	}
+
+	anm_free_node(tree);
+}
+
+int anm_set_node_name(struct anm_node *node, const char *name)
+{
+	char *str;
+
+	if(!(str = malloc(strlen(name) + 1))) {
+		return -1;
+	}
+	strcpy(str, name);
+	free(node->name);
+	node->name = str;
+	return 0;
+}
+
+const char *anm_get_node_name(struct anm_node *node)
+{
+	return node->name ? node->name : "";
+}
+
+void anm_set_interpolator(struct anm_node *node, enum anm_interpolator in)
+{
+	int i;
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		anm_set_track_interpolator(node->tracks + i, in);
+	}
+	invalidate_cache(node);
+}
+
+void anm_set_extrapolator(struct anm_node *node, enum anm_extrapolator ex)
+{
+	int i;
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		anm_set_track_extrapolator(node->tracks + i, ex);
+	}
+	invalidate_cache(node);
+}
+
+void anm_link_node(struct anm_node *p, struct anm_node *c)
+{
+	c->next = p->child;
+	p->child = c;
+
+	c->parent = p;
+	invalidate_cache(c);
+}
+
+int anm_unlink_node(struct anm_node *p, struct anm_node *c)
+{
+	struct anm_node *iter;
+
+	if(p->child == c) {
+		p->child = c->next;
+		c->next = 0;
+		invalidate_cache(c);
+		return 0;
+	}
+
+	iter = p->child;
+	while(iter->next) {
+		if(iter->next == c) {
+			iter->next = c->next;
+			c->next = 0;
+			invalidate_cache(c);
+			return 0;
+		}
+	}
+	return -1;
+}
+
+void anm_set_position(struct anm_node *node, vec3_t pos, anm_time_t tm)
+{
+	anm_set_value(node->tracks + ANM_TRACK_POS_X, tm, pos.x);
+	anm_set_value(node->tracks + ANM_TRACK_POS_Y, tm, pos.y);
+	anm_set_value(node->tracks + ANM_TRACK_POS_Z, tm, pos.z);
+	invalidate_cache(node);
+}
+
+vec3_t anm_get_node_position(struct anm_node *node, anm_time_t tm)
+{
+	vec3_t v;
+	v.x = anm_get_value(node->tracks + ANM_TRACK_POS_X, tm);
+	v.y = anm_get_value(node->tracks + ANM_TRACK_POS_Y, tm);
+	v.z = anm_get_value(node->tracks + ANM_TRACK_POS_Z, tm);
+	return v;
+}
+
+void anm_set_rotation(struct anm_node *node, quat_t rot, anm_time_t tm)
+{
+	anm_set_value(node->tracks + ANM_TRACK_ROT_X, tm, rot.x);
+	anm_set_value(node->tracks + ANM_TRACK_ROT_Y, tm, rot.y);
+	anm_set_value(node->tracks + ANM_TRACK_ROT_Z, tm, rot.z);
+	anm_set_value(node->tracks + ANM_TRACK_ROT_W, tm, rot.w);
+	invalidate_cache(node);
+}
+
+quat_t anm_get_node_rotation(struct anm_node *node, anm_time_t tm)
+{
+#ifndef ROT_USE_SLERP
+	quat_t q;
+	q.x = anm_get_value(node->tracks + ANM_TRACK_ROT_X, tm);
+	q.y = anm_get_value(node->tracks + ANM_TRACK_ROT_Y, tm);
+	q.z = anm_get_value(node->tracks + ANM_TRACK_ROT_Z, tm);
+	q.w = anm_get_value(node->tracks + ANM_TRACK_ROT_W, tm);
+	return q;
+#else
+	int idx0, idx1, last_idx;
+	anm_time_t tstart, tend;
+	float t, dt;
+	struct anm_track *track_x, *track_y, *track_z, *track_w;
+	quat_t q, q1, q2;
+
+	track_x = node->tracks + ANM_TRACK_ROT_X;
+	track_y = node->tracks + ANM_TRACK_ROT_Y;
+	track_z = node->tracks + ANM_TRACK_ROT_Z;
+	track_w = node->tracks + ANM_TRACK_ROT_W;
+
+	if(!track_x->count) {
+		q.x = track_x->def_val;
+		q.y = track_y->def_val;
+		q.z = track_z->def_val;
+		q.w = track_w->def_val;
+		return q;
+	}
+
+	last_idx = track_x->count - 1;
+
+	tstart = track_x->keys[0].time;
+	tend = track_x->keys[last_idx].time;
+
+	if(tstart == tend) {
+		q.x = track_x->keys[0].val;
+		q.y = track_y->keys[0].val;
+		q.z = track_z->keys[0].val;
+		q.w = track_w->keys[0].val;
+		return q;
+	}
+
+	tm = anm_remap_time(track_x, tm, tstart, tend);
+
+	idx0 = anm_get_key_interval(track_x, tm);
+	assert(idx0 >= 0 && idx0 < track_x->count);
+	idx1 = idx0 + 1;
+
+	if(idx0 == last_idx) {
+		q.x = track_x->keys[idx0].val;
+		q.y = track_y->keys[idx0].val;
+		q.z = track_z->keys[idx0].val;
+		q.w = track_w->keys[idx0].val;
+		return q;
+	}
+
+	dt = (float)(track_x->keys[idx1].time - track_x->keys[idx0].time);
+	t = (float)(tm - track_x->keys[idx0].time) / dt;
+
+	q1.x = track_x->keys[idx0].val;
+	q1.y = track_y->keys[idx0].val;
+	q1.z = track_z->keys[idx0].val;
+	q1.w = track_w->keys[idx0].val;
+
+	q2.x = track_x->keys[idx1].val;
+	q2.y = track_y->keys[idx1].val;
+	q2.z = track_z->keys[idx1].val;
+	q2.w = track_w->keys[idx1].val;
+
+	/*q1 = quat_normalize(q1);
+	q2 = quat_normalize(q2);*/
+
+	return quat_slerp(q1, q2, t);
+#endif
+}
+
+void anm_set_scaling(struct anm_node *node, vec3_t scl, anm_time_t tm)
+{
+	anm_set_value(node->tracks + ANM_TRACK_SCL_X, tm, scl.x);
+	anm_set_value(node->tracks + ANM_TRACK_SCL_Y, tm, scl.y);
+	anm_set_value(node->tracks + ANM_TRACK_SCL_Z, tm, scl.z);
+	invalidate_cache(node);
+}
+
+vec3_t anm_get_node_scaling(struct anm_node *node, anm_time_t tm)
+{
+	vec3_t v;
+	v.x = anm_get_value(node->tracks + ANM_TRACK_SCL_X, tm);
+	v.y = anm_get_value(node->tracks + ANM_TRACK_SCL_Y, tm);
+	v.z = anm_get_value(node->tracks + ANM_TRACK_SCL_Z, tm);
+	return v;
+}
+
+
+vec3_t anm_get_position(struct anm_node *node, anm_time_t tm)
+{
+	mat4_t xform;
+	vec3_t pos = {0.0, 0.0, 0.0};
+
+	if(!node->parent) {
+		return anm_get_node_position(node, tm);
+	}
+
+	anm_get_matrix(node, xform, tm);
+	return v3_transform(pos, xform);
+}
+
+quat_t anm_get_rotation(struct anm_node *node, anm_time_t tm)
+{
+	quat_t rot, prot;
+	rot = anm_get_node_rotation(node, tm);
+
+	if(!node->parent) {
+		return rot;
+	}
+
+	prot = anm_get_rotation(node->parent, tm);
+	return quat_mul(prot, rot);
+}
+
+vec3_t anm_get_scaling(struct anm_node *node, anm_time_t tm)
+{
+	vec3_t s, ps;
+	s = anm_get_node_scaling(node, tm);
+
+	if(!node->parent) {
+		return s;
+	}
+
+	ps = anm_get_scaling(node->parent, tm);
+	return v3_mul(s, ps);
+}
+
+void anm_set_pivot(struct anm_node *node, vec3_t piv)
+{
+	node->pivot = piv;
+}
+
+vec3_t anm_get_pivot(struct anm_node *node)
+{
+	return node->pivot;
+}
+
+void anm_get_node_matrix(struct anm_node *node, mat4_t mat, anm_time_t tm)
+{
+	int i;
+	mat4_t rmat;
+	vec3_t pos, scale;
+	quat_t rot;
+
+	pos = anm_get_node_position(node, tm);
+	rot = anm_get_node_rotation(node, tm);
+	scale = anm_get_node_scaling(node, tm);
+
+	m4_set_translation(mat, node->pivot.x, node->pivot.y, node->pivot.z);
+
+	quat_to_mat4(rmat, rot);
+	for(i=0; i<3; i++) {
+		mat[i][0] = rmat[i][0];
+		mat[i][1] = rmat[i][1];
+		mat[i][2] = rmat[i][2];
+	}
+	/* this loop is equivalent to: m4_mult(mat, mat, rmat); */
+
+	mat[0][0] *= scale.x; mat[0][1] *= scale.y; mat[0][2] *= scale.z; mat[0][3] += pos.x;
+	mat[1][0] *= scale.x; mat[1][1] *= scale.y; mat[1][2] *= scale.z; mat[1][3] += pos.y;
+	mat[2][0] *= scale.x; mat[2][1] *= scale.y; mat[2][2] *= scale.z; mat[2][3] += pos.z;
+
+	m4_translate(mat, -node->pivot.x, -node->pivot.y, -node->pivot.z);
+
+	/* that's basically: pivot * rotation * translation * scaling * -pivot */
+}
+
+void anm_get_node_inv_matrix(struct anm_node *node, mat4_t mat, anm_time_t tm)
+{
+	mat4_t tmp;
+	anm_get_node_matrix(node, tmp, tm);
+	m4_inverse(mat, tmp);
+}
+
+void anm_get_matrix(struct anm_node *node, mat4_t mat, anm_time_t tm)
+{
+	if(node->cache.time != tm) {
+		anm_get_node_matrix(node, node->cache.matrix, tm);
+
+		if(node->parent) {
+			mat4_t parent_mat;
+
+			anm_get_matrix(node->parent, parent_mat, tm);
+			m4_mult(node->cache.matrix, parent_mat, node->cache.matrix);
+		}
+		node->cache.time = tm;
+	}
+	m4_copy(mat, node->cache.matrix);
+}
+
+void anm_get_inv_matrix(struct anm_node *node, mat4_t mat, anm_time_t tm)
+{
+	if(node->cache.inv_time != tm) {
+		anm_get_matrix(node, mat, tm);
+		m4_inverse(node->cache.inv_matrix, mat);
+		node->cache.inv_time = tm;
+	}
+	m4_copy(mat, node->cache.inv_matrix);
+}
+
+anm_time_t anm_get_start_time(struct anm_node *node)
+{
+	int i;
+	struct anm_node *c;
+	anm_time_t res = LONG_MAX;
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		if(node->tracks[i].count) {
+			anm_time_t tm = node->tracks[i].keys[0].time;
+			if(tm < res) {
+				res = tm;
+			}
+		}
+	}
+
+	c = node->child;
+	while(c) {
+		anm_time_t tm = anm_get_start_time(c);
+		if(tm < res) {
+			res = tm;
+		}
+		c = c->next;
+	}
+	return res;
+}
+
+anm_time_t anm_get_end_time(struct anm_node *node)
+{
+	int i;
+	struct anm_node *c;
+	anm_time_t res = LONG_MIN;
+
+	for(i=0; i<ANM_NUM_TRACKS; i++) {
+		if(node->tracks[i].count) {
+			anm_time_t tm = node->tracks[i].keys[node->tracks[i].count - 1].time;
+			if(tm > res) {
+				res = tm;
+			}
+		}
+	}
+
+	c = node->child;
+	while(c) {
+		anm_time_t tm = anm_get_end_time(c);
+		if(tm > res) {
+			res = tm;
+		}
+		c = c->next;
+	}
+	return res;
+}
+
+static void invalidate_cache(struct anm_node *node)
+{
+	node->cache.time = node->cache.inv_time = ANM_TIME_INVAL;
+}

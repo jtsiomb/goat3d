@@ -25,6 +25,7 @@ extern "C" {
 struct goat3d *goat3d_create(void)
 {
 	goat3d *goat = new goat3d;
+	goat->flags = 0;
 	goat->scn = new Scene;
 	return goat;
 }
@@ -142,6 +143,11 @@ const float *goat3d_get_ambient(const struct goat3d *g)
 }
 
 // ---- materials ----
+void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
+{
+	g->scn->add_material(mtl);
+}
+
 struct goat3d_material *goat3d_create_mtl(void)
 {
 	return new goat3d_material;
@@ -197,12 +203,27 @@ const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *a
 	return (*mtl)[attrib].map.c_str();
 }
 
-void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
+// ---- meshes ----
+void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
 {
-	g->scn->add_material(mtl);
+	g->scn->add_mesh(mesh);
 }
 
-// ---- meshes ----
+int goat3d_get_mesh_count(struct goat3d *g)
+{
+	return g->scn->get_mesh_count();
+}
+
+struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx)
+{
+	return (goat3d_mesh*)g->scn->get_mesh(idx);
+}
+
+struct goat3d_mesh *goat3d_get_mesh_by_name(struct goat3d *g, const char *name)
+{
+	return (goat3d_mesh*)g->scn->get_mesh(name);
+}
+
 struct goat3d_mesh *goat3d_create_mesh(void)
 {
 	return new goat3d_mesh;
@@ -459,23 +480,92 @@ void goat3d_color4f(float x, float y, float z, float w)
 	im_use[GOAT3D_MESH_ATTR_COLOR] = true;
 }
 
-void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
+/* lights */
+void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt)
 {
-	g->scn->add_mesh(mesh);
+	g->scn->add_light(lt);
 }
 
-int goat3d_get_mesh_count(struct goat3d *g)
+int goat3d_get_light_count(struct goat3d *g)
 {
-	return g->scn->get_mesh_count();
+	return g->scn->get_light_count();
 }
 
-struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx)
+struct goat3d_light *goat3d_get_light(struct goat3d *g, int idx)
 {
-	return (goat3d_mesh*)g->scn->get_mesh(idx);
+	return (goat3d_light*)g->scn->get_light(idx);
 }
+
+struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const char *name)
+{
+	return (goat3d_light*)g->scn->get_light(name);
+}
+
+
+struct goat3d_light *goat3d_create_light(void)
+{
+	return new goat3d_light;
+}
+
+void goat3d_destroy_light(struct goat3d_light *lt)
+{
+	delete lt;
+}
+
+
+/* cameras */
+void goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam)
+{
+	g->scn->add_camera(cam);
+}
+
+int goat3d_get_camera_count(struct goat3d *g)
+{
+	return g->scn->get_camera_count();
+}
+
+struct goat3d_camera *goat3d_get_camera(struct goat3d *g, int idx)
+{
+	return (goat3d_camera*)g->scn->get_camera(idx);
+}
+
+struct goat3d_camera *goat3d_get_camera_by_name(struct goat3d *g, const char *name)
+{
+	return (goat3d_camera*)g->scn->get_camera(name);
+}
+
+struct goat3d_camera *goat3d_create_camera(void)
+{
+	return new goat3d_camera;
+}
+
+void goat3d_destroy_camera(struct goat3d_camera *cam)
+{
+	delete cam;
+}
+
 
 
 // node
+void goat3d_add_node(struct goat3d *g, struct goat3d_node *node)
+{
+	g->scn->add_node(node);
+}
+
+int goat3d_get_node_count(struct goat3d *g)
+{
+	return g->scn->get_node_count();
+}
+
+struct goat3d_node *goat3d_get_node(struct goat3d *g, int idx)
+{
+	return (goat3d_node*)g->scn->get_node(idx);
+}
+
+struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const char *name)
+{
+	return (goat3d_node*)g->scn->get_node(name);
+}
 
 struct goat3d_node *goat3d_create_node(void)
 {
