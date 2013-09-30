@@ -1,8 +1,16 @@
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
+#include <string>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "log.h"
+
+#ifndef _MSC_VER
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
 
 struct goat3d {
 	Scene *scn;
@@ -19,6 +27,8 @@ struct goat3d_node : public Node {};
 static long read_file(void *buf, size_t bytes, void *uptr);
 static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
+
+static std::string clean_filename(const char *str);
 
 extern "C" {
 
@@ -197,7 +207,7 @@ const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attr
 
 void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
 {
-	(*mtl)[attrib].map = std::string(mapname);
+	(*mtl)[attrib].map = clean_filename(mapname);
 }
 
 const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
@@ -705,4 +715,24 @@ static long seek_file(long offs, int whence, void *uptr)
 		return -1;
 	}
 	return ftell((FILE*)uptr);
+}
+
+static std::string clean_filename(const char *str)
+{
+	const char *last_slash = strrchr(str, '/');
+	if(!last_slash) {
+		last_slash = strrchr(str, '\\');
+	}
+
+	if(last_slash) {
+		str = last_slash + 1;
+	}
+
+	char *buf = (char*)alloca(strlen(str) + 1);
+	char *dest = buf;
+	while(*str) {
+		char c = *str++;
+		*dest++ = tolower(c);
+	}
+	return buf;
 }
