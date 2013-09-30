@@ -15,6 +15,7 @@
 struct goat3d {
 	Scene *scn;
 	unsigned int flags;
+	char *search_path;
 };
 
 struct goat3d_material : public Material {};
@@ -36,6 +37,7 @@ struct goat3d *goat3d_create(void)
 {
 	goat3d *goat = new goat3d;
 	goat->flags = 0;
+	goat->search_path = 0;
 	goat->scn = new Scene;
 
 	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
@@ -44,6 +46,7 @@ struct goat3d *goat3d_create(void)
 
 void goat3d_free(struct goat3d *g)
 {
+	delete g->search_path;
 	delete g->scn;
 	delete g;
 }
@@ -68,6 +71,24 @@ int goat3d_load(struct goat3d *g, const char *fname)
 	if(!fp) {
 		logmsg(LOG_ERROR, "failed to open file \"%s\" for reading: %s\n", fname, strerror(errno));
 		return -1;
+	}
+
+	/* if the filename contained any directory components, keep the prefix
+	 * to use it as a search path for external mesh file loading
+	 */
+	g->search_path = new char[strlen(fname) + 1];
+	strcpy(g->search_path, fname);
+
+	char *slash = strrchr(g->search_path, '/');
+	if(slash) {
+		*slash = 0;
+	} else {
+		if((slash = strrchr(g->search_path, '\\'))) {
+			*slash = 0;
+		} else {
+			delete [] g->search_path;
+			g->search_path = 0;
+		}
 	}
 
 	int res = goat3d_load_file(g, fp);
