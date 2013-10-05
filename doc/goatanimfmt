@@ -1,3 +1,34 @@
-goat3d animation file format
+Goat3D animation file format
 ----------------------------
-TODO
+
+Chunk structure
+---------------
+Multiple tracks might apply to the same node, to allow for different
+interpolation, extrapolation, and time ranges between position, rotation, and
+scaling tracks.
+
+ANIM
+ +--ANIM_NAME
+ |   +--<STRING>
+ +--TRACK
+     +--TRACK_NAME
+     |   +--<STRING>
+     +--TRACK_NODE
+     |   +--<STRING>	(name of the scene node using this track)
+     +--TRACK_ATTR
+     |   +--<STRING>	(specify the attribute affected, see NOTE1)
+     +--TRACK_INTERP
+     |   +--<STRING>    ("step", "linear", "cubic")
+     +--TRACK_EXTRAP
+     |   +--<STRING>	("extend", "clamp", "repeat", "pingpong")
+     +--TRACK_KEY
+         +--TRACK_KEY_TIME
+         |   +--<INT>	(time in milliseconds)
+         +--TRACK_KEY_VALUE
+             +--<FLOAT|FLOAT3|FLOAT4>
+
+NOTE1: The attribute might be any user-defined string, but the following
+standard attribute names are specified:
+ - "position" keys are (x,y,z) vectors
+ - "rotation" keys are (x,y,z,w) quaternions, with w being the real part
+ - "scaling" keys are (x,y,z) scale factors
