@@ -286,6 +286,7 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 			}
 
 			process_mesh(goat, mesh, maxobj);
+			goat3d_add_mesh(goat, mesh);
 		}
 		break;
 
@@ -296,6 +297,7 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 			goat3d_set_node_object(node, GOAT3D_NODE_LIGHT, light);
 
 			process_light(goat, light, maxobj);
+			goat3d_add_light(goat, light);
 		}
 		break;
 
@@ -306,6 +308,7 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 			goat3d_set_node_object(node, GOAT3D_NODE_CAMERA, cam);
 
 			process_camera(goat, cam, maxobj);
+			goat3d_add_camera(goat, cam);
 		}
 		break;
 
@@ -328,11 +331,13 @@ void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *ma
 	maxobj->InitializeData();
 
 	int num_verts = maxmesh->GetNumberOfVerts();
+	int num_faces = maxmesh->GetNumberOfFaces();
 	//assert(maxmesh->GetNumberOfTexVerts() == num_verts);
 
 	float *vertices = new float[num_verts * 3];
 	float *normals = new float[num_verts * 3];
 	//float *texcoords = new float[num_verts * 2];
+	int *indices = new int[num_faces * 3];
 
 	for(int i=0; i<num_verts; i++) {
 		Point3 v = maxmesh->GetVertex(i, true);
@@ -357,13 +362,24 @@ void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *ma
 		texcoords[i * 2 + 1] = tex.y;
 	}*/
 
+	// get the faces
+	for(int i=0; i<num_faces; i++) {
+		FaceEx *face = maxmesh->GetFace(i);
+		indices[i * 3] = face->vert[0];
+		indices[i * 3 + 1] = face->vert[1];
+		indices[i * 3 + 2] = face->vert[2];
+		// TODO at some point I'll have to split based on normal/texcoord indices
+	}
+
 	goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_VERTEX, vertices, num_verts);
 	goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_NORMAL, normals, num_verts);
 	//goat3d_set_mesh_attribs(mesh, GOAT3D_MESH_ATTR_TEXCOORD, texcoords, num_verts);
+	goat3d_set_mesh_faces(mesh, indices, num_faces);
 
 	delete [] vertices;
 	delete [] normals;
 	//delete [] texcoords;
+	delete [] indices;
 }
 
 void GoatExporter::process_light(goat3d *goat, goat3d_light *light, IGameObject *maxobj)

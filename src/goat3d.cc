@@ -1,12 +1,21 @@
 #include <string.h>
 #include <errno.h>
+#include <ctype.h>
+#include <string>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "log.h"
 
+#ifndef _MSC_VER
+#include <alloca.h>
+#else
+#include <malloc.h>
+#endif
+
 struct goat3d {
 	Scene *scn;
 	unsigned int flags;
+	char *search_path;
 };
 
 struct goat3d_material : public Material {};
@@ -20,12 +29,15 @@ static long read_file(void *buf, size_t bytes, void *uptr);
 static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
 
+static std::string clean_filename(const char *str);
+
 extern "C" {
 
 struct goat3d *goat3d_create(void)
 {
 	goat3d *goat = new goat3d;
 	goat->flags = 0;
+	goat->search_path = 0;
 	goat->scn = new Scene;
 
 	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
@@ -34,6 +46,7 @@ struct goat3d *goat3d_create(void)
 
 void goat3d_free(struct goat3d *g)
 {
+	delete g->search_path;
 	delete g->scn;
 	delete g;
 }
@@ -58,6 +71,24 @@ int goat3d_load(struct goat3d *g, const char *fname)
 	if(!fp) {
 		logmsg(LOG_ERROR, "failed to open file \"%s\" for reading: %s\n", fname, strerror(errno));
 		return -1;
+	}
+
+	/* if the filename contained any directory components, keep the prefix
+	 * to use it as a search path for external mesh file loading
+	 */
+	g->search_path = new char[strlen(fname) + 1];
+	strcpy(g->search_path, fname);
+
+	char *slash = strrchr(g->search_path, '/');
+	if(slash) {
+		*slash = 0;
+	} else {
+		if((slash = strrchr(g->search_path, '\\'))) {
+			*slash = 0;
+		} else {
+			delete [] g->search_path;
+			g->search_path = 0;
+		}
 	}
 
 	int res = goat3d_load_file(g, fp);
@@ -197,7 +228,7 @@ const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attr
 
 void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
 {
-	(*mtl)[attrib].map = std::string(mapname);
+	(*mtl)[attrib].map = clean_filename(mapname);
 }
 
 const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
@@ -705,4 +736,24 @@ static long seek_file(long offs, int whence, void *uptr)
 		return -1;
 	}
 	return ftell((FILE*)uptr);
+}
+
+static std::string clean_filename(const char *str)
+{
+	const char *last_slash = strrchr(str, '/');
+	if(!last_slash) {
+		last_slash = strrchr(str, '\\');
+	}
+
+	if(last_slash) {
+		str = last_slash + 1;
+	}
+
+	char *buf = (char*)alloca(strlen(str) + 1);
+	char *dest = buf;
+	while(*str) {
+		char c = *str++;
+		*dest++ = tolower(c);
+	}
+	return buf;
 }

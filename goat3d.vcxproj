@@ -180,7 +180,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC;BUILD_MAXPLUGIN</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2;$(SolutionDir)\libs\anim;$(SolutionDir)\libs\vmath</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -219,7 +219,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
       <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2;$(SolutionDir)\libs\anim;$(SolutionDir)\libs\vmath</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
