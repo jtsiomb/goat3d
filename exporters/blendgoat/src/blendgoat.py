@@ -16,12 +16,11 @@ bl_info = {
 }
 
 class ExportGoat3D(bpy.types.Operator, ExportHelper):
-	bl_idname = "export.goat3d"
-	bl_label = "export"
+	bl_idname = "export_scene.goat3d"
+	bl_label = "Export Goat3D Scene"
 	bl_options = {'PRESET'}
 	filename_ext = ".goatsce"
-
-	fname = bpy.props.StringProperty(subtype="FILE_PATH")
+	filter_glob = bpy.props.StringProperty(default="*.goatsce", options={'HIDDEN'})
 
 	@classmethod
 	def poll(cls, ctx):
@@ -32,6 +31,7 @@ class ExportGoat3D(bpy.types.Operator, ExportHelper):
 		if not libname:
 			self.report({'ERROR'}, "Could not find the goat3d library! make sure it's installed.")
 			return {'CANCELLED'}
+
 		libgoat = CDLL(libname)
 		if not libgoat:
 			self.report({'ERROR'}, "Could not open goat3d library!")
@@ -45,17 +45,19 @@ class ExportGoat3D(bpy.types.Operator, ExportHelper):
 		goat3d_free.argtypes = [c_void_p]
 		goat3d_free.restype = None
 
-		goat3d_save_file = libgoat.goat3d_save_file
-		goat3d_save_file.argtypes = [c_void_p, c_char_p]
+		goat3d_save = libgoat.goat3d_save
+		goat3d_save.argtypes = [c_void_p, c_char_p]
 
-		self.report({'INFO'}, "Exporting goat3d file")
+		print("Exporting goat3d file: " + self.filepath)
 
 		goat = goat3d_create()
 		if not goat:
 			self.report({'ERROR'}, "Failed to create goat3d object")
 			return {'CANCELLED'}
 
-		goat3d_save_file(goat, "/tmp/lala.xml")
+		print(type(goat))
+		print(type(self.filepath))
+		goat3d_save(goat, c_char_p(self.filepath))
 		goat3d_free(goat)
 		return {'FINISHED'}
 
