@@ -1,5 +1,6 @@
+name = blendgoat
 scriptfile = blendgoat.py
-scriptfile_path := $(shell pwd)/src/$(scriptfile)
+srcpath := $(shell pwd)/src
 
 ifeq ($(shell uname -s), Darwin)
 	cfgpath = $(HOME)/Library/Application\ Support/Blender
@@ -16,18 +17,25 @@ all:
 install:
 	@cd $(cfgpath) && \
 	for i in *; do \
-		echo "installing src/$(scriptfile) -> $(cfgpath)/$$i/scripts/addons/$(scriptfile)"; \
-		mkdir -p $$i/scripts/addons; \
-		rm -f $$i/scripts/addons/$(scriptfile); \
-		cp $(scriptfile_path) $$i/scripts/addons/$(scriptfile); \
+		echo "installing to $(cfgpath)/$$i/scripts/addons/$(name)"; \
+		rm -f $$i/scripts/addons/$(name)/*; \
+		mkdir -p $$i/scripts/addons/$(name); \
+		cp $(srcpath)/*.py $$i/scripts/addons/$(name)/; \
 	done
 
 .PHONY: link
 link:
+	@cd $(cfgpath) && \
+	for i in *; do \
+		echo "linking to $(cfgpath)/$$i/scripts/addons/$(name)"; \
+		mkdir -p $$i/scripts/addons; \
+		rm -rf $$i/scripts/addons/$(name); \
+		ln -s $(srcpath) $$i/scripts/addons/$(name); \
+	done
+
+.PHONY: uninstall
+uninstall:
 	cd $(cfgpath) && \
 	for i in *; do \
-		echo "linking src/$(scriptfile) to $(cfgpath)/$$i/scripts/addons/$(scriptfile)"; \
-		mkdir -p $$i/scripts/addons; \
-		rm -f $$i/scripts/addons/$(scriptfile); \
-		ln -s $(scriptfile_path) $$i/scripts/addons/$(scriptfile); \
+		rm -rf $$i/scripts/addons/$(name); \
 	done
