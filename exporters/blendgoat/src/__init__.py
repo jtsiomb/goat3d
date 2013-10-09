@@ -2,6 +2,7 @@ bl_info = {
 	"name": "Goat3D scene",
 	"author": "John Tsiombikas",
 	"version": (0, 1),
+	"blender": (2, 63, 0),
 	"location": "File > Import-Export",
 	"description": "Mutant Stargoat, Goat3D scene file format: http://code.google.com/p/goat3d/",
 	"category": "Import-Export"
