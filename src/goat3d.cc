@@ -29,8 +29,6 @@ static long read_file(void *buf, size_t bytes, void *uptr);
 static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
 
-static std::string clean_filename(const char *str);
-
 extern "C" {
 
 struct goat3d *goat3d_create(void)
@@ -228,7 +226,7 @@ const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attr
 
 void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
 {
-	(*mtl)[attrib].map = clean_filename(mapname);
+	(*mtl)[attrib].map = goat3d_clean_filename(mapname);
 }
 
 const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
@@ -333,6 +331,47 @@ void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib a
 	}
 }
 
+void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float val)
+{
+	goat3d_add_mesh_attrib4f(mesh, attrib, val, 0, 0, 1);
+}
+
+void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y, float z)
+{
+	goat3d_add_mesh_attrib4f(mesh, attrib, x, y, z, 1);
+}
+
+void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y, float z, float w)
+{
+	switch(attrib) {
+	case GOAT3D_MESH_ATTR_VERTEX:
+		mesh->vertices.push_back(Vector3(x, y, z));
+		break;
+	case GOAT3D_MESH_ATTR_NORMAL:
+		mesh->normals.push_back(Vector3(x, y, z));
+		break;
+	case GOAT3D_MESH_ATTR_TANGENT:
+		mesh->tangents.push_back(Vector3(x, y, z));
+		break;
+	case GOAT3D_MESH_ATTR_TEXCOORD:
+		mesh->texcoords.push_back(Vector2(x, y));
+		break;
+	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
+		mesh->skin_weights.push_back(Vector4(x, y, z, w));
+		break;
+	case GOAT3D_MESH_ATTR_SKIN_MATRIX:
+		mesh->skin_matrices.push_back(Int4(x, y, z, w));
+		break;
+	case GOAT3D_MESH_ATTR_COLOR:
+		mesh->colors.push_back(Vector4(x, y, z, w));
+	default:
+		break;
+	}
+}
+
 void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
 {
 	return goat3d_get_mesh_attrib(mesh, attrib, 0);
@@ -365,6 +404,15 @@ void *goat3d_get_mesh_attrib(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib a
 void goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int num)
 {
 	mesh->faces = VECDATA(Face, data, num);
+}
+
+void goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c)
+{
+	Face face;
+	face.v[0] = a;
+	face.v[1] = b;
+	face.v[2] = c;
+	mesh->faces.push_back(face);
 }
 
 int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh)
@@ -738,7 +786,7 @@ static long seek_file(long offs, int whence, void *uptr)
 	return ftell((FILE*)uptr);
 }
 
-static std::string clean_filename(const char *str)
+std::string goat3d_clean_filename(const char *str)
 {
 	const char *last_slash = strrchr(str, '/');
 	if(!last_slash) {
@@ -755,5 +803,6 @@ static std::string clean_filename(const char *str)
 		char c = *str++;
 		*dest++ = tolower(c);
 	}
+	*dest = 0;
 	return buf;
 }

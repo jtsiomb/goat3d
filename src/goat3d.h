@@ -12,6 +12,7 @@
 #define GOAT3D_MAT_ATTR_REFLECTION		"reflection"
 #define GOAT3D_MAT_ATTR_TRANSMISSION	"transmission"
 #define GOAT3D_MAT_ATTR_IOR				"ior"
+#define GOAT3D_MAT_ATTR_ALPHA			"alpha"
 
 enum goat3d_mesh_attrib {
 	GOAT3D_MESH_ATTR_VERTEX,
@@ -136,7 +137,13 @@ int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh);
  *  - GOAT3D_MESH_ATTR_SKIN_MATRIX  - 4 ints per vertex
  *  - GOAT3D_MESH_ATTR_COLOR        - 4 floats per vertex
  */
-void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, const void *data, int vnum);
+void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		const void *data, int vnum);
+void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, float val);
+void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y, float z);
+void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y, float z, float w);
 /* returns a pointer to the beginning of the requested mesh attribute array */
 void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib);
 /* returns a pointer to the requested mesh attribute */
@@ -144,6 +151,7 @@ void *goat3d_get_mesh_attrib(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib a
 
 /* sets all the faces in one go. data is an array of 3 int vertex indices per face */
 void goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int fnum);
+void goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c);
 /* returns a pointer to the beginning of the face index array */
 int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh);
 /* returns a pointer to a face index */

@@ -13,6 +13,9 @@ struct Face {
 
 struct Int4 {
 	int x, y, z, w;
+
+	Int4();
+	Int4(int x, int y, int z, int w);
 };
 
 class Mesh : public Object {

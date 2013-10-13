@@ -80,7 +80,7 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 	if(mesh->material) {
 		xmlout(io, level + 1, "<material string=\"%s\"/>\n", mesh->material->name.c_str());
 	}
-	xmlout(io, level + 1, "<file string=\"%s\"/>\n", mesh_filename);
+	xmlout(io, level + 1, "<file string=\"%s\"/>\n", goat3d_clean_filename(mesh_filename).c_str());
 	xmlout(io, level, "</mesh>\n\n");
 	return true;
 }

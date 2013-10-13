@@ -3,6 +3,19 @@
 #include "openctm.h"
 #include "log.h"
 
+Int4::Int4()
+{
+	x = y = z = w = 0;
+}
+
+Int4::Int4(int x, int y, int z, int w)
+{
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->w = w;
+}
+
 Mesh::Mesh()
 {
 	material = 0;
