@@ -1,7 +1,11 @@
 #ifndef CHUNK_H_
 #define CHUNK_H_
 
+#ifndef _MSC_VER
 #include <stdint.h>
+#else
+typedef unsigned __int32 uint32_t;
+#endif
 
 enum {
 	CNK_INVALID,		// this shouldn't appear in files
