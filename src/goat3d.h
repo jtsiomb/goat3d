@@ -7,7 +7,7 @@
 #ifdef WIN32
 #define GOAT3DAPI	__declspec(dllexport)
 #else
-#define 
+#define GOAT3DAPI
 #endif
 
 #define GOAT3D_MAT_ATTR_DIFFUSE			"diffuse"

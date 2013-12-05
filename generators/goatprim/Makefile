@@ -6,7 +6,7 @@ goat_root = ../..
 ifeq ($(shell uname -s), Darwin)
 	libgoat = $(goat_root)/libgoat3d.dylib
 else
-	libgoat = $(goat_root)/libgoat3d.so.0.1 -Wl,-rpath=$(goat_root)
+	libgoat = $(goat_root)/libgoat3d.so.0.1
 endif
 
 CC = clang
