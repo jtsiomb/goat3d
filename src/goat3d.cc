@@ -132,7 +132,7 @@ GOAT3DAPI int goat3d_save_file(const struct goat3d *g, FILE *fp)
 GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 {
 	if(!g->scn->load(io)) {
-		if(g->scn->loadxml(io)) {
+		if(!g->scn->loadxml(io)) {
 			return -1;
 		}
 	}

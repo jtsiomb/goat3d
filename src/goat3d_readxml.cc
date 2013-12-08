@@ -19,6 +19,7 @@ bool Scene::loadxml(goat3d_io *io)
 	char *buf = new char[bytes];
 	if(io->read(buf, bytes, io->cls) < bytes) {
 		logmsg(LOG_ERROR, "failed to read XML scene file\n");
+		delete [] buf;
 		return false;
 	}
 
@@ -27,12 +28,14 @@ bool Scene::loadxml(goat3d_io *io)
 	if(err) {
 		logmsg(LOG_ERROR, "failed to parse XML scene file: %s\n%s\n", xml.GetErrorStr1(),
 				xml.GetErrorStr2());
+		delete [] buf;
 		return false;
 	}
 
 	XMLElement *root = xml.RootElement();
 	if(strcmp(root->Name(), "scene") != 0) {
 		logmsg(LOG_ERROR, "invalid XML file, root node is not <scene>\n");
+		delete [] buf;
 		return false;
 	}
 
@@ -58,7 +61,8 @@ bool Scene::loadxml(goat3d_io *io)
 		elem = elem->NextSiblingElement("mesh");
 	}
 
-	return false;
+	delete [] buf;
+	return true;
 }
 
 
