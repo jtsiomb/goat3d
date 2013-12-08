@@ -22,6 +22,8 @@ static float cam_theta, cam_phi, cam_dist = 10;
 
 int main(int argc, char **argv)
 {
+	int i, nmeshes;
+
 	glutInitWindowSize(800, 600);
 	glutInit(&argc, argv);
 
@@ -38,6 +40,16 @@ int main(int argc, char **argv)
 		fprintf(stderr, "failed to load goat3d scene: %s\n", argv[1]);
 		goat3d_free(goat);
 		return 1;
+	}
+
+	nmeshes = goat3d_get_mesh_count(goat);
+	printf("loaded %d meshes\n", nmeshes);
+	for(i=0; i<nmeshes; i++) {
+		struct goat3d_mesh *m = goat3d_get_mesh(goat, i);
+
+		printf("- mesh[%d]: %s (%d verts, %d faces)\n", i, goat3d_get_mesh_name(m),
+				goat3d_get_mesh_attrib_count(m, GOAT3D_MESH_ATTR_VERTEX),
+				goat3d_get_mesh_face_count(m));
 	}
 
 	glutInitDisplayMode(GLUT_RGB | GLUT_DEPTH | GLUT_DOUBLE);
