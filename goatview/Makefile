@@ -15,7 +15,7 @@ ifeq ($(shell uname -s), Darwin)
 	libgoat = $(goat_root)/libgoat3d.dylib
 else
 	libgl = -lGL -lGLU -lglut -lGLEW
-	libgoat = $(goat_root)/libgoat3d.so.0.1 -Wl,-rpath=$(goat_root) 
+	libgoat = $(goat_root)/libgoat3d.so.0.1
 endif
 
 $(bin): $(obj) $(libgoat)
