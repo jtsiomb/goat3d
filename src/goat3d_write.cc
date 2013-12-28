@@ -1,6 +1,8 @@
 #include "goat3d_impl.h"
 #include "chunk.h"
 
+using namespace g3dimpl;
+
 /*
 static long save_env(const Scene *scn, long offset, goat3d_io *io);
 static long save_materials(const Scene *scn, long offset, goat3d_io *io);

@@ -1,5 +1,7 @@
 #include "material.h"
 
+using namespace g3dimpl;
+
 MaterialAttrib Material::def_attr;
 
 int Material::get_attrib_count() const

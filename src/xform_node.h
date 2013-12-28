@@ -1,6 +1,3 @@
-/*
-TODO: add multiple animations per node in libanim (i.e. multiple sets of tracks)
-*/
 #ifndef XFORM_NODE_H_
 #define XFORM_NODE_H_
 
@@ -9,13 +6,16 @@ TODO: add multiple animations per node in libanim (i.e. multiple sets of tracks)
 #include "vmath/quat.h"
 #include "vmath/matrix.h"
 
-enum Interp { INTERP_STEP, INTERP_LINEAR, INTERP_CUBIC };
-enum Extrap { EXTRAP_EXTEND, EXTRAP_CLAMP, EXTRAP_REPEAT };
 
 struct anm_node;
 struct anm_track;
 
-// XXX all time arguments are milliseconds
+namespace g3dimpl {
+
+enum Interp { INTERP_STEP, INTERP_LINEAR, INTERP_CUBIC };
+enum Extrap { EXTRAP_EXTEND, EXTRAP_CLAMP, EXTRAP_REPEAT };
+
+// NOTE: all time arguments are milliseconds
 
 class XFormNode {
 private:
@@ -36,6 +36,9 @@ public:
 	XFormNode();
 	virtual ~XFormNode();
 
+	// retrieve the pointer to the underlying libanim data structure
+	virtual struct anm_node *get_libanim_node() const;
+
 	virtual void set_name(const char *name);
 	virtual const char *get_name() const;
 
@@ -43,6 +46,9 @@ public:
 	virtual Interp get_interpolator() const;
 	virtual void set_extrapolator(Extrap ex);
 	virtual Extrap get_extrapolator() const;
+
+	virtual XFormNode *get_parent();
+	virtual const XFormNode *get_parent() const;
 
 	// children management
 	virtual void add_child(XFormNode *child);
@@ -52,7 +58,24 @@ public:
 	virtual XFormNode *get_child(int idx);
 	virtual const XFormNode *get_child(int idx) const;
 
-	virtual XFormNode *get_parent() const;
+
+	virtual void use_animation(int idx);
+	virtual void use_animation(const char *name);
+	virtual void use_animation(int aidx, int bidx, float t);
+	virtual void use_animation(const char *aname, const char *bname, float t);
+
+	virtual int get_active_animation_index(int which = 0) const;
+	virtual float get_active_animation_mix() const;
+
+	virtual int get_animation_count() const;
+
+	// add a new empty animation slot (recursive)
+	virtual void add_animation(const char *name = 0);
+
+	// set/get the current animation name (set is recursive)
+	virtual void set_animation_name(const char *name);
+	virtual const char *get_animation_name() const;
+
 
 	virtual void set_position(const Vector3 &pos, long tmsec = 0);
 	virtual Vector3 get_node_position(long tmsec = 0) const;
@@ -132,5 +155,7 @@ public:
 	// the same as get_value
 	Vector3 operator ()(long tmsec = 0) const;
 };
+
+}	// namespace g3dimpl
 
 #endif	/* XFORM_NODE_H_ */

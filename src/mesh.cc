@@ -3,6 +3,8 @@
 #include "openctm.h"
 #include "log.h"
 
+using namespace g3dimpl;
+
 Int4::Int4()
 {
 	x = y = z = w = 0;

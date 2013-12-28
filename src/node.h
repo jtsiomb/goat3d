@@ -4,6 +4,8 @@
 #include "xform_node.h"
 #include "object.h"
 
+namespace g3dimpl {
+
 class Node : public XFormNode {
 private:
 	Object *obj;
@@ -17,5 +19,7 @@ public:
 };
 
 void delete_node_tree(Node *n);
+
+}	// namespace g3dimpl
 
 #endif	// NODE_H_

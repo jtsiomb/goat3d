@@ -5,6 +5,8 @@
 #include <map>
 #include <vmath/vmath.h>
 
+namespace g3dimpl {
+
 struct MaterialAttrib {
 	Vector4 value;
 	std::string map;
@@ -30,5 +32,7 @@ public:
 	MaterialAttrib &operator [](const std::string &name);
 	const MaterialAttrib &operator [](const std::string &name) const;
 };
+
+}	// namespace g3dimpl
 
 #endif	// MATERIAL_H_

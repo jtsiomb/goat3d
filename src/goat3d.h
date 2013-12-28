@@ -88,6 +88,16 @@ GOAT3DAPI int goat3d_save_file(const struct goat3d *g, FILE *fp);
 GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io);
 GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io);
 
+/* load/save animation files (g must already be loaded to load animations) */
+GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname);
+GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const struct goat3d_node *root, const char *fname);
+
+GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp);
+GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_node *root, FILE *fp);
+
+GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io);
+GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, const struct goat3d_node *root, struct goat3d_io *io);
+
 /* misc scene properties */
 GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name);
 GOAT3DAPI const char *goat3d_get_name(const struct goat3d *g);
@@ -147,9 +157,9 @@ GOAT3DAPI void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mes
 		const void *data, int vnum);
 GOAT3DAPI void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, float val);
 GOAT3DAPI void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
- 		float x, float y, float z);
+		float x, float y, float z);
 GOAT3DAPI void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
- 		float x, float y, float z, float w);
+		float x, float y, float z, float w);
 /* returns a pointer to the beginning of the requested mesh attribute array */
 GOAT3DAPI void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib);
 /* returns a pointer to the requested mesh attribute */
@@ -216,6 +226,21 @@ GOAT3DAPI enum goat3d_node_type goat3d_get_node_type(const struct goat3d_node *n
 GOAT3DAPI void goat3d_add_node_child(struct goat3d_node *node, struct goat3d_node *child);
 GOAT3DAPI int goat3d_get_node_child_count(const struct goat3d_node *node);
 GOAT3DAPI struct goat3d_node *goat3d_get_node_child(const struct goat3d_node *node, int idx);
+GOAT3DAPI struct goat3d_node *goat3d_get_node_parent(const struct goat3d_node *node);
+
+GOAT3DAPI void goat3d_use_anim(struct goat3d_node *node, int idx);
+GOAT3DAPI void goat3d_use_anims(struct goat3d_node *node, int aidx, int bidx, float t);
+GOAT3DAPI void goat3d_use_anim_by_name(struct goat3d_node *node, const char *name);
+GOAT3DAPI void goat3d_use_anims_by_name(struct goat3d_node *node, const char *aname, const char *bname, float t);
+
+GOAT3DAPI int goat3d_get_active_anim(struct goat3d_node *node, int which);
+GOAT3DAPI float goat3d_get_active_anim_mix(struct goat3d_node *node);
+
+GOAT3DAPI int goat3d_get_anim_count(struct goat3d_node *node);
+GOAT3DAPI void goat3d_add_anim(struct goat3d_node *root);
+
+GOAT3DAPI void goat3d_set_anim_name(struct goat3d_node *root, const char *name);
+GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node);
 
 GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec);
 GOAT3DAPI void goat3d_set_node_rotation(struct goat3d_node *node, float qx, float qy, float qz, float qw, long tmsec);

@@ -2,6 +2,8 @@
 #include <string.h>
 #include "node.h"
 
+using namespace g3dimpl;
+
 Node::Node()
 {
 	obj = 0;
@@ -22,7 +24,7 @@ const Object *Node::get_object() const
 	return obj;
 }
 
-void delete_node_tree(Node *n)
+void g3dimpl::delete_node_tree(Node *n)
 {
 	for(int i=0; i<n->get_children_count(); i++) {
 		delete_node_tree((Node*)n->get_child(i));

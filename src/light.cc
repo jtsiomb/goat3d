@@ -1,5 +1,7 @@
 #include "light.h"
 
+using namespace g3dimpl;
+
 Light::Light()
 	: color(1, 1, 1), attenuation(1, 0, 0)
 {

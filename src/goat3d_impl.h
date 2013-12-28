@@ -10,6 +10,8 @@
 #include "material.h"
 #include "node.h"
 
+namespace g3dimpl {
+
 extern int goat_log_level;
 
 #if __cplusplus >= 201103L
@@ -77,9 +79,17 @@ public:
 
 	bool loadxml(goat3d_io *io);
 	bool savexml(goat3d_io *io) const;
+
+	bool load_anim(goat3d_io *io);
+	bool save_anim(const XFormNode *node, goat3d_io *io) const;
+
+	bool load_anim_xml(goat3d_io *io);
+	bool save_anim_xml(const XFormNode *node, goat3d_io *io) const;
 };
 
 void io_fprintf(goat3d_io *io, const char *fmt, ...);
 void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
+
+}	// namespace g3dimpl
 
 #endif	// GOAT3D_IMPL_H_

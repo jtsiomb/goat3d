@@ -1,12 +1,17 @@
+#include <list>
 #include <stdarg.h>
 #include "goat3d_impl.h"
+#include "anim/anim.h"
 #include "log.h"
+
+using namespace g3dimpl;
 
 static bool write_material(const Scene *scn, goat3d_io *io, const Material *mat, int level);
 static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int idx, int level);
 static bool write_light(const Scene *scn, goat3d_io *io, const Light *light, int level);
 static bool write_camera(const Scene *scn, goat3d_io *io, const Camera *cam, int level);
 static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int level);
+static bool write_node_anim(goat3d_io *io, const XFormNode *node, int level);
 static void xmlout(goat3d_io *io, int level, const char *fmt, ...);
 
 bool Scene::savexml(goat3d_io *io) const
@@ -35,6 +40,39 @@ bool Scene::savexml(goat3d_io *io) const
 	}
 
 	xmlout(io, 0, "</scene>\n");
+	return true;
+}
+
+static void collect_nodes(std::list<const XFormNode*> *res, const XFormNode *node)
+{
+	if(!node) return;
+
+	res->push_back(node);
+
+	for(int i=0; i<node->get_children_count(); i++) {
+		collect_nodes(res, node->get_child(i));
+	}
+}
+
+bool Scene::save_anim_xml(const XFormNode *node, goat3d_io *io) const
+{
+	xmlout(io, 0, "<anim>\n");
+
+	const char *anim_name = node->get_animation_name();
+	if(anim_name && *anim_name) {
+		xmlout(io, 1, "<name string=\"%s\"/>\n", anim_name);
+	}
+
+	std::list<const XFormNode*> allnodes;
+	collect_nodes(&allnodes, node);
+
+	std::list<const XFormNode*>::const_iterator it = allnodes.begin();
+	while(it != allnodes.end()) {
+		const XFormNode *n = *it++;
+		write_node_anim(io, n, 1);
+	}
+
+	xmlout(io, 0, "</anim>\n");
 	return true;
 }
 
@@ -100,7 +138,7 @@ static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int le
 	xmlout(io, level, "<node>\n");
 	xmlout(io, level + 1, "<name string=\"%s\"/>\n", node->get_name());
 
-	XFormNode *parent = node->get_parent();
+	const XFormNode *parent = node->get_parent();
 	if(parent) {
 		xmlout(io, level + 1, "<parent string=\"%s\"/>\n", parent->get_name());
 	}
@@ -140,6 +178,55 @@ static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int le
 	return true;
 }
 
+static bool write_node_anim(goat3d_io *io, const XFormNode *node, int level)
+{
+	static const char *attr_names[] = { "position", "rotation", "scaling" };
+	struct anm_node *anode = node->get_libanim_node();
+	struct anm_animation *anim = anm_get_active_animation(anode, 0);
+
+	if(!anode || !anim) {
+		return false;
+	}
+
+	struct anm_track *trk[4];
+
+	for(int i=0; i<3; i++) {	// 3 attributes
+		switch(i) {
+		case 0:	// position
+			trk[0] = anim->tracks + ANM_TRACK_POS_X;
+			trk[1] = anim->tracks + ANM_TRACK_POS_Y;
+			trk[2] = anim->tracks + ANM_TRACK_POS_Z;
+			trk[3] = 0;
+			break;
+
+		case 1:	// rotation
+			trk[0] = anim->tracks + ANM_TRACK_ROT_X;
+			trk[1] = anim->tracks + ANM_TRACK_ROT_Y;
+			trk[2] = anim->tracks + ANM_TRACK_ROT_Z;
+			trk[3] = anim->tracks + ANM_TRACK_ROT_W;
+			break;
+
+		case 2:	// scaling
+			trk[0] = anim->tracks + ANM_TRACK_SCL_X;
+			trk[1] = anim->tracks + ANM_TRACK_SCL_Y;
+			trk[2] = anim->tracks + ANM_TRACK_SCL_Z;
+			trk[3] = 0;
+		}
+
+		if(trk[0]->count <= 0) {
+			continue;	// skip tracks without any keyframes
+		}
+
+		xmlout(io, level + 1, "<track>\n");
+		xmlout(io, level + 2, "<node string=\"%s\"/>\n", node->get_name());
+		xmlout(io, level + 2, "<attr string=\"%s\"/>\n", attr_names[i]);
+
+		// TODO cont: move all the keyframe retreival to XFormNode and use that...
+
+		xmlout(io, level + 1, "</track>\n");
+	}
+	return true;
+}
 
 static void xmlout(goat3d_io *io, int level, const char *fmt, ...)
 {

@@ -4,6 +4,8 @@
 #include <vmath/vmath.h>
 #include "object.h"
 
+namespace g3dimpl {
+
 class Light : public Object {
 public:
 	Vector3 color;
@@ -26,5 +28,7 @@ public:
 
 	SpotLight();
 };
+
+}	// namespace g3dimpl
 
 #endif	// LIGHT_H_

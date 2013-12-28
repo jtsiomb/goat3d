@@ -3,6 +3,8 @@
 #include "goat3d_impl.h"
 #include "chunk.h"
 
+using namespace g3dimpl;
+
 Scene::Scene()
 	: name("unnamed"), ambient(0.05, 0.05, 0.05)
 {
@@ -213,7 +215,7 @@ bool Scene::load(goat3d_io *io)
 // Scene::savexml is defined in goat3d_writexml.cc
 
 
-void io_fprintf(goat3d_io *io, const char *fmt, ...)
+void g3dimpl::io_fprintf(goat3d_io *io, const char *fmt, ...)
 {
 	va_list ap;
 
@@ -223,7 +225,7 @@ void io_fprintf(goat3d_io *io, const char *fmt, ...)
 }
 
 
-void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap)
+void g3dimpl::io_vfprintf(goat3d_io *io, const char *fmt, va_list ap)
 {
 	char smallbuf[256];
 	char *buf = smallbuf;

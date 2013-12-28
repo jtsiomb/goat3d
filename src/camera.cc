@@ -1,5 +1,7 @@
 #include "camera.h"
 
+using namespace g3dimpl;
+
 Camera::Camera()
 {
 	near_clip = 0.5;

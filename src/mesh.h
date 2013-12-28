@@ -5,6 +5,8 @@
 #include "object.h"
 #include "material.h"
 
+namespace g3dimpl {
+
 class Node;
 
 struct Face {
@@ -42,5 +44,7 @@ public:
 	Material *get_material();
 	const Material *get_material() const;
 };
+
+}	// namespace g3dimpl
 
 #endif	// MESH_H_

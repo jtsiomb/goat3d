@@ -1,8 +1,10 @@
 #include <assert.h>
 #include <algorithm>
 #include "xform_node.h"
-#include "anim.h"
-#include "track.h"
+#include "anim/anim.h"
+#include "anim/track.h"
+
+using namespace g3dimpl;
 
 static inline anm_interpolator track_interpolator(Interp in);
 static inline anm_extrapolator track_extrapolator(Extrap ex);
@@ -11,14 +13,22 @@ XFormNode::XFormNode()
 {
 	anm = new anm_node;
 	anm_init_node(anm);
-
 	parent = 0;
+
+	// TODO read them from anm to get the correct initial values
+	interp = INTERP_LINEAR;
+	extrap = EXTRAP_EXTEND;
 }
 
 XFormNode::~XFormNode()
 {
 	anm_destroy_node(anm);
 	delete anm;
+}
+
+struct anm_node *XFormNode::get_libanim_node() const
+{
+	return anm;
 }
 
 void XFormNode::set_name(const char *name)
@@ -53,6 +63,16 @@ Extrap XFormNode::get_extrapolator() const
 	return extrap;
 }
 
+XFormNode *XFormNode::get_parent()
+{
+	return parent;
+}
+
+const XFormNode *XFormNode::get_parent() const
+{
+	return parent;
+}
+
 void XFormNode::add_child(XFormNode *child)
 {
 	children.push_back(child);
@@ -67,8 +87,11 @@ void XFormNode::remove_child(XFormNode *child)
 	if(it != children.end()) {
 		children.erase(it);
 		anm_unlink_node(anm, child->anm);
+
+		if(child->parent == this) {
+			child->parent = 0;
+		}
 	}
-	child->parent = 0;
 }
 
 int XFormNode::get_children_count() const
@@ -92,10 +115,76 @@ const XFormNode *XFormNode::get_child(int idx) const
 	return 0;
 }
 
-XFormNode *XFormNode::get_parent() const
+
+void XFormNode::use_animation(int idx)
 {
-	return parent;
+	if(idx >= 0) {
+		anm_use_animation(anm, idx);
+	}
 }
+
+void XFormNode::use_animation(const char *name)
+{
+	anm_use_animation(anm, anm_find_animation(anm, name));
+}
+
+void XFormNode::use_animation(int aidx, int bidx, float t)
+{
+	anm_use_animations(anm, aidx, bidx, t);
+}
+
+void XFormNode::use_animation(const char *aname, const char *bname, float t)
+{
+	int aidx = anm_find_animation(anm, aname);
+	int bidx = anm_find_animation(anm, bname);
+
+	if(aidx == -1) {
+		use_animation(bidx);
+	}
+	if(bidx == -1) {
+		use_animation(aidx);
+	}
+	anm_use_animations(anm, aidx, bidx, t);
+}
+
+int XFormNode::get_active_animation_index(int which) const
+{
+	return anm_get_active_animation_index(anm, which);
+}
+
+float XFormNode::get_active_animation_mix() const
+{
+	return anm_get_active_animation_mix(anm);
+}
+
+int XFormNode::get_animation_count() const
+{
+	return anm_get_animation_count(anm);
+}
+
+void XFormNode::add_animation(const char *name)
+{
+	int idx = get_animation_count();
+
+	anm_add_animation(anm);
+	use_animation(idx);
+
+	if(name) {
+		set_animation_name(name);
+	}
+}
+
+void XFormNode::set_animation_name(const char *name)
+{
+	anm_set_active_animation_name(anm, name);
+}
+
+const char *XFormNode::get_animation_name() const
+{
+	return anm_get_active_animation_name(anm);
+}
+
+
 
 void XFormNode::set_position(const Vector3 &pos, long tmsec)
 {

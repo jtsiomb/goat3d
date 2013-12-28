@@ -12,6 +12,8 @@
 #include <malloc.h>
 #endif
 
+using namespace g3dimpl;
+
 struct goat3d {
 	Scene *scn;
 	unsigned int flags;
@@ -146,6 +148,72 @@ GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
 	}
 	return g->scn->save(io) ? 0 : -1;
 }
+
+/* save/load animations */
+GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname)
+{
+	FILE *fp = fopen(fname, "rb");
+	if(!fp) {
+		return -1;
+	}
+
+	int res = goat3d_load_anim_file(g, fp);
+	fclose(fp);
+	return res;
+}
+
+GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const struct goat3d_node *root, const char *fname)
+{
+	FILE *fp = fopen(fname, "wb");
+	if(!fp) {
+		return -1;
+	}
+
+	int res = goat3d_save_anim_file(g, root, fp);
+	fclose(fp);
+	return res;
+}
+
+GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp)
+{
+	goat3d_io io;
+	io.cls = fp;
+	io.read = read_file;
+	io.write = write_file;
+	io.seek = seek_file;
+
+	return goat3d_load_anim_io(g, &io);
+}
+
+GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_node *root, FILE *fp)
+{
+	goat3d_io io;
+	io.cls = fp;
+	io.read = read_file;
+	io.write = write_file;
+	io.seek = seek_file;
+
+	return goat3d_save_anim_io(g, root, &io);
+}
+
+GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
+{
+	if(!g->scn->load_anim(io)) {
+		if(!g->scn->load_anim_xml(io)) {
+			return -1;
+		}
+	}
+	return 0;
+}
+
+GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, const struct goat3d_node *root, struct goat3d_io *io)
+{
+	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
+		return g->scn->save_anim_xml(root, io) ? 0 : -1;
+	}
+	return g->scn->save_anim(root, io) ? 0 : -1;
+}
+
 
 GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name)
 {
@@ -702,6 +770,61 @@ GOAT3DAPI int goat3d_get_node_child_count(const struct goat3d_node *node)
 GOAT3DAPI struct goat3d_node *goat3d_get_node_child(const struct goat3d_node *node, int idx)
 {
 	return (goat3d_node*)node->get_child(idx);
+}
+
+GOAT3DAPI struct goat3d_node *goat3d_get_node_parent(const struct goat3d_node *node)
+{
+	return (goat3d_node*)node->get_parent();
+}
+
+GOAT3DAPI void goat3d_use_anim(struct goat3d_node *node, int idx)
+{
+	node->use_animation(idx);
+}
+
+GOAT3DAPI void goat3d_use_anims(struct goat3d_node *node, int aidx, int bidx, float t)
+{
+	node->use_animation(aidx, bidx, t);
+}
+
+GOAT3DAPI void goat3d_use_anim_by_name(struct goat3d_node *node, const char *name)
+{
+	node->use_animation(name);
+}
+
+GOAT3DAPI void goat3d_use_anims_by_name(struct goat3d_node *node, const char *aname, const char *bname, float t)
+{
+	node->use_animation(aname, bname, t);
+}
+
+GOAT3DAPI int goat3d_get_active_anim(struct goat3d_node *node, int which)
+{
+	return node->get_active_animation_index(which);
+}
+
+GOAT3DAPI float goat3d_get_active_anim_mix(struct goat3d_node *node)
+{
+	return node->get_active_animation_mix();
+}
+
+GOAT3DAPI int goat3d_get_anim_count(struct goat3d_node *node)
+{
+	return node->get_animation_count();
+}
+
+GOAT3DAPI void goat3d_add_anim(struct goat3d_node *root)
+{
+	root->add_animation();
+}
+
+GOAT3DAPI void goat3d_set_anim_name(struct goat3d_node *root, const char *name)
+{
+	root->set_animation_name(name);
+}
+
+GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node)
+{
+	return node->get_animation_name();
 }
 
 GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec)

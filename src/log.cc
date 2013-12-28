@@ -4,7 +4,7 @@
 
 int goat_log_level = 256;
 
-void logmsg(int prio, const char *fmt, ...)
+void g3dimpl::logmsg(int prio, const char *fmt, ...)
 {
 	va_list ap;
 

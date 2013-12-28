@@ -3,6 +3,8 @@
 
 #include "object.h"
 
+namespace g3dimpl {
+
 class Camera : public Object {
 public:
 	float near_clip, far_clip;
@@ -16,5 +18,7 @@ public:
 
 	TargetCamera();
 };
+
+}	// namespace g3dimpl
 
 #endif	// CAMERA_H_

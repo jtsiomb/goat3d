@@ -4,6 +4,7 @@
 #include "tinyxml2.h"
 #include "log.h"
 
+using namespace g3dimpl;
 using namespace tinyxml2;
 
 static Material *read_material(Scene *scn, XMLElement *xml_mtl);

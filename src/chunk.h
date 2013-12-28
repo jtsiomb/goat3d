@@ -7,6 +7,8 @@
 typedef unsigned __int32 uint32_t;
 #endif
 
+namespace g3dimpl {
+
 enum {
 	CNK_INVALID,		// this shouldn't appear in files
 	CNK_SCENE,			// the root chunk
@@ -120,5 +122,6 @@ bool write_chunk_header(const ChunkHeader *hdr, goat3d_io *io);
 bool read_chunk_header(ChunkHeader *hdr, goat3d_io *io);
 void skip_chunk(const ChunkHeader *hdr, goat3d_io *io);
 
+}	// namespace g3dimpl
 
 #endif	// CHUNK_H_
