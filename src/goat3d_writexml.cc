@@ -180,48 +180,35 @@ static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int le
 
 static bool write_node_anim(goat3d_io *io, const XFormNode *node, int level)
 {
+	/* NOTE: the order of names must correspond to the order of
+	 * XFormNode::POSITION_TRACK/ROTATION_TRACK/SCALING_TRACK enum
+	 */
 	static const char *attr_names[] = { "position", "rotation", "scaling" };
-	struct anm_node *anode = node->get_libanim_node();
-	struct anm_animation *anim = anm_get_active_animation(anode, 0);
 
-	if(!anode || !anim) {
-		return false;
-	}
-
-	struct anm_track *trk[4];
-
-	for(int i=0; i<3; i++) {	// 3 attributes
-		switch(i) {
-		case 0:	// position
-			trk[0] = anim->tracks + ANM_TRACK_POS_X;
-			trk[1] = anim->tracks + ANM_TRACK_POS_Y;
-			trk[2] = anim->tracks + ANM_TRACK_POS_Z;
-			trk[3] = 0;
-			break;
-
-		case 1:	// rotation
-			trk[0] = anim->tracks + ANM_TRACK_ROT_X;
-			trk[1] = anim->tracks + ANM_TRACK_ROT_Y;
-			trk[2] = anim->tracks + ANM_TRACK_ROT_Z;
-			trk[3] = anim->tracks + ANM_TRACK_ROT_W;
-			break;
-
-		case 2:	// scaling
-			trk[0] = anim->tracks + ANM_TRACK_SCL_X;
-			trk[1] = anim->tracks + ANM_TRACK_SCL_Y;
-			trk[2] = anim->tracks + ANM_TRACK_SCL_Z;
-			trk[3] = 0;
-		}
-
-		if(trk[0]->count <= 0) {
-			continue;	// skip tracks without any keyframes
-		}
+	// for each of: position/rotation/scaling
+	for(int i=0; i<3; i++) {
+		int num_keys = node->get_key_count(i);
+		if(!num_keys) continue;
 
 		xmlout(io, level + 1, "<track>\n");
 		xmlout(io, level + 2, "<node string=\"%s\"/>\n", node->get_name());
-		xmlout(io, level + 2, "<attr string=\"%s\"/>\n", attr_names[i]);
+		xmlout(io, level + 2, "<attr string=\"%s\"/>\n\n", attr_names[i]);
 
-		// TODO cont: move all the keyframe retreival to XFormNode and use that...
+		// for each key in that track
+		for(int j=0; j<num_keys; j++) {
+			long tm = node->get_key_time(i, j);
+
+			float value[4];
+			int num_elems = node->get_key_value(i, j, value);
+
+			if(num_elems == 3) {
+				xmlout(io, level + 2, "<key><time int=\"%ld\"/><value float3=\"%g %g %g\"/></key>\n",
+						tm, value[0], value[1], value[2]);
+			} else {
+				xmlout(io, level + 2, "<key><time int=\"%ld\"/><value float4=\"%g %g %g %g\"/></key>\n",
+						tm, value[0], value[1], value[2], value[3]);
+			}
+		}
 
 		xmlout(io, level + 1, "</track>\n");
 	}

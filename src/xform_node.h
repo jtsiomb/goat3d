@@ -33,6 +33,8 @@ private:
 	XFormNode &operator =(const XFormNode &node) { return *this; }
 
 public:
+	enum { POSITION_TRACK, ROTATION_TRACK, SCALING_TRACK };
+
 	XFormNode();
 	virtual ~XFormNode();
 
@@ -75,6 +77,27 @@ public:
 	// set/get the current animation name (set is recursive)
 	virtual void set_animation_name(const char *name);
 	virtual const char *get_animation_name() const;
+
+	// raw keyframe retrieval without interpolation
+	// NOTE: trackid parameters correspond to the values of the unnamed enumeration at the top
+
+	virtual int get_key_count(int trackid) const;
+	virtual int get_position_key_count() const;
+	virtual int get_rotation_key_count() const;
+	virtual int get_scaling_key_count() const;
+
+	virtual long get_key_time(int trackid, int idx) const;
+	virtual long get_position_key_time(int idx) const;
+	virtual long get_rotation_key_time(int idx) const;
+	virtual long get_scaling_key_time(int idx) const;
+
+	/* writes the key value through the val pointer, and returns the number
+	 * of elements in that value (3 for pos/scale, 4 for rotation).
+	 */
+	virtual int get_key_value(int trackid, int idx, float *val) const;
+	virtual Vector3 get_position_key_value(int idx) const;
+	virtual Quaternion get_rotation_key_value(int idx) const;
+	virtual Vector3 get_scaling_key_value(int idx) const;
 
 
 	virtual void set_position(const Vector3 &pos, long tmsec = 0);

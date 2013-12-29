@@ -184,7 +184,84 @@ const char *XFormNode::get_animation_name() const
 	return anm_get_active_animation_name(anm);
 }
 
+static const int track_type_base[] = {ANM_TRACK_POS_X, ANM_TRACK_ROT_X, ANM_TRACK_SCL_X};
+static const int track_type_nelem[] = {3, 4, 3};
 
+int XFormNode::get_key_count(int trackid) const
+{
+	struct anm_animation *anim = anm_get_active_animation(anm, 0);
+	return anim->tracks[track_type_base[trackid]].count;
+}
+
+int XFormNode::get_position_key_count() const
+{
+	return get_key_count(POSITION_TRACK);
+}
+
+int XFormNode::get_rotation_key_count() const
+{
+	return get_key_count(ROTATION_TRACK);
+}
+
+int XFormNode::get_scaling_key_count() const
+{
+	return get_key_count(SCALING_TRACK);
+}
+
+long XFormNode::get_key_time(int trackid, int idx) const
+{
+	struct anm_animation *anim = anm_get_active_animation(anm, 0);
+	struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid], idx);
+	return ANM_TM2MSEC(key->time);
+}
+
+long XFormNode::get_position_key_time(int idx) const
+{
+	return get_key_time(POSITION_TRACK, idx);
+}
+
+long XFormNode::get_rotation_key_time(int idx) const
+{
+	return get_key_time(ROTATION_TRACK, idx);
+}
+
+long XFormNode::get_scaling_key_time(int idx) const
+{
+	return get_key_time(SCALING_TRACK, idx);
+}
+
+int XFormNode::get_key_value(int trackid, int idx, float *val) const
+{
+	struct anm_animation *anim = anm_get_active_animation(anm, 0);
+
+	int nelem = track_type_nelem[trackid];
+	for(int i=0; i<nelem; i++) {
+		struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid] + i, idx);
+		val[i] = key->val;
+	}
+	return nelem;
+}
+
+Vector3 XFormNode::get_position_key_value(int idx) const
+{
+	float val[3];
+	get_key_value(POSITION_TRACK, idx, val);
+	return Vector3(val[0], val[1], val[2]);
+}
+
+Quaternion XFormNode::get_rotation_key_value(int idx) const
+{
+	float val[4];
+	get_key_value(ROTATION_TRACK, idx, val);
+	return Quaternion(val[3], val[0], val[1], val[2]);
+}
+
+Vector3 XFormNode::get_scaling_key_value(int idx) const
+{
+	float val[3];
+	get_key_value(SCALING_TRACK, idx, val);
+	return Vector3(val[0], val[1], val[2]);
+}
 
 void XFormNode::set_position(const Vector3 &pos, long tmsec)
 {
