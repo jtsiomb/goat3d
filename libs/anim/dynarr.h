@@ -1,8 +1,6 @@
 #ifndef DYNARR_H_
 #define DYNARR_H_
 
-#include "config.h"
-
 void *dynarr_alloc(int elem, int szelem);
 void dynarr_free(void *da);
 void *dynarr_resize(void *da, int elem);
