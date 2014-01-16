@@ -204,12 +204,7 @@ int Scene::get_node_count() const
 	return (int)nodes.size();
 }
 
-
-bool Scene::load(goat3d_io *io)
-{
-	return false;
-}
-
+// Scene::load is defined in goat3d_read.cc
 // Scene::loadxml is defined in goat3d_readxml.cc
 // Scene::save is defined in goat3d_write.cc
 // Scene::savexml is defined in goat3d_writexml.cc

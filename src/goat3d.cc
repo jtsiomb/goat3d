@@ -909,7 +909,7 @@ static long seek_file(long offs, int whence, void *uptr)
 	return ftell((FILE*)uptr);
 }
 
-std::string goat3d_clean_filename(const char *str)
+std::string g3dimpl::goat3d_clean_filename(const char *str)
 {
 	const char *last_slash = strrchr(str, '/');
 	if(!last_slash) {
