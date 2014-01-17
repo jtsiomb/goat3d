@@ -66,6 +66,49 @@ bool Scene::loadxml(goat3d_io *io)
 	return true;
 }
 
+bool Scene::load_anim_xml(goat3d_io *io)
+{
+	long bytes = io->seek(0, SEEK_END, io->cls);
+	io->seek(0, SEEK_SET, io->cls);
+
+	char *buf = new char[bytes];
+	if(io->read(buf, bytes, io->cls) < bytes) {
+		logmsg(LOG_ERROR, "failed to read XML animation file\n");
+		delete [] buf;
+		return false;
+	}
+
+	XMLDocument xml;
+	XMLError err = xml.Parse(buf, bytes);
+	if(err) {
+		logmsg(LOG_ERROR, "failed to parse XML animation file: %s\n%s\n", xml.GetErrorStr1(),
+				xml.GetErrorStr2());
+		delete [] buf;
+		return false;
+	}
+
+	XMLElement *root = xml.RootElement();
+	if(strcmp(root->Name(), "anim") != 0) {
+		logmsg(LOG_ERROR, "invalid XML file, root node is not <anim>\n");
+		delete [] buf;
+		return false;
+	}
+
+	XMLElement *elem;
+
+	elem = root->FirstChildElement();
+	while(elem) {
+		const char *elem_name = elem->Name();
+
+		if(strcmp(elem_name, "name") == 0) {
+		} else if(strcmp(elem_name, "attr") == 0) {
+		}
+		elem = elem->NextSiblingElement();
+	}
+
+	delete [] buf;
+	return true;
+}
 
 static Material *read_material(Scene *scn, XMLElement *xml_mtl)
 {

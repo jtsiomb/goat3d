@@ -294,7 +294,7 @@ GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const 
 
 GOAT3DAPI void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
 {
-	(*mtl)[attrib].map = goat3d_clean_filename(mapname);
+	(*mtl)[attrib].map = clean_filename(mapname);
 }
 
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
@@ -909,7 +909,7 @@ static long seek_file(long offs, int whence, void *uptr)
 	return ftell((FILE*)uptr);
 }
 
-std::string goat3d_clean_filename(const char *str)
+std::string g3dimpl::clean_filename(const char *str)
 {
 	const char *last_slash = strrchr(str, '/');
 	if(!last_slash) {

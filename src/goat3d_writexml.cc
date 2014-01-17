@@ -118,7 +118,7 @@ static bool write_mesh(const Scene *scn, goat3d_io *io, const Mesh *mesh, int id
 	if(mesh->material) {
 		xmlout(io, level + 1, "<material string=\"%s\"/>\n", mesh->material->name.c_str());
 	}
-	xmlout(io, level + 1, "<file string=\"%s\"/>\n", goat3d_clean_filename(mesh_filename).c_str());
+	xmlout(io, level + 1, "<file string=\"%s\"/>\n", clean_filename(mesh_filename).c_str());
 	xmlout(io, level, "</mesh>\n\n");
 	return true;
 }
@@ -180,7 +180,7 @@ static bool write_node(const Scene *scn, goat3d_io *io, const Node *node, int le
 
 static bool write_node_anim(goat3d_io *io, const XFormNode *node, int level)
 {
-	/* NOTE: the order of names must correspond to the order of
+	/* NOTE: the order of names must correspond to the order of the
 	 * XFormNode::POSITION_TRACK/ROTATION_TRACK/SCALING_TRACK enum
 	 */
 	static const char *attr_names[] = { "position", "rotation", "scaling" };

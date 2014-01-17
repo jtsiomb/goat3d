@@ -23,7 +23,7 @@ extern int goat_log_level;
 #define VECDATA(type, data, num) \
 	MOVE(std::vector<type>((type*)(data), (type*)(data) + (num)))
 
-std::string goat3d_clean_filename(const char *str);
+std::string clean_filename(const char *str);
 
 
 class Scene {

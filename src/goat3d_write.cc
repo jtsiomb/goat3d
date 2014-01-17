@@ -68,6 +68,11 @@ bool Scene::save(goat3d_io *io) const
 	return false;
 }
 
+bool Scene::save_anim(const XFormNode *node, goat3d_io *io) const
+{
+	return false;
+}
+
 
 #if 0
 static long save_env(const Scene *scn, long offset, goat3d_io *io)
