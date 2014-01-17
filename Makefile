@@ -37,7 +37,7 @@ endif
 CC = clang
 CXX = clang++
 CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
-LDFLAGS = $(extlibs)
+LDFLAGS = $(extlibs) -lpthread
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
@@ -48,15 +48,19 @@ $(lib_so): $(obj) $(extlibs)
 $(lib_a): $(obj) $(extlibs)
 	$(AR) rcs $@ $(obj) $(extlibs)
 
+.PHONY: $(openctm)
 $(openctm):
 	$(MAKE) -C libs/openctm
 
+.PHONY: $(tinyxml2)
 $(tinyxml2):
 	$(MAKE) -C libs/tinyxml2
 
+.PHONY: $(vmath)
 $(vmath):
 	$(MAKE) -C libs/vmath
 
+.PHONY: $(anim)
 $(anim):
 	$(MAKE) -C libs/anim
 
