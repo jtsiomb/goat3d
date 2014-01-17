@@ -225,8 +225,3 @@ static long write_chunk_float4(int id, const Vector4 &vec, long offs, goat3d_io 
 	return size;
 }
 #endif
-
-bool Scene::save_anim(const XFormNode *node, goat3d_io *io) const
-{
-	return false;
-}

@@ -110,12 +110,6 @@ bool Scene::load_anim_xml(goat3d_io *io)
 	return true;
 }
 
-bool Scene::load_anim_xml(goat3d_io *io)
-{
-	return false;
-}
-
-
 static Material *read_material(Scene *scn, XMLElement *xml_mtl)
 {
 	Material *mtl = new Material;
