@@ -162,14 +162,14 @@ GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname)
 	return res;
 }
 
-GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const struct goat3d_node *root, const char *fname)
+GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const char *fname)
 {
 	FILE *fp = fopen(fname, "wb");
 	if(!fp) {
 		return -1;
 	}
 
-	int res = goat3d_save_anim_file(g, root, fp);
+	int res = goat3d_save_anim_file(g, fp);
 	fclose(fp);
 	return res;
 }
@@ -185,7 +185,7 @@ GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp)
 	return goat3d_load_anim_io(g, &io);
 }
 
-GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_node *root, FILE *fp)
+GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp)
 {
 	goat3d_io io;
 	io.cls = fp;
@@ -193,7 +193,7 @@ GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_
 	io.write = write_file;
 	io.seek = seek_file;
 
-	return goat3d_save_anim_io(g, root, &io);
+	return goat3d_save_anim_io(g, &io);
 }
 
 GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
@@ -206,12 +206,12 @@ GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 	return 0;
 }
 
-GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, const struct goat3d_node *root, struct goat3d_io *io)
+GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		return g->scn->save_anim_xml(root, io) ? 0 : -1;
+		return g->scn->save_anim_xml(io) ? 0 : -1;
 	}
-	return g->scn->save_anim(root, io) ? 0 : -1;
+	return g->scn->save_anim(io) ? 0 : -1;
 }
 
 

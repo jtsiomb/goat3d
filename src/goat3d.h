@@ -90,13 +90,13 @@ GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io);
 
 /* load/save animation files (g must already be loaded to load animations) */
 GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname);
-GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const struct goat3d_node *root, const char *fname);
+GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const char *fname);
 
 GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp);
-GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_node *root, FILE *fp);
+GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp);
 
 GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io);
-GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, const struct goat3d_node *root, struct goat3d_io *io);
+GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io);
 
 /* misc scene properties */
 GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name);

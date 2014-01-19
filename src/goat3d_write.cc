@@ -68,7 +68,7 @@ bool Scene::save(goat3d_io *io) const
 	return false;
 }
 
-bool Scene::save_anim(const XFormNode *node, goat3d_io *io) const
+bool Scene::save_anim(goat3d_io *io) const
 {
 	return false;
 }

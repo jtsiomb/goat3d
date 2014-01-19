@@ -81,10 +81,10 @@ public:
 	bool savexml(goat3d_io *io) const;
 
 	bool load_anim(goat3d_io *io);
-	bool save_anim(const XFormNode *node, goat3d_io *io) const;
+	bool save_anim(goat3d_io *io) const;
 
 	bool load_anim_xml(goat3d_io *io);
-	bool save_anim_xml(const XFormNode *node, goat3d_io *io) const;
+	bool save_anim_xml(goat3d_io *io) const;
 };
 
 void io_fprintf(goat3d_io *io, const char *fmt, ...);
