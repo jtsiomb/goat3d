@@ -247,6 +247,21 @@ GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
 	g->scn->add_material(mtl);
 }
 
+GOAT3DAPI int goat3d_get_mtl_count(struct goat3d *g)
+{
+	return g->scn->get_material_count();
+}
+
+GOAT3DAPI struct goat3d_material *goat3d_get_mtl(struct goat3d *g, int idx)
+{
+	return (goat3d_material*)g->scn->get_material(idx);
+}
+
+GOAT3DAPI struct goat3d_material *goat3d_get_mtl_by_name(struct goat3d *g, const char *name)
+{
+	return (goat3d_material*)g->scn->get_material(name);
+}
+
 GOAT3DAPI struct goat3d_material *goat3d_create_mtl(void)
 {
 	return new goat3d_material;
@@ -403,6 +418,12 @@ GOAT3DAPI void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_me
 		float val)
 {
 	goat3d_add_mesh_attrib4f(mesh, attrib, val, 0, 0, 1);
+}
+
+GOAT3DAPI void goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y)
+{
+	goat3d_add_mesh_attrib4f(mesh, attrib, x, y, 0, 1);
 }
 
 GOAT3DAPI void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,

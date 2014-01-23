@@ -13,6 +13,7 @@ enum {
 int convert(const char *infname);
 int convert_anim(const char *infname);
 void process_material(struct goat3d_material *mtl, struct aiMaterial *aimtl);
+void process_mesh(struct goat3d *goat, struct goat3d_mesh *mesh, struct aiMesh *aimesh);
 void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode *ainode);
 int process_anim(struct goat3d *goat, struct aiAnimation *aianim);
 static int output_filename(char *buf, int bufsz, const char *fname, const char *suffix);
@@ -99,6 +100,14 @@ int convert(const char *infname)
 
 		process_material(mat, aimat);
 		goat3d_add_mtl(goat, mat);
+	}
+
+	for(i=0; i<(int)aiscn->mNumMeshes; i++) {
+		struct aiMesh *aimesh = aiscn->mMeshes[i];
+		struct goat3d_mesh *mesh = goat3d_create_mesh();
+
+		process_mesh(goat, mesh, aimesh);
+		goat3d_add_mesh(goat, mesh);
 	}
 
 	for(i=0; i<(int)aiscn->mRootNode->mNumChildren; i++) {
@@ -195,8 +204,57 @@ void process_material(struct goat3d_material *mtl, struct aiMaterial *aimtl)
 		goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_REFLECTION, aistr.data);
 	}
 	if(aiGetMaterialString(aimtl, AI_MATKEY_TEXTURE_OPACITY(0), &aistr) == aiReturn_SUCCESS) {
-		// TODO this is semantically inverted... maybe add an alpha attribute?
+		/* TODO this is semantically inverted... maybe add an alpha attribute? */
 		goat3d_set_mtl_attrib_map(mtl, GOAT3D_MAT_ATTR_TRANSMISSION, aistr.data);
+	}
+}
+
+void process_mesh(struct goat3d *goat, struct goat3d_mesh *mesh, struct aiMesh *aimesh)
+{
+	int i, num_verts, num_faces;
+	struct goat3d_material *mtl;
+
+	if(aimesh->mName.length > 0) {
+		goat3d_set_mesh_name(mesh, aimesh->mName.data);
+	}
+
+	if((mtl = goat3d_get_mtl(goat, aimesh->mMaterialIndex))) {
+		goat3d_set_mesh_mtl(mesh, mtl);
+	}
+
+	num_verts = aimesh->mNumVertices;
+	num_faces = aimesh->mNumFaces;
+
+	for(i=0; i<num_verts; i++) {
+		struct aiVector3D *v;
+		struct aiColor4D *col;
+
+		v = aimesh->mVertices + i;
+		goat3d_add_mesh_attrib3f(mesh, GOAT3D_MESH_ATTR_VERTEX, v->x, v->y, v->z);
+
+		if(aimesh->mNormals) {
+			v = aimesh->mNormals + i;
+			goat3d_add_mesh_attrib3f(mesh, GOAT3D_MESH_ATTR_NORMAL, v->x, v->y, v->z);
+		}
+		if(aimesh->mTangents) {
+			v = aimesh->mTangents + i;
+			goat3d_add_mesh_attrib3f(mesh, GOAT3D_MESH_ATTR_TANGENT, v->x, v->y, v->z);
+		}
+		if(aimesh->mTextureCoords[0]) {
+			v = aimesh->mTextureCoords[0] + i;
+			goat3d_add_mesh_attrib2f(mesh, GOAT3D_MESH_ATTR_TEXCOORD, v->x, v->y);
+		}
+		if(aimesh->mColors[0]) {
+			col = aimesh->mColors[0] + i;
+			goat3d_add_mesh_attrib4f(mesh, GOAT3D_MESH_ATTR_COLOR, col->r, col->g, col->b, col->a);
+		}
+		/* TODO: add bones */
+	}
+
+	for(i=0; i<num_faces; i++) {
+		struct aiFace *face = aimesh->mFaces + i;
+
+		goat3d_add_mesh_face(mesh, face->mIndices[0], face->mIndices[1], face->mIndices[2]);
 	}
 }
 
