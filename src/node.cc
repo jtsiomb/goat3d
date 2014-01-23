@@ -26,6 +26,8 @@ const Object *Node::get_object() const
 
 void g3dimpl::delete_node_tree(Node *n)
 {
+	if(!n) return;
+
 	for(int i=0; i<n->get_children_count(); i++) {
 		delete_node_tree((Node*)n->get_child(i));
 	}

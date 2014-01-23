@@ -73,6 +73,13 @@ $(anim):
 clean:
 	rm -f $(obj) $(lib_a) $(lib_so)
 
+.PHONY: cleanlibs
+cleanlibs:
+	$(MAKE) -C libs/openctm clean
+	$(MAKE) -C libs/tinyxml2 clean
+	$(MAKE) -C libs/vmath clean
+	$(MAKE) -C libs/anim clean
+
 .PHONY: cleandep
 cleandep:
 	rm -f $(dep)

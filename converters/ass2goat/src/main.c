@@ -288,7 +288,7 @@ static int output_filename(char *buf, int bufsz, const char *fname, const char *
 
 	lastdot = strrchr(fname, '.');
 
-	fname_end = lastdot ? lastdot + 1 : fname + strlen(fname);
+	fname_end = lastdot ? lastdot : fname + strlen(fname);
 	namesz = fname_end - fname;
 	reqsz = namesz + strlen(suffix) + 2;	/* plus 1 for the dot */
 
