@@ -10,11 +10,9 @@ dep = $(obj:.o=.d)
 
 openctm = libs/openctm/libopenctm.a
 tinyxml2 = libs/tinyxml2/libtinyxml2.a
-vmath = libs/vmath/libvmath.a
-anim = libs/anim/libanim.a
 
-extinc = -Ilibs/openctm -Ilibs/tinyxml2 -Ilibs/anim
-extlibs = $(openctm) $(tinyxml2) $(anim) $(vmath)
+extinc = -Ilibs/openctm -Ilibs/tinyxml2
+extlibs = $(openctm) $(tinyxml2)
 
 name = goat3d
 so_major = 0
@@ -37,7 +35,7 @@ endif
 CC = clang
 CXX = clang++
 CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
-LDFLAGS = $(extlibs) -lpthread
+LDFLAGS = $(extlibs) -lvmath -lanim -lpthread
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
@@ -56,14 +54,6 @@ $(openctm):
 $(tinyxml2):
 	$(MAKE) -C libs/tinyxml2
 
-.PHONY: $(vmath)
-$(vmath):
-	$(MAKE) -C libs/vmath
-
-.PHONY: $(anim)
-$(anim):
-	$(MAKE) -C libs/anim
-
 -include $(dep)
 
 %.d: %.cc
@@ -77,8 +67,6 @@ clean:
 cleanlibs:
 	$(MAKE) -C libs/openctm clean
 	$(MAKE) -C libs/tinyxml2 clean
-	$(MAKE) -C libs/vmath clean
-	$(MAKE) -C libs/anim clean
 
 .PHONY: cleandep
 cleandep:
