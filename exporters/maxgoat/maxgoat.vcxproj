@@ -105,11 +105,11 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>goat3d-x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libvmath-x64-dbg.lib;libanim-x64.lib;goat3d-x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(TargetDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(ProjectName).dle"</Command>
+      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -147,11 +147,11 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>goat3d-x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libvmath-x64.lib;libanim-x64.lib;goat3d-x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(TargetDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(ProjectName).dle"</Command>
+      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(TargetFileName)"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

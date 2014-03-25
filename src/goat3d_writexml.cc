@@ -27,7 +27,7 @@ bool Scene::savexml(goat3d_io *io) const
 		write_material(this, io, materials[i], 1);
 	}
 	for(size_t i=0; i<meshes.size(); i++) {
-		write_mesh(this, io, meshes[i], i, 1);
+		write_mesh(this, io, meshes[i], (int)i, 1);
 	}
 	for(size_t i=0; i<lights.size(); i++) {
 		write_light(this, io, lights[i], 1);

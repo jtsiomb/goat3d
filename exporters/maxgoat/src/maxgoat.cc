@@ -124,6 +124,7 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	char fname[512];
 	wcstombs(fname, name, sizeof fname - 1);
 
+	fprintf(logfile, "Exporting Goat3D Scene (text) file: %s\n", fname);
 	if(!(igame = GetIGameInterface())) {
 		fprintf(logfile, "failed to get the igame interface\n");
 		return IMPEXP_FAIL;
@@ -406,6 +407,7 @@ public:
 	HINSTANCE HInstance() { return hinst; }
 };
 
+// TODO: make 2 class descriptors, one for goat3d, one for goat3danim
 static GoatClassDesc class_desc;
 
 BOOL WINAPI DllMain(HINSTANCE inst_handle, ULONG reason, void *reserved)
