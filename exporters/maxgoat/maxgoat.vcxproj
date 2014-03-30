@@ -156,6 +156,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\maxgoat.cc" />
+    <ClCompile Include="src\minwin.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\minwin.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,77 +37,43 @@ typedef ClassDesc *(*PluginClassDescFunc)(int);
 
 static FILE *logfile;
 static HINSTANCE hinst;
+static const wchar_t *copyright_str = L"Copyright 2013 (C) John Tsiombikas - GNU General Public License v3, see COPYING for details.";
 
 class GoatExporterStub : public SceneExport {
-private:
-
 public:
 	IGameScene *igame;
 
-	int ExtCount();
-	const TCHAR *Ext(int n);
-	const TCHAR *LongDesc();
-	const TCHAR *ShortDesc();
-	const TCHAR *AuthorName();
-	const TCHAR *CopyrightMessage();
-	const TCHAR *OtherMessage1();
-	const TCHAR *OtherMessage2();
-	unsigned int Version();
-	void ShowAbout(HWND win);
+	int ExtCount() { return 1; }
+	const TCHAR *Ext(int n) { return L"goatsce"; }
+	const TCHAR *LongDesc() { return L"Goat3D Scene file"; }
+	const TCHAR *ShortDesc() { return L"Goat3D Scene"; }
+	const TCHAR *AuthorName() { return L"John Tsiombikas"; }
+	const TCHAR *CopyrightMessage() { return copyright_str; }
+	const TCHAR *OtherMessage1() { return L"foo1"; }
+	const TCHAR *OtherMessage2() { return L"foo2"; }
+	unsigned int Version() { return VERSION(VER_MAJOR, VER_MINOR); }
+	void ShowAbout(HWND win) { MessageBoxA(win, "Goat3D exporter", "About this plugin", 0); }
 
 	int DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent = FALSE, DWORD opt = 0);
 };
 
+class GoatAnimExporterStub : public SceneExport {
+public:
+	IGameScene *igame;
 
-int GoatExporterStub::ExtCount()
-{
-	return 1;
-}
+	int ExtCount() { return 1; }
+	const TCHAR *Ext(int n) { return L"goatanm"; }
+	const TCHAR *LongDesc() { return L"Goat3D Animation file"; }
+	const TCHAR *ShortDesc() { return L"Goat3D Animation"; }
+	const TCHAR *AuthorName() { return L"John Tsiombikas"; }
+	const TCHAR *CopyrightMessage() { return copyright_str; }
+	const TCHAR *OtherMessage1() { return L"bar1"; }
+	const TCHAR *OtherMessage2() { return L"bar2"; }
+	unsigned int Version() { return VERSION(VER_MAJOR, VER_MINOR); }
+	void ShowAbout(HWND win) { MessageBoxA(win, "Goat3D anim exporter", "About this plugin", 0); }
 
-const TCHAR *GoatExporterStub::Ext(int n)
-{
-	return L"xml";
-}
-
-const TCHAR *GoatExporterStub::LongDesc()
-{
-	return L"Goat3D scene file";
-}
-
-const TCHAR *GoatExporterStub::ShortDesc()
-{
-	return L"Goat3D";
-}
-
-const TCHAR *GoatExporterStub::AuthorName()
-{
-	return L"John Tsiombikas";
-}
-
-const TCHAR *GoatExporterStub::CopyrightMessage()
-{
-	return L"Copyright 2013 (C) John Tsiombikas - GNU General Public License v3, see COPYING for details.";
-}
-
-const TCHAR *GoatExporterStub::OtherMessage1()
-{
-	return L"other1";
-}
-
-const TCHAR *GoatExporterStub::OtherMessage2()
-{
-	return L"other2";
-}
-
-unsigned int GoatExporterStub::Version()
-{
-	return VERSION(VER_MAJOR, VER_MINOR);
-}
-
-void GoatExporterStub::ShowAbout(HWND win)
-{
-	MessageBoxA(win, "Goat3D exporter stub", "About this plugin", 0);
-}
+	int DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent = FALSE, DWORD opt = 0);
+};
 
 static const char *find_dll_dir()
 {
@@ -128,10 +94,7 @@ static const char *find_dll_dir()
 	return path;
 }
 
-/* TODO: open a dialog, let the user select goat3d or goat3danim, then load the correct dll
- */
-int GoatExporterStub::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
-		BOOL non_interactive, DWORD opt)
+static int do_export(int which, const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL non_int, DWORD opt)
 {
 	const char *dll_fname = "maxgoat.dll";
 	char *dll_path;
@@ -170,8 +133,7 @@ int GoatExporterStub::DoExport(const MCHAR *name, ExpInterface *eiface, Interfac
 		}
 	}
 
-	// TODO: pass 1 for anim
-	if(!(desc = get_class_desc(0))) {
+	if(!(desc = get_class_desc(which))) {
 		fprintf(logfile, "failed to get the class descriptor\n");
 		goto done;
 	}
@@ -196,6 +158,18 @@ done:
 	return result;
 }
 
+int GoatExporterStub::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
+		BOOL non_interactive, DWORD opt)
+{
+	return do_export(0, name, eiface, iface, non_interactive, opt);
+}
+
+
+int GoatAnimExporterStub::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
+		BOOL non_interactive, DWORD opt)
+{
+	return do_export(1, name, eiface, iface, non_interactive, opt);
+}
 
 // ------------------------------------------
 
@@ -212,7 +186,22 @@ public:
 	HINSTANCE HInstance() { return hinst; }
 };
 
+class GoatAnimClassDesc : public ClassDesc2 {
+public:
+	int IsPublic() { return TRUE; }
+	void *Create(BOOL loading = FALSE) { return new GoatAnimExporterStub; }
+	const TCHAR *ClassName() { return L"GoatAnimExporterStub"; }
+	SClass_ID SuperClassID() { return SCENE_EXPORT_CLASS_ID; }
+	Class_ID ClassID() { return Class_ID(0x75054666, 0x45487285); }
+	const TCHAR *Category() { return L"Mutant Stargoat"; }
+
+	const TCHAR *InternalName() { return L"GoatAnimExporterStub"; }
+	HINSTANCE HInstance() { return hinst; }
+};
+
+
 static GoatClassDesc class_desc;
+static GoatAnimClassDesc anim_class_desc;
 
 BOOL WINAPI DllMain(HINSTANCE inst_handle, ULONG reason, void *reserved)
 {
@@ -232,12 +221,20 @@ __declspec(dllexport) const TCHAR *LibDescription()
 
 __declspec(dllexport) int LibNumberClasses()
 {
-	return 1;
+	return 2;
 }
 
 __declspec(dllexport) ClassDesc *LibClassDesc(int i)
 {
-	return i == 0 ? &class_desc : 0;
+	switch(i) {
+	case 0:
+		return &class_desc;
+	case 1:
+		return &anim_class_desc;
+	default:
+		break;
+	}
+	return 0;
 }
 
 __declspec(dllexport) ULONG LibVersion()

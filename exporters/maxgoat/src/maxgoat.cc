@@ -13,6 +13,7 @@
 #include "IGameExport.h"
 #include "IConversionmanager.h"
 #include "goat3d.h"
+#include "minwin.h"
 #include "config.h"
 
 
@@ -118,6 +119,8 @@ void GoatExporter::ShowAbout(HWND win)
 int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
 		BOOL non_interactive, DWORD opt)
 {
+	mw_test();
+
 	mtlmap.clear();
 	nodemap.clear();
 
