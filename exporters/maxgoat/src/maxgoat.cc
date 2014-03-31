@@ -15,6 +15,8 @@
 #include "goat3d.h"
 #include "minwin.h"
 #include "config.h"
+#include "logger.h"
+#include "resource.h"
 
 
 #pragma comment (lib, "core.lib")
@@ -32,8 +34,7 @@
 #define VERSION(major, minor) \
 	((major) * 100 + ((minor) < 10 ? (minor) * 10 : (minor)))
 
-static FILE *logfile;
-static HINSTANCE hinst;
+HINSTANCE hinst;
 
 class GoatExporter : public SceneExport {
 private:
@@ -116,10 +117,45 @@ void GoatExporter::ShowAbout(HWND win)
 	MessageBoxA(win, "Goat3D exporter plugin", "About this plugin", 0);
 }
 
+static INT_PTR CALLBACK handle_dlg_events(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam)
+{
+	switch(msg) {
+	case WM_INITDIALOG:
+		CheckDlgButton(win, IDC_GOAT_NODES, 1);
+		CheckDlgButton(win, IDC_GOAT_MESHES, 1);
+		CheckDlgButton(win, IDC_GOAT_LIGHTS, 1);
+		CheckDlgButton(win, IDC_GOAT_CAMERAS, 1);
+		break;
+
+	case WM_COMMAND:
+		switch(LOWORD(wparam)) {
+		case IDOK:
+			EndDialog(win, 1);
+			break;
+
+		case IDCANCEL:
+			EndDialog(win, 0);
+			break;
+
+		default:
+			return 0;
+		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 1;
+}
+
 int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
 		BOOL non_interactive, DWORD opt)
 {
-	mw_test();
+	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_SCE), 0, handle_dlg_events)) {
+		maxlog("canceled!\n");
+		return IMPEXP_CANCEL;
+	}
 
 	mtlmap.clear();
 	nodemap.clear();
@@ -127,9 +163,9 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	char fname[512];
 	wcstombs(fname, name, sizeof fname - 1);
 
-	fprintf(logfile, "Exporting Goat3D Scene (text) file: %s\n", fname);
+	maxlog("Exporting Goat3D Scene (text) file: %s\n", fname);
 	if(!(igame = GetIGameInterface())) {
-		fprintf(logfile, "failed to get the igame interface\n");
+		maxlog("failed to get the igame interface\n");
 		return IMPEXP_FAIL;
 	}
 	IGameConversionManager *cm = GetConversionManager();
@@ -451,18 +487,13 @@ __declspec(dllexport) int LibInitialize()
 	SHGetFolderPathA(0, CSIDL_PERSONAL, 0, 0, path);
 	strcat(path, "/testexp.log");
 
-	if((logfile = fopen(path, "w"))) {
-		setvbuf(logfile, 0, _IONBF, 0);
-	}
+	maxlog_open(path);
 	return TRUE;
 }
 
 __declspec(dllexport) int LibShutdown()
 {
-	if(logfile) {
-		fclose(logfile);
-		logfile = 0;
-	}
+	maxlog_close();
 	return TRUE;
 }
 

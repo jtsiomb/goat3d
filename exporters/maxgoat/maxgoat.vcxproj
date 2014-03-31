@@ -100,7 +100,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MAXGOAT_EXPORTS;%(PreprocessorDefinitions);BUILD_MAXPLUGIN</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4244</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,7 +140,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MAXGOAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4996;4244</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -155,11 +155,21 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\logger.cc" />
     <ClCompile Include="src\maxgoat.cc" />
     <ClCompile Include="src\minwin.cc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="src\logger.h" />
     <ClInclude Include="src\minwin.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="maxgoat.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="msglogo3d.bmp" />
+    <None Include="msglogo3d.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
