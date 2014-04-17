@@ -2,6 +2,8 @@ goat3d
 ------
 A 3D scene, character, and animation file format specification, library, and tools.
 
+main project site: http://code.google.com/p/goat3d/
+
 Goat3D is a hierarchical 3D scene, character, and animation file format set,
 targeting mostly real-time applications (such as games). The goat3d
 specification defines 2 complimentary file formats:
@@ -26,7 +28,7 @@ included in various degrees of completion:
  * *goatprim*, a procedural 3D model (primitive) generator for quick testing.
 
 The following are planned for the near future:
- * *blendgoat*, an exporter for [http://www.blender.org/ Blender].
+ * *blendgoat*, an exporter for Blender.
 
 License
 -------
