@@ -44,7 +44,7 @@ bool Scene::savexml(goat3d_io *io) const
 		write_material(this, io, materials[i], 1);
 	}
 	for(size_t i=0; i<meshes.size(); i++) {
-		write_mesh(this, io, meshes[i], i, 1);
+		write_mesh(this, io, meshes[i], (int)i, 1);
 	}
 	for(size_t i=0; i<lights.size(); i++) {
 		write_light(this, io, lights[i], 1);
@@ -60,33 +60,19 @@ bool Scene::savexml(goat3d_io *io) const
 	return true;
 }
 
-static void collect_nodes(std::list<const XFormNode*> *res, const XFormNode *node)
-{
-	if(!node) return;
-
-	res->push_back(node);
-
-	for(int i=0; i<node->get_children_count(); i++) {
-		collect_nodes(res, node->get_child(i));
-	}
-}
-
-bool Scene::save_anim_xml(const XFormNode *node, goat3d_io *io) const
+bool Scene::save_anim_xml(goat3d_io *io) const
 {
 	xmlout(io, 0, "<anim>\n");
 
-	const char *anim_name = node->get_animation_name();
-	if(anim_name && *anim_name) {
-		xmlout(io, 1, "<name string=\"%s\"/>\n", anim_name);
+	if(!nodes.empty()) {
+		const char *anim_name = nodes[0]->get_animation_name();
+		if(anim_name && *anim_name) {
+			xmlout(io, 1, "<name string=\"%s\"/>\n", anim_name);
+		}
 	}
 
-	std::list<const XFormNode*> allnodes;
-	collect_nodes(&allnodes, node);
-
-	std::list<const XFormNode*>::const_iterator it = allnodes.begin();
-	while(it != allnodes.end()) {
-		const XFormNode *n = *it++;
-		write_node_anim(io, n, 1);
+	for(size_t i=0; i<nodes.size(); i++) {
+		write_node_anim(io, nodes[i], 1);
 	}
 
 	xmlout(io, 0, "</anim>\n");

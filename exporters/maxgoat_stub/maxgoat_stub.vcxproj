@@ -18,85 +18,33 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="libs\openctm\internal.h" />
-    <ClInclude Include="libs\openctm\liblzma\Alloc.h" />
-    <ClInclude Include="libs\openctm\liblzma\LzFind.h" />
-    <ClInclude Include="libs\openctm\liblzma\LzHash.h" />
-    <ClInclude Include="libs\openctm\liblzma\LzmaDec.h" />
-    <ClInclude Include="libs\openctm\liblzma\LzmaEnc.h" />
-    <ClInclude Include="libs\openctm\liblzma\LzmaLib.h" />
-    <ClInclude Include="libs\openctm\liblzma\NameMangle.h" />
-    <ClInclude Include="libs\openctm\liblzma\Types.h" />
-    <ClInclude Include="libs\openctm\openctm.h" />
-    <ClInclude Include="libs\openctm\openctmpp.h" />
-    <ClInclude Include="libs\tinyxml2\tinyxml2.h" />
-    <ClInclude Include="src\camera.h" />
-    <ClInclude Include="src\chunk.h" />
-    <ClInclude Include="src\goat3d.h" />
-    <ClInclude Include="src\goat3d_impl.h" />
-    <ClInclude Include="src\light.h" />
-    <ClInclude Include="src\log.h" />
-    <ClInclude Include="src\material.h" />
-    <ClInclude Include="src\mesh.h" />
-    <ClInclude Include="src\node.h" />
-    <ClInclude Include="src\object.h" />
-    <ClInclude Include="src\xform_node.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="libs\openctm\compressMG1.c" />
-    <ClCompile Include="libs\openctm\compressMG2.c" />
-    <ClCompile Include="libs\openctm\compressRAW.c" />
-    <ClCompile Include="libs\openctm\liblzma\Alloc.c" />
-    <ClCompile Include="libs\openctm\liblzma\LzFind.c" />
-    <ClCompile Include="libs\openctm\liblzma\LzmaDec.c" />
-    <ClCompile Include="libs\openctm\liblzma\LzmaEnc.c" />
-    <ClCompile Include="libs\openctm\liblzma\LzmaLib.c" />
-    <ClCompile Include="libs\openctm\openctm.c" />
-    <ClCompile Include="libs\openctm\stream.c" />
-    <ClCompile Include="libs\tinyxml2\tinyxml2.cpp" />
-    <ClCompile Include="src\camera.cc" />
-    <ClCompile Include="src\chunk.cc" />
-    <ClCompile Include="src\goat3d.cc" />
-    <ClCompile Include="src\goat3d_read.cc" />
-    <ClCompile Include="src\goat3d_readxml.cc" />
-    <ClCompile Include="src\goat3d_write.cc" />
-    <ClCompile Include="src\goat3d_writexml.cc" />
-    <ClCompile Include="src\light.cc" />
-    <ClCompile Include="src\log.cc" />
-    <ClCompile Include="src\material.cc" />
-    <ClCompile Include="src\mesh.cc" />
-    <ClCompile Include="src\node.cc" />
-    <ClCompile Include="src\scene.cc" />
-    <ClCompile Include="src\xform_node.cc" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{86BF319B-9222-4805-918D-DC1B9F77BCEF}</ProjectGuid>
+    <ProjectGuid>{941007A1-6375-4507-8745-FC3EA9DF010B}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>goat3d</RootNamespace>
+    <RootNamespace>maxgoat_stub</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v100</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v110</PlatformToolset>
+    <PlatformToolset>v100</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v100</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -118,11 +66,17 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <TargetName>$(ProjectName)-x64</TargetName>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>$(ProjectName)-x64</TargetName>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -130,9 +84,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;OPENCTM_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\libs\openctm;$(ProjectDir)\libs\openctm\liblzma;$(ProjectDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MAXGOAT_STUB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,18 +97,16 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC;BUILD_MAXPLUGIN</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MAXGOAT_STUB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(ProjectName).dle"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -166,9 +116,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;OPENCTM_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(ProjectDir)\libs\openctm;$(ProjectDir)\libs\openctm\liblzma;$(ProjectDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MAXGOAT_STUB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,9 +133,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions);OPENCTM_STATIC</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4244;4305;4996</DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\src;$(SolutionDir)\libs\openctm;$(SolutionDir)\libs\openctm\liblzma;$(SolutionDir)\libs\tinyxml2</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MAXGOAT_STUB_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4996</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -195,11 +142,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
-    <Lib>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
-    </Lib>
+    <PostBuildEvent>
+      <Command>copy /Y "$(TargetPath)" "$(ADSK_3DSMAX_x64_2014)plugins\$(ProjectName).dle"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="src\stub.cc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

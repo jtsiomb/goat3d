@@ -107,13 +107,13 @@ GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io);
 
 /* load/save animation files (g must already be loaded to load animations) */
 GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname);
-GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const struct goat3d_node *root, const char *fname);
+GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const char *fname);
 
 GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp);
-GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, const struct goat3d_node *root, FILE *fp);
+GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp);
 
 GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io);
-GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, const struct goat3d_node *root, struct goat3d_io *io);
+GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io);
 
 /* misc scene properties */
 GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name);
@@ -125,6 +125,9 @@ GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g);
 
 /* materials */
 GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
+GOAT3DAPI int goat3d_get_mtl_count(struct goat3d *g);
+GOAT3DAPI struct goat3d_material *goat3d_get_mtl(struct goat3d *g, int idx);
+GOAT3DAPI struct goat3d_material *goat3d_get_mtl_by_name(struct goat3d *g, const char *name);
 
 GOAT3DAPI struct goat3d_material *goat3d_create_mtl(void);
 GOAT3DAPI void goat3d_destroy_mtl(struct goat3d_material *mtl);
@@ -173,6 +176,8 @@ GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh);
 GOAT3DAPI void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		const void *data, int vnum);
 GOAT3DAPI void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, float val);
+GOAT3DAPI void goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+		float x, float y);
 GOAT3DAPI void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z);
 GOAT3DAPI void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
