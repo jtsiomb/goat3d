@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <errno.h>
 #include <map>
 #include <windows.h>
@@ -11,9 +12,9 @@
 #include "plugapi.h"
 #include "IGame.h"
 #include "IGameExport.h"
+#include "IGameControl.h"
 #include "IConversionmanager.h"
 #include "goat3d.h"
-#include "minwin.h"
 #include "config.h"
 #include "logger.h"
 #include "resource.h"
@@ -31,8 +32,14 @@
 #pragma comment (lib, "comctl32.lib")
 
 
+#define COPYRIGHT	\
+	L"Copyright 2014 (C) John Tsiombikas - GNU General Public License v3, see COPYING for details."
 #define VERSION(major, minor) \
 	((major) * 100 + ((minor) < 10 ? (minor) * 10 : (minor)))
+
+static INT_PTR CALLBACK scene_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam);
+static INT_PTR CALLBACK anim_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam);
+static const char *max_string(const MCHAR *wstr);
 
 HINSTANCE hinst;
 
@@ -44,17 +51,6 @@ private:
 public:
 	IGameScene *igame;
 
-	int ExtCount();
-	const TCHAR *Ext(int n);
-	const TCHAR *LongDesc();
-	const TCHAR *ShortDesc();
-	const TCHAR *AuthorName();
-	const TCHAR *CopyrightMessage();
-	const TCHAR *OtherMessage1();
-	const TCHAR *OtherMessage2();
-	unsigned int Version();
-	void ShowAbout(HWND win);
-
 	int DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent = FALSE, DWORD opt = 0);
 
 	void process_materials(goat3d *goat);
@@ -64,96 +60,36 @@ public:
 	void process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *maxobj);
 	void process_light(goat3d *goat, goat3d_light *light, IGameObject *maxobj);
 	void process_camera(goat3d *goat, goat3d_camera *cam, IGameObject *maxobj);
+
+
+	int ExtCount() { return 1; }
+	const TCHAR *Ext(int n) { return L"goatsce"; }
+	const TCHAR *LongDesc() { return L"Goat3D scene file"; }
+	const TCHAR *ShortDesc() { return L"Goat3D"; }
+	const TCHAR *AuthorName() { return L"John Tsiombikas"; }
+	const TCHAR *CopyrightMessage() { return COPYRIGHT; }
+	const TCHAR *OtherMessage1() { return L"other1"; }
+	const TCHAR *OtherMessage2() { return L"other2"; }
+	unsigned int Version() { return VERSION(VER_MAJOR, VER_MINOR); }
+	void ShowAbout(HWND win) { MessageBoxA(win, "Goat3D exporter plugin", "About this plugin", 0); }
+};
+
+class GoatAnimExporter : public GoatExporter {
+private:
+public:
+	int DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent = FALSE, DWORD opt = 0);
+
+	const TCHAR *Ext(int n) { return L"goatanm"; }
+	const TCHAR *LongDesc() { return L"Goat3D animation file"; }
 };
 
 
-int GoatExporter::ExtCount()
-{
-	return 1;
-}
-
-const TCHAR *GoatExporter::Ext(int n)
-{
-	return L"xml";
-}
-
-const TCHAR *GoatExporter::LongDesc()
-{
-	return L"Goat3D scene file";
-}
-
-const TCHAR *GoatExporter::ShortDesc()
-{
-	return L"Goat3D";
-}
-
-const TCHAR *GoatExporter::AuthorName()
-{
-	return L"John Tsiombikas";
-}
-
-const TCHAR *GoatExporter::CopyrightMessage()
-{
-	return L"Copyright 2013 (C) John Tsiombikas - GNU General Public License v3, see COPYING for details.";
-}
-
-const TCHAR *GoatExporter::OtherMessage1()
-{
-	return L"other1";
-}
-
-const TCHAR *GoatExporter::OtherMessage2()
-{
-	return L"other2";
-}
-
-unsigned int GoatExporter::Version()
-{
-	return VERSION(VER_MAJOR, VER_MINOR);
-}
-
-void GoatExporter::ShowAbout(HWND win)
-{
-	MessageBoxA(win, "Goat3D exporter plugin", "About this plugin", 0);
-}
-
-static INT_PTR CALLBACK handle_dlg_events(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam)
-{
-	switch(msg) {
-	case WM_INITDIALOG:
-		CheckDlgButton(win, IDC_GOAT_NODES, 1);
-		CheckDlgButton(win, IDC_GOAT_MESHES, 1);
-		CheckDlgButton(win, IDC_GOAT_LIGHTS, 1);
-		CheckDlgButton(win, IDC_GOAT_CAMERAS, 1);
-		break;
-
-	case WM_COMMAND:
-		switch(LOWORD(wparam)) {
-		case IDOK:
-			EndDialog(win, 1);
-			break;
-
-		case IDCANCEL:
-			EndDialog(win, 0);
-			break;
-
-		default:
-			return 0;
-		}
-		break;
-
-	default:
-		return 0;
-	}
-
-	return 1;
-}
+// ---- GoatExporter implementation ----
 
 int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface,
 		BOOL non_interactive, DWORD opt)
 {
-	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_SCE), 0, handle_dlg_events)) {
-		maxlog("canceled!\n");
+	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_SCE), 0, scene_gui_handler)) {
 		return IMPEXP_CANCEL;
 	}
 
@@ -162,6 +98,9 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 
 	char fname[512];
 	wcstombs(fname, name, sizeof fname - 1);
+	for(int i=0; fname[i]; i++) {
+		fname[i] = tolower(fname[i]);
+	}
 
 	maxlog("Exporting Goat3D Scene (text) file: %s\n", fname);
 	if(!(igame = GetIGameInterface())) {
@@ -171,7 +110,6 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	IGameConversionManager *cm = GetConversionManager();
 	cm->SetCoordSystem(IGameConversionManager::IGAME_OGL);
 	igame->InitialiseIGame();
-	igame->SetStaticFrame(0);
 
 	goat3d *goat = goat3d_create();
 
@@ -190,14 +128,6 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 
 	goat3d_free(goat);
 	return IMPEXP_SUCCESS;
-}
-
-static const char *max_string(const MCHAR *wstr)
-{
-	if(!wstr) return 0;
-	static char str[512];
-	wcstombs(str, wstr, sizeof str - 1);
-	return str;
 }
 
 void GoatExporter::process_materials(goat3d *goat)
@@ -293,6 +223,10 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	goat3d_node *node = goat3d_create_node();
 	goat3d_add_node(goat, node);
 
+	if(parent) {
+		goat3d_add_node_child(parent, node);
+	}
+
 	const char *name = max_string(maxnode->GetName());
 	if(name) {
 		goat3d_set_node_name(node, name);
@@ -356,7 +290,19 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 		// otherwise don't assign an object, essentially treating it as a null node
 		break;
 	}
-		
+
+	// grab the animation data
+	IGameControl *ctrl = maxnode->GetIGameControl();
+
+	IGameKeyTab tm_keys;
+	if(ctrl->GetFullSampledKeys(tm_keys, 1, IGAME_TM)) {
+		maxlog("node: %s has %d keys\n", name, tm_keys.Count());
+		/*for(int i=0; i<pkeys.Count(); i++) {
+			Point3 p = pkeys[i].linearKey.pval;
+			TimeValue t = pkeys[i].t;
+			goat3d_set_node_position(node, p.x, p.y, p.z, TicksToSec(t));
+		}*/
+	}	
 
 	for(int i=0; i<maxnode->GetChildCount(); i++) {
 		process_node(goat, node, maxnode->GetNodeChild(i));
@@ -424,12 +370,117 @@ void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *ma
 
 void GoatExporter::process_light(goat3d *goat, goat3d_light *light, IGameObject *maxobj)
 {
+	// TODO
 }
 
 void GoatExporter::process_camera(goat3d *goat, goat3d_camera *cam, IGameObject *maxobj)
 {
+	// TODO
 }
 
+static INT_PTR CALLBACK scene_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam)
+{
+	switch(msg) {
+	case WM_INITDIALOG:
+		CheckDlgButton(win, IDC_GOAT_NODES, 1);
+		CheckDlgButton(win, IDC_GOAT_MESHES, 1);
+		CheckDlgButton(win, IDC_GOAT_LIGHTS, 1);
+		CheckDlgButton(win, IDC_GOAT_CAMERAS, 1);
+		break;
+
+	case WM_COMMAND:
+		switch(LOWORD(wparam)) {
+		case IDOK:
+			EndDialog(win, 1);
+			break;
+
+		case IDCANCEL:
+			EndDialog(win, 0);
+			break;
+
+		default:
+			return 0;
+		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 1;
+}
+
+
+
+// ---- GoatAnimExporter implementation ----
+
+int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent, DWORD opt)
+{
+	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_ANM), 0, anim_gui_handler)) {
+		return IMPEXP_CANCEL;
+	}
+
+	char fname[512];
+	wcstombs(fname, name, sizeof fname - 1);
+	for(int i=0; fname[i]; i++) {
+		fname[i] = tolower(fname[i]);
+	}
+
+	maxlog("Exporting Goat3D Animation (text) file: %s\n", fname);
+	if(!(igame = GetIGameInterface())) {
+		maxlog("failed to get the igame interface\n");
+		return IMPEXP_FAIL;
+	}
+	IGameConversionManager *cm = GetConversionManager();
+	cm->SetCoordSystem(IGameConversionManager::IGAME_OGL);
+	igame->InitialiseIGame();
+	igame->SetStaticFrame(0);
+
+	goat3d *goat = goat3d_create();
+
+	// process all nodes
+	for(int i=0; i<igame->GetTopLevelNodeCount(); i++) {
+		IGameNode *node = igame->GetTopLevelNode(i);
+		process_node(goat, 0, node);
+	}
+
+	if(goat3d_save_anim(goat, fname) == -1) {
+		goat3d_free(goat);
+		return IMPEXP_FAIL;
+	}
+
+	goat3d_free(goat);
+	return IMPEXP_SUCCESS;
+}
+
+static INT_PTR CALLBACK anim_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam)
+{
+	switch(msg) {
+	case WM_INITDIALOG:
+		CheckDlgButton(win, IDC_GOAT_ANM_FULL, 1);
+		break;
+
+	case WM_COMMAND:
+		switch(LOWORD(wparam)) {
+		case IDOK:
+			EndDialog(win, 1);
+			break;
+
+		case IDCANCEL:
+			EndDialog(win, 0);
+			break;
+
+		default:
+			return 0;
+		}
+		break;
+
+	default:
+		return 0;
+	}
+
+	return 1;
+}
 
 // ------------------------------------------
 
@@ -446,8 +497,22 @@ public:
 	HINSTANCE HInstance() { return hinst; }
 };
 
+class GoatAnimClassDesc : public ClassDesc2 {
+public:
+	int IsPublic() { return TRUE; }
+	void *Create(BOOL loading = FALSE) { return new GoatAnimExporter; }
+	const TCHAR *ClassName() { return L"GoatAnimExporter"; }
+	SClass_ID SuperClassID() { return SCENE_EXPORT_CLASS_ID; }
+	Class_ID ClassID() { return Class_ID(0x51b94924, 0x2e0332f3); }
+	const TCHAR *Category() { return L"Mutant Stargoat"; }
+
+	const TCHAR *InternalName() { return L"GoatAnimExporter"; }
+	HINSTANCE HInstance() { return hinst; }
+};
+
 // TODO: make 2 class descriptors, one for goat3d, one for goat3danim
 static GoatClassDesc class_desc;
+static GoatAnimClassDesc anim_class_desc;
 
 BOOL WINAPI DllMain(HINSTANCE inst_handle, ULONG reason, void *reserved)
 {
@@ -472,7 +537,15 @@ __declspec(dllexport) int LibNumberClasses()
 
 __declspec(dllexport) ClassDesc *LibClassDesc(int i)
 {
-	return i == 0 ? &class_desc : 0;
+	switch(i) {
+	case 0:
+		return &class_desc;
+	case 1:
+		return &anim_class_desc;
+	default:
+		break;
+	}
+	return 0;
 }
 
 __declspec(dllexport) ULONG LibVersion()
@@ -498,3 +571,12 @@ __declspec(dllexport) int LibShutdown()
 }
 
 }	// extern "C"
+
+
+static const char *max_string(const MCHAR *wstr)
+{
+	if(!wstr) return 0;
+	static char str[512];
+	wcstombs(str, wstr, sizeof str - 1);
+	return str;
+}

@@ -143,7 +143,14 @@ static int do_export(int which, const MCHAR *name, ExpInterface *eiface, Interfa
 		goto done;
 	}
 
-	result = ex->DoExport(name, eiface, iface);
+	__try {
+		result = ex->DoExport(name, eiface, iface);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER) {
+		fprintf(logfile, "Exception caught!\n");
+		delete ex;
+		goto done;
+	}
 	delete ex;
 
 	if((shutdown = (PluginShutdownFunc)GetProcAddress(dll, "LibShutdown"))) {

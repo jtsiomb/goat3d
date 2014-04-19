@@ -10,17 +10,11 @@
     <ClCompile Include="src\maxgoat.cc">
       <Filter>src</Filter>
     </ClCompile>
-    <ClCompile Include="src\minwin.cc">
-      <Filter>src</Filter>
-    </ClCompile>
     <ClCompile Include="src\logger.cc">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\minwin.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="src\logger.h">
       <Filter>src</Filter>
     </ClInclude>
@@ -32,7 +26,6 @@
     <ResourceCompile Include="maxgoat.rc" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="msglogo3d.png" />
     <None Include="msglogo3d.bmp" />
   </ItemGroup>
 </Project>

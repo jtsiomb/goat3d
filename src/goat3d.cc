@@ -780,7 +780,7 @@ GOAT3DAPI enum goat3d_node_type goat3d_get_node_type(const struct goat3d_node *n
 
 GOAT3DAPI void goat3d_add_node_child(struct goat3d_node *node, struct goat3d_node *child)
 {
-	node->add_child(node);
+	node->add_child(child);
 }
 
 GOAT3DAPI int goat3d_get_node_child_count(const struct goat3d_node *node)

@@ -75,6 +75,8 @@ const XFormNode *XFormNode::get_parent() const
 
 void XFormNode::add_child(XFormNode *child)
 {
+	if(!child || child == this) return;
+
 	children.push_back(child);
 	anm_link_node(anm, child->anm);
 	child->parent = this;

@@ -38,7 +38,7 @@ void Scene::clear()
 	cameras.clear();
 
 	for(size_t i=0; i<nodes.size(); i++) {
-		delete_node_tree(nodes[i]);
+		delete nodes[i];
 	}
 	nodes.clear();
 
