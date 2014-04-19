@@ -1,0 +1,39 @@
+goat3d
+------
+A 3D scene, character, and animation file format specification, library, and tools.
+
+main project site: http://code.google.com/p/goat3d/
+
+Goat3D is a hierarchical 3D scene, character, and animation file format set,
+targeting mostly real-time applications (such as games). The goat3d
+specification defines 2 complimentary file formats:
+ * The main goat3d file format defines meshes, lights, cameras, environmental
+   parameters, materials, and transformation hierarchies.
+ * The animation file format defines a sequence of keyframes and interpolation
+   parameters, for any number of nodes, defined in the main scene file.
+
+
+This project provides the specification of the file formats, a simple library
+with a clean C API for reading and writing files in the goat3d scene and
+animation file formats, as well as a number of tools dealing with such files.
+
+Specifically, at the moment (early development stage), the following are
+included in various degrees of completion:
+ * *libgoat3d*, a library for reading and writing goat3d scene and animation files.
+ * *maxgoat*, a goat3d scene and animation exporter for autodesk 3dsmax 2014.
+ * *ass2goat*, a universal 3D asset conversion utility based on the excellent
+   assimp library, from a huge number of 3D file formats to the goat3d file
+   format.
+ * *goatview*, a 3D scene and animation preview tool, based on OpenGL.
+ * *goatprim*, a procedural 3D model (primitive) generator for quick testing.
+
+The following are planned for the near future:
+ * *blendgoat*, an exporter for Blender.
+
+License
+-------
+Copyright (C) 2014 John Tsiombikas <nuclear@member.fsf.org>
+
+libresman is free software, released under the terms of the GNU Lesser General
+Public License v3 (or at your option, any later version published by the Free
+Software Foundation). Read COPYING and COPYING.LESSER for details.
