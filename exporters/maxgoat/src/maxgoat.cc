@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <map>
+#include <vector>
 #include <windows.h>
 #include <shlobj.h>
 #include "max.h"
@@ -39,6 +40,11 @@
 
 static INT_PTR CALLBACK scene_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam);
 static INT_PTR CALLBACK anim_gui_handler(HWND win, unsigned int msg, WPARAM wparam, LPARAM lparam);
+static void get_position_keys(IGameControl *ctrl, goat3d_node *node);
+static void get_xyz_position_keys(IGameControl *ctrl, goat3d_node *node);
+static void get_rotation_keys(IGameControl *ctrl, goat3d_node *node);
+static void get_euler_keys(IGameControl *ctrl, goat3d_node *node);
+static void get_scaling_keys(IGameControl *ctrl, goat3d_node *node);
 static const char *max_string(const MCHAR *wstr);
 
 HINSTANCE hinst;
@@ -294,18 +300,196 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	// grab the animation data
 	IGameControl *ctrl = maxnode->GetIGameControl();
 
-	IGameKeyTab tm_keys;
-	if(ctrl->GetFullSampledKeys(tm_keys, 1, IGAME_TM)) {
-		maxlog("node: %s has %d keys\n", name, tm_keys.Count());
-		/*for(int i=0; i<pkeys.Count(); i++) {
-			Point3 p = pkeys[i].linearKey.pval;
-			TimeValue t = pkeys[i].t;
-			goat3d_set_node_position(node, p.x, p.y, p.z, TicksToSec(t));
-		}*/
-	}	
+	// TODO sample keys if requested
+
+	if(ctrl->IsAnimated(IGAME_POS) || ctrl->IsAnimated(IGAME_POS_X) ||
+			ctrl->IsAnimated(IGAME_POS_Y) || ctrl->IsAnimated(IGAME_POS_Z)) {
+		get_position_keys(ctrl, node);
+	}
+	if(ctrl->IsAnimated(IGAME_ROT) || ctrl->IsAnimated(IGAME_EULER_X) ||
+			ctrl->IsAnimated(IGAME_EULER_Y) || ctrl->IsAnimated(IGAME_EULER_Z)) {
+		get_rotation_keys(ctrl, node);
+	}
+	if(ctrl->IsAnimated(IGAME_SCALE)) {
+		get_scaling_keys(ctrl, node);
+	}
 
 	for(int i=0; i<maxnode->GetChildCount(); i++) {
 		process_node(goat, node, maxnode->GetNodeChild(i));
+	}
+}
+
+#define KEY_TIME(key)	((long)(TicksToSec(key.t) * 1000.0))
+
+static void get_position_keys(IGameControl *ctrl, goat3d_node *node)
+{
+	const char *nodename = goat3d_get_node_name(node);
+	IGameKeyTab keys;
+
+	if(ctrl->GetLinearKeys(keys, IGAME_POS)) {
+		maxlog("node %s: getting %d linear position keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			Point3 p = keys[i].linearKey.pval;
+			goat3d_set_node_position(node, p.x, p.y, p.z, KEY_TIME(keys[i]));
+		}
+	} else if(ctrl->GetBezierKeys(keys, IGAME_POS)) {
+		maxlog("node %s: getting %d bezier position keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			Point3 p = keys[i].bezierKey.pval;
+			goat3d_set_node_position(node, p.x, p.y, p.z, KEY_TIME(keys[i]));
+		}
+	} else if(ctrl->GetTCBKeys(keys, IGAME_POS)) {
+		maxlog("node %s: getting %d tcb position keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			Point3 p = keys[i].tcbKey.pval;
+			goat3d_set_node_position(node, p.x, p.y, p.z, KEY_TIME(keys[i]));
+		}
+	} else {
+		get_xyz_position_keys(ctrl, node);
+	}
+}
+
+static void get_xyz_position_keys(IGameControl *ctrl, goat3d_node *node)
+{
+	const char *nodename = goat3d_get_node_name(node);
+	IGameKeyTab keys;
+	IGameControlType postype[] = {IGAME_POS_X, IGAME_POS_Y, IGAME_POS_Z};
+	std::map<long, Point3> pos;
+
+	for(int i=0; i<3; i++) {
+		if(ctrl->GetLinearKeys(keys, postype[i])) {
+			maxlog("node %s: getting %d linear position %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = pos[tm];
+				v[i] = keys[j].linearKey.fval;
+				pos[tm] = v;
+			}
+		} else if(ctrl->GetBezierKeys(keys, postype[i])) {
+			maxlog("node %s: getting %d bezier position %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = pos[tm];
+				v[i] = keys[j].bezierKey.fval;
+				pos[tm] = v;
+			}
+		} else if(ctrl->GetTCBKeys(keys, postype[i])) {
+			maxlog("node %s: getting %d tcb position %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = pos[tm];
+				v[i] = keys[j].tcbKey.fval;
+				pos[tm] = v;
+			}
+		}
+	}
+
+	std::map<long, Point3>::iterator it = pos.begin();
+	while(it != pos.end()) {
+		Point3 p = it->second;
+		goat3d_set_node_position(node, p.x, p.y, p.z, it->first);
+		++it;
+	}
+}
+
+static void get_rotation_keys(IGameControl *ctrl, goat3d_node *node)
+{
+	const char *nodename = goat3d_get_node_name(node);
+	IGameKeyTab rkeys;
+
+	if(ctrl->GetLinearKeys(rkeys, IGAME_ROT)) {
+		maxlog("node %s: getting %d linear rotation keys\n", nodename, rkeys.Count());
+		for(int i=0; i<rkeys.Count(); i++) {
+			Quat q = rkeys[i].linearKey.qval;
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+		}
+	} else if(ctrl->GetBezierKeys(rkeys, IGAME_ROT)) {
+		maxlog("node %s: getting %d bezier rotation keys\n", nodename, rkeys.Count());
+		for(int i=0; i<rkeys.Count(); i++) {
+			Quat q = rkeys[i].bezierKey.qval;
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+		}
+	} else if(ctrl->GetTCBKeys(rkeys, IGAME_ROT)) {
+		maxlog("node %s: getting %d TCB rotation keys\n", nodename, rkeys.Count());
+		for(int i=0; i<rkeys.Count(); i++) {
+			Quat q(rkeys[i].tcbKey.aval);
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+		}
+	} else {
+		get_euler_keys(ctrl, node);
+	}
+}
+
+static void get_euler_keys(IGameControl *ctrl, goat3d_node *node)
+{
+	const char *nodename = goat3d_get_node_name(node);
+	IGameKeyTab keys;
+	IGameControlType eulertype[] = {IGAME_EULER_X, IGAME_EULER_Y, IGAME_EULER_Z};
+	std::map<long, Point3> euler;
+
+	for(int i=0; i<3; i++) {
+		if(ctrl->GetLinearKeys(keys, eulertype[i])) {
+			maxlog("node %s: getting %d linear euler %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = euler[tm];
+				v[i] = keys[j].linearKey.fval;
+				euler[tm] = v;
+			}
+		} else if(ctrl->GetBezierKeys(keys, eulertype[i])) {
+			maxlog("node %s: getting %d bezier euler %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = euler[tm];
+				v[i] = keys[j].bezierKey.fval;
+				euler[tm] = v;
+			}
+		} else if(ctrl->GetTCBKeys(keys, eulertype[i])) {
+			maxlog("node %s: getting %d tcb euler %c keys\n", nodename, keys.Count(), "xyz"[i]);
+			for(int j=0; j<keys.Count(); j++) {
+				long tm = KEY_TIME(keys[j]);
+				Point3 v = euler[tm];
+				v[i] = keys[j].tcbKey.fval;
+				euler[tm] = v;
+			}
+		}
+	}
+
+	int order = ctrl->GetEulerOrder();
+	std::map<long, Point3>::iterator it = euler.begin();
+	while(it != euler.end()) {
+		Quat q;
+		EulerToQuat(it->second, q, order);
+		goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, it->first);
+		++it;
+	}
+}
+
+static void get_scaling_keys(IGameControl *ctrl, goat3d_node *node)
+{
+	const char *nodename = goat3d_get_node_name(node);
+	IGameKeyTab keys;
+
+	// XXX the way I'm using the ScaleValue is wrong, but fuck it...
+
+	if(ctrl->GetLinearKeys(keys, IGAME_SCALE)) {
+		maxlog("node %s: getting %d linear scaling keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			ScaleValue s = keys[i].linearKey.sval;
+			goat3d_set_node_scaling(node, s.s.x, s.s.y, s.s.z, KEY_TIME(keys[i]));
+		}
+	} else if(ctrl->GetBezierKeys(keys, IGAME_SCALE)) {
+		maxlog("node %s: getting %d bezier scaling keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			ScaleValue s = keys[i].bezierKey.sval;
+			goat3d_set_node_scaling(node, s.s.x, s.s.y, s.s.z, KEY_TIME(keys[i]));
+		}
+	} else if(ctrl->GetTCBKeys(keys, IGAME_SCALE)) {
+		maxlog("node %s: getting %d tcb scaling keys\n", nodename, keys.Count());
+		for(int i=0; i<keys.Count(); i++) {
+			ScaleValue s = keys[i].tcbKey.sval;
+			goat3d_set_node_scaling(node, s.s.x, s.s.y, s.s.z, KEY_TIME(keys[i]));
+		}
 	}
 }
 

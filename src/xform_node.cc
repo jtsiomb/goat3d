@@ -209,7 +209,10 @@ static const int track_type_nelem[] = {3, 4, 3};
 int XFormNode::get_key_count(int trackid) const
 {
 	struct anm_animation *anim = anm_get_active_animation(anm, 0);
-	return anim->tracks[track_type_base[trackid]].count;
+	if(anim) {
+		return anim->tracks[track_type_base[trackid]].count;
+	}
+	return 0;
 }
 
 int XFormNode::get_position_key_count() const
