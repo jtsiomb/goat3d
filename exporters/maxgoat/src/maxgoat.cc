@@ -238,16 +238,6 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 		goat3d_set_node_name(node, name);
 	}
 
-	// no animation yet, just get the static PRS
-	GMatrix maxmatrix = maxnode->GetObjectTM();
-	Point3 trans = maxmatrix.Translation();
-	Quat rot = maxmatrix.Rotation();
-	Point3 scale = maxmatrix.Scaling();
-
-	goat3d_set_node_position(node, trans.x, trans.y, trans.z, 0);
-	goat3d_set_node_rotation(node, rot.x, rot.y, rot.z, rot.w, 0);
-	goat3d_set_node_scaling(node, scale.x, scale.y, scale.z, 0);
-
 	IGameObject *maxobj = maxnode->GetIGameObject();
 	IGameObject::ObjectTypes type = maxobj->GetIGameType();
 
@@ -300,18 +290,31 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	// grab the animation data
 	IGameControl *ctrl = maxnode->GetIGameControl();
 
-	// TODO sample keys if requested
+	if(!dynamic_cast<GoatAnimExporter*>(this)) {
+		// no animation, just get the static PRS
+		GMatrix maxmatrix = maxnode->GetObjectTM();
+		Point3 trans = maxmatrix.Translation();
+		Quat rot = maxmatrix.Rotation();
+		Point3 scale = maxmatrix.Scaling();
 
-	if(ctrl->IsAnimated(IGAME_POS) || ctrl->IsAnimated(IGAME_POS_X) ||
-			ctrl->IsAnimated(IGAME_POS_Y) || ctrl->IsAnimated(IGAME_POS_Z)) {
-		get_position_keys(ctrl, node);
-	}
-	if(ctrl->IsAnimated(IGAME_ROT) || ctrl->IsAnimated(IGAME_EULER_X) ||
-			ctrl->IsAnimated(IGAME_EULER_Y) || ctrl->IsAnimated(IGAME_EULER_Z)) {
-		get_rotation_keys(ctrl, node);
-	}
-	if(ctrl->IsAnimated(IGAME_SCALE)) {
-		get_scaling_keys(ctrl, node);
+		goat3d_set_node_position(node, trans.x, trans.y, trans.z, 0);
+		goat3d_set_node_rotation(node, rot.x, rot.y, rot.z, rot.w, 0);
+		goat3d_set_node_scaling(node, scale.x, scale.y, scale.z, 0);
+
+	} else {
+		// exporting animations (if available)
+		// TODO sample keys if requested
+		if(ctrl->IsAnimated(IGAME_POS) || ctrl->IsAnimated(IGAME_POS_X) ||
+				ctrl->IsAnimated(IGAME_POS_Y) || ctrl->IsAnimated(IGAME_POS_Z)) {
+			get_position_keys(ctrl, node);
+		}
+		if(ctrl->IsAnimated(IGAME_ROT) || ctrl->IsAnimated(IGAME_EULER_X) ||
+				ctrl->IsAnimated(IGAME_EULER_Y) || ctrl->IsAnimated(IGAME_EULER_Z)) {
+			get_rotation_keys(ctrl, node);
+		}
+		if(ctrl->IsAnimated(IGAME_SCALE)) {
+			get_scaling_keys(ctrl, node);
+		}
 	}
 
 	for(int i=0; i<maxnode->GetChildCount(); i++) {
@@ -493,6 +496,54 @@ static void get_scaling_keys(IGameControl *ctrl, goat3d_node *node)
 	}
 }
 
+#if 0
+static bool get_anim_bounds(IGameNode *node, long *tstart, long *tend);
+
+static bool get_anim_bounds(IGameScene *igame, long *tstart, long *tend)
+{
+	int tmin = LONG_MAX;
+	int tmax = LONG_MIN;
+
+	int num_nodes = igame->GetTopLevelNodeCount();
+	for(int i=0; i<num_nodes; i++) {
+		long t0, t1;
+		if(get_anim_bounds(igame->GetTopLevelNode(i), &t0, &t1)) {
+			if(t0 < tmin) tmin = t0;
+			if(t1 > tmax) tmax = t1;
+		}
+	}
+
+	if(tmin != LONG_MAX) {
+		*tstart = tmin;
+		*tend = tmax;
+		return true;
+	}
+	return false;
+}
+
+static bool get_anim_bounds(IGameNode *node, long *tstart, long *tend)
+{
+	int tmin = LONG_MAX;
+	int tmax = LONG_MIN;
+
+	int num_children = node->GetChildCount();
+	for(int i=0; i<num_children; i++) {
+		long t0, t1;
+		if(get_anim_bounds(node->GetNodeChild(i), &t0, &t1)) {
+			if(t0 < tmin) tmin = t0;
+			if(t1 > tmax) tmax = t1;
+		}
+	}
+
+	if(tmin != LONG_MAX) {
+		*tstart = tmin;
+		*tend = tmax;
+		return true;
+	}
+	return false;
+}
+#endif
+
 void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *maxobj)
 {
 	IGameMesh *maxmesh = (IGameMesh*)maxobj;
@@ -600,7 +651,19 @@ static INT_PTR CALLBACK scene_gui_handler(HWND win, unsigned int msg, WPARAM wpa
 
 int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent, DWORD opt)
 {
+	if(!(igame = GetIGameInterface())) {
+		maxlog("failed to get the igame interface\n");
+		return IMPEXP_FAIL;
+	}
+	IGameConversionManager *cm = GetConversionManager();
+	cm->SetCoordSystem(IGameConversionManager::IGAME_OGL);
+	igame->InitialiseIGame();
+
+	//long tstart = 0, tend = 0;
+	//get_anim_bounds(igame, &tstart, &tend);
+
 	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_ANM), 0, anim_gui_handler)) {
+		igame->ReleaseIGame();
 		return IMPEXP_CANCEL;
 	}
 
@@ -611,13 +674,6 @@ int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interfac
 	}
 
 	maxlog("Exporting Goat3D Animation (text) file: %s\n", fname);
-	if(!(igame = GetIGameInterface())) {
-		maxlog("failed to get the igame interface\n");
-		return IMPEXP_FAIL;
-	}
-	IGameConversionManager *cm = GetConversionManager();
-	cm->SetCoordSystem(IGameConversionManager::IGAME_OGL);
-	igame->InitialiseIGame();
 	igame->SetStaticFrame(0);
 
 	goat3d *goat = goat3d_create();
@@ -630,10 +686,12 @@ int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interfac
 
 	if(goat3d_save_anim(goat, fname) == -1) {
 		goat3d_free(goat);
+		igame->ReleaseIGame();
 		return IMPEXP_FAIL;
 	}
 
 	goat3d_free(goat);
+	igame->ReleaseIGame();
 	return IMPEXP_SUCCESS;
 }
 
@@ -642,6 +700,7 @@ static INT_PTR CALLBACK anim_gui_handler(HWND win, unsigned int msg, WPARAM wpar
 	switch(msg) {
 	case WM_INITDIALOG:
 		CheckDlgButton(win, IDC_GOAT_ANM_FULL, 1);
+		CheckDlgButton(win, IDC_RAD_KEYS_ORIG, 1);
 		break;
 
 	case WM_COMMAND:
