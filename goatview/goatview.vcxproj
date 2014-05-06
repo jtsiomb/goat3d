@@ -102,7 +102,8 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>qtmaind.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5OpenGLd.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>goat3d-x64.lib;qtmaind.lib;Qt5Cored.lib;Qt5Widgetsd.lib;Qt5OpenGLd.lib;opengl32.lib;libvmath-x64-dbg.lib;libanim-x64-dbg.lib;pthreadVC2_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CustomBuildStep>
       <Command>
@@ -153,7 +154,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>qtmain.lib;Qt5Widgets.lib;Qt5OpenGL.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>goat3d-x64.lib;qtmain.lib;Qt5Widgets.lib;Qt5OpenGL.lib;opengl32.lib;libvmath-x64.lib;libanim-x64.lib;pthreadVC2_x64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

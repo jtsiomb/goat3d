@@ -3,6 +3,9 @@
 
 #include <QtWidgets/QtWidgets>
 #include <QtOpenGL/QGLWidget>
+#include "goat3d.h"
+
+extern goat3d *scene;
 
 class GoatView : public QMainWindow {
 	Q_OBJECT

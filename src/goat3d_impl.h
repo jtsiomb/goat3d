@@ -28,6 +28,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "node.h"
 
 namespace g3dimpl {
+class Scene;
+}
+
+struct goat3d {
+	g3dimpl::Scene *scn;
+	unsigned int flags;
+	char *search_path;
+};
+
+
+namespace g3dimpl {
 
 extern int goat_log_level;
 
@@ -55,6 +66,8 @@ private:
 	std::vector<Node*> nodes;
 
 public:
+	goat3d *goat;
+
 	Scene();
 	~Scene();
 

@@ -211,7 +211,12 @@ static Mesh *read_mesh(Scene *scn, XMLElement *xml_mesh)
 	if((elem = xml_mesh->FirstChildElement("file"))) {
 		const char *fname = elem->Attribute("string");
 		if(fname) {
-			if(!mesh->load(fname)) {
+			char *path = (char*)fname;
+			if(scn->goat->search_path) {
+				path = (char*)alloca(strlen(fname) + strlen(scn->goat->search_path) + 2);
+				sprintf(path, "%s/%s", scn->goat->search_path, fname);
+			}
+			if(!mesh->load(path)) {
 				delete mesh;
 				return 0;
 			}

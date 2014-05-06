@@ -31,12 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace g3dimpl;
 
-struct goat3d {
-	Scene *scn;
-	unsigned int flags;
-	char *search_path;
-};
-
 struct goat3d_material : public Material {};
 struct goat3d_mesh : public Mesh {};
 struct goat3d_light : public Light {};
@@ -56,6 +50,7 @@ GOAT3DAPI struct goat3d *goat3d_create(void)
 	goat->flags = 0;
 	goat->search_path = 0;
 	goat->scn = new Scene;
+	goat->scn->goat = goat;
 
 	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
 	return goat;

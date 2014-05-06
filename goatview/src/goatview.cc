@@ -1,4 +1,7 @@
 #include "goatview.h"
+#include "goat3d.h"
+
+goat3d *scene;
 
 GoatView::GoatView()
 {
@@ -77,7 +80,21 @@ bool GoatView::make_center()
 
 void GoatView::open_scene()
 {
-	statusBar()->showMessage("opening scene...");
+	std::string fname = QFileDialog::getOpenFileName(this, "Open scene file", "",
+		"Goat3D Scene (*.goatsce);;All Files (*)").toStdString();
+	if(fname.empty()) {
+		statusBar()->showMessage("Abort: No file selected!");
+		return;
+	}
+
+	if(scene) {
+		goat3d_free(scene);
+	}
+
+	statusBar()->showMessage("opening scene file");
+	if(!(scene = goat3d_create()) || goat3d_load(scene, fname.c_str()) == -1) {
+		statusBar()->showMessage("failed to load scene file");
+	}
 }
 
 void GoatView::open_anim()

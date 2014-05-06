@@ -25,6 +25,7 @@ using namespace g3dimpl;
 Scene::Scene()
 	: name("unnamed"), ambient(0.05, 0.05, 0.05)
 {
+	goat = 0;
 }
 
 Scene::~Scene()
