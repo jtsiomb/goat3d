@@ -56,7 +56,6 @@ GOAT3DAPI struct goat3d *goat3d_create(void)
 	goat->flags = 0;
 	goat->search_path = 0;
 	goat->scn = new Scene;
-	goat->scn->goat = goat;
 
 	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
 	return goat;

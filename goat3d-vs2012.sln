@@ -10,6 +10,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maxgoat", "exporters\maxgoa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "maxgoat_stub", "exporters\maxgoat_stub\maxgoat_stub.vcxproj", "{941007A1-6375-4507-8745-FC3EA9DF010B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "goatview", "goatview\goatview.vcxproj", "{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -55,6 +57,17 @@ Global
 		{941007A1-6375-4507-8745-FC3EA9DF010B}.Release|Win32.ActiveCfg = Release|Win32
 		{941007A1-6375-4507-8745-FC3EA9DF010B}.Release|Win32.Build.0 = Release|Win32
 		{941007A1-6375-4507-8745-FC3EA9DF010B}.Release|x64.ActiveCfg = Release|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|Win32.Build.0 = Debug|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|x64.ActiveCfg = Debug|x64
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Debug|x64.Build.0 = Debug|x64
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Release|Win32.ActiveCfg = Release|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Release|Win32.Build.0 = Release|Win32
+		{26EB2DC7-B2FF-4587-95CD-5DF70287FA0A}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

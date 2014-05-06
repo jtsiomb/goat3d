@@ -107,6 +107,10 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	for(int i=0; fname[i]; i++) {
 		fname[i] = tolower(fname[i]);
 	}
+	char *basename = (char*)alloca(strlen(fname) + 1);
+	strcpy(basename, fname);
+	char *suffix = strrchr(basename, '.');
+	if(suffix) *suffix = 0;
 
 	maxlog("Exporting Goat3D Scene (text) file: %s\n", fname);
 	if(!(igame = GetIGameInterface())) {
@@ -118,6 +122,7 @@ int GoatExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *i
 	igame->InitialiseIGame();
 
 	goat3d *goat = goat3d_create();
+	goat3d_set_name(goat, basename);
 
 	process_materials(goat);
 
@@ -288,8 +293,6 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	}
 
 	// grab the animation data
-	IGameControl *ctrl = maxnode->GetIGameControl();
-
 	if(!dynamic_cast<GoatAnimExporter*>(this)) {
 		// no animation, just get the static PRS
 		GMatrix maxmatrix = maxnode->GetObjectTM();
@@ -304,16 +307,21 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	} else {
 		// exporting animations (if available)
 		// TODO sample keys if requested
-		if(ctrl->IsAnimated(IGAME_POS) || ctrl->IsAnimated(IGAME_POS_X) ||
-				ctrl->IsAnimated(IGAME_POS_Y) || ctrl->IsAnimated(IGAME_POS_Z)) {
-			get_position_keys(ctrl, node);
-		}
-		if(ctrl->IsAnimated(IGAME_ROT) || ctrl->IsAnimated(IGAME_EULER_X) ||
-				ctrl->IsAnimated(IGAME_EULER_Y) || ctrl->IsAnimated(IGAME_EULER_Z)) {
-			get_rotation_keys(ctrl, node);
-		}
-		if(ctrl->IsAnimated(IGAME_SCALE)) {
-			get_scaling_keys(ctrl, node);
+		IGameControl *ctrl = maxnode->GetIGameControl();
+		if(ctrl) {
+			if(ctrl->IsAnimated(IGAME_POS) || ctrl->IsAnimated(IGAME_POS_X) ||
+					ctrl->IsAnimated(IGAME_POS_Y) || ctrl->IsAnimated(IGAME_POS_Z)) {
+				get_position_keys(ctrl, node);
+			}
+			if(ctrl->IsAnimated(IGAME_ROT) || ctrl->IsAnimated(IGAME_EULER_X) ||
+					ctrl->IsAnimated(IGAME_EULER_Y) || ctrl->IsAnimated(IGAME_EULER_Z)) {
+				get_rotation_keys(ctrl, node);
+			}
+			if(ctrl->IsAnimated(IGAME_SCALE)) {
+				get_scaling_keys(ctrl, node);
+			}
+		} else {
+			maxlog("%s: failed to get IGameControl for node: %s\n", __FUNCTION__, name);
 		}
 	}
 
@@ -496,13 +504,13 @@ static void get_scaling_keys(IGameControl *ctrl, goat3d_node *node)
 	}
 }
 
-#if 0
 static bool get_anim_bounds(IGameNode *node, long *tstart, long *tend);
+static bool get_node_anim_bounds(IGameNode *node, long *tstart, long *tend);
 
 static bool get_anim_bounds(IGameScene *igame, long *tstart, long *tend)
 {
-	int tmin = LONG_MAX;
-	int tmax = LONG_MIN;
+	long tmin = LONG_MAX;
+	long tmax = LONG_MIN;
 
 	int num_nodes = igame->GetTopLevelNodeCount();
 	for(int i=0; i<num_nodes; i++) {
@@ -523,8 +531,10 @@ static bool get_anim_bounds(IGameScene *igame, long *tstart, long *tend)
 
 static bool get_anim_bounds(IGameNode *node, long *tstart, long *tend)
 {
-	int tmin = LONG_MAX;
-	int tmax = LONG_MIN;
+	long tmin = LONG_MAX;
+	long tmax = LONG_MIN;
+
+	get_node_anim_bounds(node, &tmin, &tmax);
 
 	int num_children = node->GetChildCount();
 	for(int i=0; i<num_children; i++) {
@@ -542,7 +552,56 @@ static bool get_anim_bounds(IGameNode *node, long *tstart, long *tend)
 	}
 	return false;
 }
-#endif
+
+static bool get_node_anim_bounds(IGameNode *node, long *tstart, long *tend)
+{
+	static const IGameControlType ctypes[] = {
+		IGAME_POS, IGAME_POS_X, IGAME_POS_Y, IGAME_POS_Z,
+		IGAME_ROT, IGAME_EULER_X, IGAME_EULER_Y, IGAME_EULER_Z,
+		IGAME_SCALE
+	};
+
+	// NOTE: apparently if I don't call GetIGameObject, then GetIGameControl always returns null...
+	node->GetIGameObject();
+	IGameControl *ctrl = node->GetIGameControl();
+	if(!ctrl) {
+		maxlog("%s: failed to get IGameControl for node: %s\n", __FUNCTION__, max_string(node->GetName()));
+		return false;
+	}
+
+	IGameKeyTab keys;
+	long t0, t1;
+	long tmin = LONG_MAX;
+	long tmax = LONG_MIN;
+
+	for(int i=0; i<sizeof ctypes / sizeof *ctypes; i++) {
+		if(ctrl->GetBezierKeys(keys, ctypes[i]) && keys.Count()) {
+			t0 = KEY_TIME(keys[0]);
+			t1 = KEY_TIME(keys[keys.Count() - 1]);
+			if(t0 < tmin) tmin = t0;
+			if(t1 > tmax) tmax = t1;
+		}
+		if(ctrl->GetLinearKeys(keys, ctypes[i]) && keys.Count()) {
+			t0 = KEY_TIME(keys[0]);
+			t1 = KEY_TIME(keys[keys.Count() - 1]);
+			if(t0 < tmin) tmin = t0;
+			if(t1 > tmax) tmax = t1;
+		}
+		if(ctrl->GetTCBKeys(keys, ctypes[i]) && keys.Count()) {
+			t0 = KEY_TIME(keys[0]);
+			t1 = KEY_TIME(keys[keys.Count() - 1]);
+			if(t0 < tmin) tmin = t0;
+			if(t1 > tmax) tmax = t1;
+		}
+	}
+
+	if(tmin != LONG_MAX) {
+		*tstart = tmin;
+		*tend = tmax;
+		return true;
+	}
+	return false;
+}
 
 void GoatExporter::process_mesh(goat3d *goat, goat3d_mesh *mesh, IGameObject *maxobj)
 {
@@ -648,6 +707,7 @@ static INT_PTR CALLBACK scene_gui_handler(HWND win, unsigned int msg, WPARAM wpa
 
 
 // ---- GoatAnimExporter implementation ----
+static long tstart, tend;
 
 int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interface *iface, BOOL silent, DWORD opt)
 {
@@ -658,9 +718,10 @@ int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interfac
 	IGameConversionManager *cm = GetConversionManager();
 	cm->SetCoordSystem(IGameConversionManager::IGAME_OGL);
 	igame->InitialiseIGame();
+	igame->SetStaticFrame(0);
 
-	//long tstart = 0, tend = 0;
-	//get_anim_bounds(igame, &tstart, &tend);
+	tstart = tend = 0;
+	get_anim_bounds(igame, &tstart, &tend);
 
 	if(!DialogBox(hinst, MAKEINTRESOURCE(IDD_GOAT_ANM), 0, anim_gui_handler)) {
 		igame->ReleaseIGame();
@@ -674,7 +735,6 @@ int GoatAnimExporter::DoExport(const MCHAR *name, ExpInterface *eiface, Interfac
 	}
 
 	maxlog("Exporting Goat3D Animation (text) file: %s\n", fname);
-	igame->SetStaticFrame(0);
 
 	goat3d *goat = goat3d_create();
 
@@ -699,8 +759,15 @@ static INT_PTR CALLBACK anim_gui_handler(HWND win, unsigned int msg, WPARAM wpar
 {
 	switch(msg) {
 	case WM_INITDIALOG:
-		CheckDlgButton(win, IDC_GOAT_ANM_FULL, 1);
-		CheckDlgButton(win, IDC_RAD_KEYS_ORIG, 1);
+		{
+			wchar_t buf[128];
+			CheckDlgButton(win, IDC_GOAT_ANM_FULL, BST_CHECKED);
+			CheckDlgButton(win, IDC_RAD_KEYS_ORIG, BST_CHECKED);
+			wsprintf(buf, L"%ld", tstart);
+			SetDlgItemText(win, IDC_EDIT_TSTART, buf);
+			wsprintf(buf, L"%ld", tend);
+			SetDlgItemText(win, IDC_EDIT_TEND, buf);
+		}
 		break;
 
 	case WM_COMMAND:
