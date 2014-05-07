@@ -26,6 +26,7 @@ Scene::Scene()
 	: name("unnamed"), ambient(0.05, 0.05, 0.05)
 {
 	goat = 0;
+	bbox_valid = false;
 }
 
 Scene::~Scene()
@@ -61,6 +62,7 @@ void Scene::clear()
 	nodes.clear();
 
 	name = "unnamed";
+	bbox_valid = false;
 }
 
 void Scene::set_name(const char *name)
@@ -220,6 +222,24 @@ Node *Scene::get_node(const char *name) const
 int Scene::get_node_count() const
 {
 	return (int)nodes.size();
+}
+
+const AABox &Scene::get_bounds() const
+{
+	if(!bbox_valid) {
+		bbox = AABox();
+
+		for(size_t i=0; i<nodes.size(); i++) {
+			if(nodes[i]->get_parent()) {
+				continue;
+			}
+
+			bbox = aabox_union(bbox, nodes[i]->get_bounds());
+		}
+		bbox_valid = true;
+	}
+
+	return bbox;
 }
 
 // Scene::load is defined in goat3d_read.cc

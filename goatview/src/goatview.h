@@ -1,15 +1,18 @@
 #ifndef GOATVIEW_H_
 #define GOATVIEW_H_
 
+#include <QtCore/QtCore>
 #include <QtWidgets/QtWidgets>
 #include <QtOpenGL/QGLWidget>
 #include "goat3d.h"
 
 extern goat3d *scene;
+extern QSettings *settings;
 
 class GoatView : public QMainWindow {
 	Q_OBJECT
 private:
+	void closeEvent(QCloseEvent *ev);
 	bool make_menu();
 	bool make_dock();
 	bool make_center();

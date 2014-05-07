@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "camera.h"
 #include "material.h"
 #include "node.h"
+#include "aabox.h"
 
 namespace g3dimpl {
 class Scene;
@@ -65,6 +66,9 @@ private:
 	std::vector<Camera*> cameras;
 	std::vector<Node*> nodes;
 
+	mutable AABox bbox;
+	mutable bool bbox_valid;
+
 public:
 	goat3d *goat;
 
@@ -103,6 +107,8 @@ public:
 	Node *get_node(int idx) const;
 	Node *get_node(const char *name) const;
 	int get_node_count() const;
+
+	const AABox &get_bounds() const;
 
 	bool load(goat3d_io *io);
 	bool save(goat3d_io *io) const;

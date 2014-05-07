@@ -60,6 +60,8 @@ public:
 	void set_material(Material *mat);
 	Material *get_material();
 	const Material *get_material() const;
+
+	AABox get_bounds() const;
 };
 
 }	// namespace g3dimpl

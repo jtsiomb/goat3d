@@ -20,6 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 #include <vmath/vmath.h>
+#include "aabox.h"
+
+namespace g3dimpl {
 
 class Object {
 public:
@@ -27,8 +30,14 @@ public:
 
 	Vector3 pos;
 	Quaternion rot;
+	Vector3 scale;
 
-	virtual ~Object() {};
+	Object() : scale(1, 1, 1) {}
+	virtual ~Object() {}
+
+	virtual AABox get_bounds(const Matrix4x4 &xform) const { return AABox(); }
 };
+
+}
 
 #endif	// OBJECT_H_

@@ -24,21 +24,38 @@ using namespace g3dimpl;
 Node::Node()
 {
 	obj = 0;
+	bbox_valid = false;
 }
 
 void Node::set_object(Object *obj)
 {
 	this->obj = obj;
+	bbox_valid = false;
 }
 
 Object *Node::get_object()
 {
+	bbox_valid = false;
 	return obj;
 }
 
 const Object *Node::get_object() const
 {
 	return obj;
+}
+
+const AABox &Node::get_bounds() const
+{
+	if(!bbox_valid) {
+		bbox = obj ? obj->get_bounds() : AABox();
+
+		for(int i=0; i<get_children_count(); i++) {
+			bbox = aabox_union(bbox, ((Node*)get_child(i))->get_bounds());
+		}
+		bbox_valid = true;
+	}
+
+	return bbox;
 }
 
 void g3dimpl::delete_node_tree(Node *n)

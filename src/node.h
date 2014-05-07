@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "xform_node.h"
 #include "object.h"
+#include "aabox.h"
 
 namespace g3dimpl {
 
@@ -27,12 +28,17 @@ class Node : public XFormNode {
 private:
 	Object *obj;
 
+	mutable AABox bbox;
+	mutable bool bbox_valid;
+
 public:
 	Node();
 
 	void set_object(Object *obj);
 	Object *get_object();
 	const Object *get_object() const;
+
+	const AABox &get_bounds() const;
 };
 
 void delete_node_tree(Node *n);

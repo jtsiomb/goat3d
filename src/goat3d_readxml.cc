@@ -16,6 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdio.h>
+#include <map>
+#include <string>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "tinyxml2.h"
@@ -27,7 +29,8 @@ using namespace tinyxml2;
 static Material *read_material(Scene *scn, XMLElement *xml_mtl);
 static const char *read_material_attrib(MaterialAttrib *attr, XMLElement *xml_attr);
 static Mesh *read_mesh(Scene *scn, XMLElement *xml_mesh);
-static std::string get_name(XMLElement *node, int idx);
+static Node *read_node(Scene *scn, XMLElement *xml_node, std::map<Node*, std::string> &linkmap);
+static std::string get_name(XMLElement *node, int idx, const char *def_prefix);
 
 bool Scene::loadxml(goat3d_io *io)
 {
@@ -77,6 +80,29 @@ bool Scene::loadxml(goat3d_io *io)
 			add_mesh(mesh);
 		}
 		elem = elem->NextSiblingElement("mesh");
+	}
+
+	// get all nodes
+	std::map<Node*, std::string> linkmap;
+
+	elem = root->FirstChildElement("node");
+	while(elem) {
+		Node *node = read_node(this, elem, linkmap);
+		if(node) {
+			add_node(node);
+		}
+		elem = elem->NextSiblingElement("node");
+	}
+
+	// link up all the nodes in the hierarchy
+	for(size_t i=0; i<nodes.size(); i++) {
+		std::string parent_name = linkmap[nodes[i]];
+		if(!parent_name.empty()) {
+			Node *parent = get_node(parent_name.c_str());
+			if(parent) {
+				parent->add_child(nodes[i]);
+			}
+		}
 	}
 
 	delete [] buf;
@@ -130,7 +156,7 @@ bool Scene::load_anim_xml(goat3d_io *io)
 static Material *read_material(Scene *scn, XMLElement *xml_mtl)
 {
 	Material *mtl = new Material;
-	mtl->name = get_name(xml_mtl, scn->get_material_count());
+	mtl->name = get_name(xml_mtl, scn->get_material_count(), "material");
 
 	// get all the material attributes in turn
 	XMLElement *elem = xml_mtl->FirstChildElement("attr");
@@ -188,7 +214,7 @@ static const char *read_material_attrib(MaterialAttrib *attr, XMLElement *xml_at
 static Mesh *read_mesh(Scene *scn, XMLElement *xml_mesh)
 {
 	Mesh *mesh = new Mesh;
-	mesh->name = get_name(xml_mesh, scn->get_mesh_count());
+	mesh->name = get_name(xml_mesh, scn->get_mesh_count(), "mesh");
 
 	XMLElement *elem;
 	if((elem = xml_mesh->FirstChildElement("material"))) {
@@ -226,7 +252,74 @@ static Mesh *read_mesh(Scene *scn, XMLElement *xml_mesh)
 	return mesh;
 }
 
-static std::string get_name(XMLElement *node, int idx)
+static Node *read_node(Scene *scn, XMLElement *xml_node, std::map<Node*, std::string> &linkmap)
+{
+	Node *node = new Node;
+	node->set_name(get_name(xml_node, scn->get_node_count(), "node").c_str());
+
+	XMLElement *elem;
+	if((elem = xml_node->FirstChildElement("parent"))) {
+		const char *pname = elem->Attribute("string");
+		if(pname) {
+			linkmap[node] = pname;
+		}
+	}
+
+	if((elem = xml_node->FirstChildElement("mesh"))) {
+		Mesh *mesh = scn->get_mesh(elem->Attribute("string"));
+		if(mesh) {
+			node->set_object(mesh);
+		}
+	} else if((elem = xml_node->FirstChildElement("light"))) {
+		Light *lt = scn->get_light(elem->Attribute("string"));
+		if(lt) {
+			node->set_object(lt);
+		}
+	} else if((elem = xml_node->FirstChildElement("camera"))) {
+		Camera *cam = scn->get_camera(elem->Attribute("string"));
+		if(cam) {
+			node->set_object(cam);
+		}
+	}
+
+	float vec[4];
+	if((elem = xml_node->FirstChildElement("pos"))) {
+		const char *val = elem->Attribute("float3");
+		if(val && sscanf(val, "%f %f %f", vec, vec + 1, vec + 2) == 3) {
+			node->set_position(Vector3(val[0], val[1], val[2]));
+		} else {
+			logmsg(LOG_ERROR, "node %s: invalid position tag\n", node->get_name());
+		}
+	}
+	if((elem = xml_node->FirstChildElement("rot"))) {
+		const char *val = elem->Attribute("float4");
+		if(val && sscanf(val, "%f %f %f %f", vec, vec + 1, vec + 2, vec + 3) == 4) {
+			node->set_rotation(Quaternion(vec[3], Vector3(vec[0], vec[1], vec[2])));
+		} else {
+			logmsg(LOG_ERROR, "node %s: invalid rotation tag\n", node->get_name());
+		}
+	}
+	if((elem = xml_node->FirstChildElement("scale"))) {
+		const char *val = elem->Attribute("float3");
+		if(val && sscanf(val, "%f %f %f", vec, vec + 1, vec + 2) == 3) {
+			node->set_scaling(Vector3(vec[0], vec[1], vec[2]));
+		} else {
+			logmsg(LOG_ERROR, "node %s: invalid scaling tag\n", node->get_name());
+		}
+	}
+	if((elem = xml_node->FirstChildElement("pivot"))) {
+		const char *val = elem->Attribute("float3");
+		if(val && sscanf(val, "%f %f %f", vec, vec + 1, vec + 2) == 3) {
+			node->set_pivot(Vector3(vec[0], vec[1], vec[2]));
+		} else {
+			logmsg(LOG_ERROR, "node %s: invalid pivot tag\n", node->get_name());
+		}
+	}
+
+	return node;
+}
+
+static std::string get_name(XMLElement *node, int idx, const char *def_prefix)
 {
 	char buf[64];
 	const char *name = 0;
@@ -237,7 +330,7 @@ static std::string get_name(XMLElement *node, int idx)
 	}
 
 	if(!name) {
-		sprintf(buf, "mesh%04d", idx);
+		sprintf(buf, "%s%04d", def_prefix, idx);
 		name = buf;
 	}
 
