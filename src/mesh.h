@@ -61,7 +61,7 @@ public:
 	Material *get_material();
 	const Material *get_material() const;
 
-	AABox get_bounds() const;
+	AABox get_bounds(const Matrix4x4 &xform) const;
 };
 
 }	// namespace g3dimpl

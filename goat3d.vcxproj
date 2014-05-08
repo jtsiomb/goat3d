@@ -31,6 +31,7 @@
     <ClInclude Include="libs\openctm\openctm.h" />
     <ClInclude Include="libs\openctm\openctmpp.h" />
     <ClInclude Include="libs\tinyxml2\tinyxml2.h" />
+    <ClInclude Include="src\aabox.h" />
     <ClInclude Include="src\camera.h" />
     <ClInclude Include="src\chunk.h" />
     <ClInclude Include="src\goat3d.h" />
@@ -55,6 +56,7 @@
     <ClCompile Include="libs\openctm\openctm.c" />
     <ClCompile Include="libs\openctm\stream.c" />
     <ClCompile Include="libs\tinyxml2\tinyxml2.cpp" />
+    <ClCompile Include="src\aabox.cc" />
     <ClCompile Include="src\camera.cc" />
     <ClCompile Include="src\chunk.cc" />
     <ClCompile Include="src\goat3d.cc" />

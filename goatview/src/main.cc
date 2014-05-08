@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 		}
 		std::string fname = args.at(0).toStdString();
 		printf("loading scene file: %s ...\n", fname.c_str());
-		if(!(scene = goat3d_create()) || goat3d_load(scene, fname.c_str())) {
+		if(!load_scene(fname.c_str())) {
 			fprintf(stderr, "failed to load scene: %s\n", fname.c_str());
 			return 1;
 		}

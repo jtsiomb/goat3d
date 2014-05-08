@@ -228,3 +228,22 @@ const Material *Mesh::get_material() const
 {
 	return material;
 }
+
+AABox Mesh::get_bounds(const Matrix4x4 &xform) const
+{
+	AABox bbox;
+
+	for(size_t i=0; i<vertices.size(); i++) {
+		Vector3 v = vertices[i].transformed(xform);
+
+		for(int j=0; j<3; j++) {
+			if(v[j] < bbox.bmin[j]) {
+				bbox.bmin[j] = v[j];
+			}
+			if(v[j] > bbox.bmax[j]) {
+				bbox.bmax[j] = v[j];
+			}
+		}
+	}
+	return bbox;
+}

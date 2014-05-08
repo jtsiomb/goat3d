@@ -9,6 +9,8 @@
 extern goat3d *scene;
 extern QSettings *settings;
 
+bool load_scene(const char *fname);
+
 class GoatView : public QMainWindow {
 	Q_OBJECT
 private:

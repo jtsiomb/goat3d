@@ -3,7 +3,7 @@
   <ItemGroup>
     <Filter Include="src">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx;h</Extensions>
     </Filter>
     <Filter Include="libs">
       <UniqueIdentifier>{bbf568eb-077e-4cb6-8607-e6a016ab7360}</UniqueIdentifier>
@@ -88,6 +88,9 @@
     <ClInclude Include="libs\openctm\liblzma\Types.h">
       <Filter>libs\openctm\liblzma</Filter>
     </ClInclude>
+    <ClInclude Include="src\aabox.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\goat3d.cc">
@@ -163,6 +166,9 @@
       <Filter>libs\openctm\liblzma</Filter>
     </ClCompile>
     <ClCompile Include="src\goat3d_read.cc">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="src\aabox.cc">
       <Filter>src</Filter>
     </ClCompile>
   </ItemGroup>

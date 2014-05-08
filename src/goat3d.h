@@ -123,6 +123,8 @@ GOAT3DAPI void goat3d_set_ambient(struct goat3d *g, const float *ambient);
 GOAT3DAPI void goat3d_set_ambient3f(struct goat3d *g, float ar, float ag, float ab);
 GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g);
 
+GOAT3DAPI void goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax);
+
 /* materials */
 GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
 GOAT3DAPI int goat3d_get_mtl_count(struct goat3d *g);

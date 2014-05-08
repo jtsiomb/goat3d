@@ -1,4 +1,6 @@
+#include <QtOpenGL/QtOpenGL>
 #include <GL/glu.h>
+#include <vmath/vmath.h>
 #include "goatview.h"
 #include "goat3d.h"
 
@@ -7,7 +9,25 @@ QSettings *settings;
 
 static long anim_time;
 static float cam_theta, cam_phi, cam_dist = 8;
+static float fov = 60.0;
 
+bool load_scene(const char *fname)
+{
+	if(scene) {
+		goat3d_free(scene);
+	}
+	if(!(scene = goat3d_create()) || goat3d_load(scene, fname) == -1) {
+		return false;
+	}
+
+	float bmin[3], bmax[3];
+	goat3d_get_bounds(scene, bmin, bmax);
+	float bsize = (Vector3(bmax[0], bmax[1], bmax[2]) - Vector3(bmin[0], bmin[1], bmin[2])).length();
+	cam_dist = bsize / tan(DEG_TO_RAD(fov) / 2.0) + bsize;
+
+	printf("bounds size: %f, cam_dist: %f\n", bsize, cam_dist);
+	return true;
+}
 
 GoatView::GoatView()
 {
@@ -101,12 +121,8 @@ void GoatView::open_scene()
 		return;
 	}
 
-	if(scene) {
-		goat3d_free(scene);
-	}
-
 	statusBar()->showMessage("opening scene file");
-	if(!(scene = goat3d_create()) || goat3d_load(scene, fname.c_str()) == -1) {
+	if(!load_scene(fname.c_str())) {
 		statusBar()->showMessage("failed to load scene file");
 	}
 }
@@ -208,5 +224,3 @@ static void draw_node(goat3d_node *node)
 		draw_node(goat3d_get_node_child(node, i));
 	}
 }
-
-

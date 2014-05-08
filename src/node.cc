@@ -47,7 +47,9 @@ const Object *Node::get_object() const
 const AABox &Node::get_bounds() const
 {
 	if(!bbox_valid) {
-		bbox = obj ? obj->get_bounds() : AABox();
+		Matrix4x4 xform;
+		get_xform(0, &xform);
+		bbox = obj ? obj->get_bounds(xform) : AABox();
 
 		for(int i=0; i<get_children_count(); i++) {
 			bbox = aabox_union(bbox, ((Node*)get_child(i))->get_bounds());

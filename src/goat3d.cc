@@ -253,6 +253,15 @@ GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g)
 	return &g->scn->get_ambient().x;
 }
 
+GOAT3DAPI void goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax)
+{
+	AABox bbox = g->scn->get_bounds();
+	for(int i=0; i<3; i++) {
+		bmin[i] = bbox.bmin[i];
+		bmax[i] = bbox.bmax[i];
+	}
+}
+
 // ---- materials ----
 GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
 {
