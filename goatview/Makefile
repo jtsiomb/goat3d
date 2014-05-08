@@ -10,7 +10,7 @@ bin = goatview
 goat_root = ..
 
 CXXFLAGS = -std=c++11 -pedantic -Wall -g $(pic) -I$(goat_root)/src $(qtinc)
-LDFLAGS = $(libgoat) $(libgl) $(qtlib)
+LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath
 MOC = moc
 
 qtinc = `pkg-config --cflags Qt5Gui Qt5Core Qt5OpenGL`

@@ -1,8 +1,11 @@
+#include <stdio.h>
 #include <QtOpenGL/QtOpenGL>
 #include <GL/glu.h>
 #include <vmath/vmath.h>
 #include "goatview.h"
 #include "goat3d.h"
+
+static void draw_node(goat3d_node *node);
 
 goat3d *scene;
 QSettings *settings;
@@ -151,6 +154,9 @@ QSize GoatViewport::sizeHint() const
 void GoatViewport::initializeGL()
 {
 	glClearColor(0.1, 0.1, 0.1, 1);
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 }
 
 void GoatViewport::resizeGL(int xsz, int ysz)
@@ -160,8 +166,6 @@ void GoatViewport::resizeGL(int xsz, int ysz)
 	glLoadIdentity();
 	gluPerspective(60.0, (float)xsz / (float)ysz, 0.5, 5000.0);
 }
-
-static void draw_node(goat3d_node *node);
 
 void GoatViewport::paintGL()
 {
@@ -177,7 +181,9 @@ void GoatViewport::paintGL()
 		int node_count = goat3d_get_node_count(scene);
 		for(int i=0; i<node_count; i++) {
 			goat3d_node *node = goat3d_get_node(scene, i);
-			draw_node(node);
+			if(!goat3d_get_node_parent(node)) {
+				draw_node(node);	// only draw root nodes, the rest will be drawn recursively
+			}
 		}
 	}
 }
@@ -186,7 +192,14 @@ static void draw_node(goat3d_node *node)
 {
 	float xform[16];
 	goat3d_get_node_matrix(node, xform, anim_time);
-	glMultMatrixf(xform);
+	for(int i=0; i<4; i++) {
+		float *row = xform + i * 4;
+		printf("[%3.3f %3.3f %3.3f %3.3f]\n", row[0], row[1], row[2], row[3]);
+	}
+	putchar('\n');
+
+	glPushMatrix();
+	glMultTransposeMatrixf(xform);
 
 	if(goat3d_get_node_type(node) == GOAT3D_NODE_MESH) {
 		goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);
@@ -223,4 +236,36 @@ static void draw_node(goat3d_node *node)
 	for(int i=0; i<num_child; i++) {
 		draw_node(goat3d_get_node_child(node, i));
 	}
+
+	glPopMatrix();
+}
+
+
+static float prev_x, prev_y;
+void GoatViewport::mousePressEvent(QMouseEvent *ev)
+{
+	prev_x = ev->x();
+	prev_y = ev->y();
+}
+
+void GoatViewport::mouseMoveEvent(QMouseEvent *ev)
+{
+	int dx = ev->x() - prev_x;
+	int dy = ev->y() - prev_y;
+
+	if(!dx && !dy) return;
+
+	if(ev->buttons() & Qt::LeftButton) {
+		cam_theta += dx  * 0.5;
+		cam_phi += dy * 0.5;
+
+		if(cam_phi < -90) cam_phi = -90;
+		if(cam_phi > 90) cam_phi = 90;
+	}
+	if(ev->buttons() & Qt::RightButton) {
+		cam_dist += dy * 0.1;
+
+		if(cam_dist < 0.0) cam_dist = 0.0;
+	}
+	updateGL();
 }

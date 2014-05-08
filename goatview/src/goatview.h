@@ -39,6 +39,9 @@ public:
 	void initializeGL();
 	void resizeGL(int xsz, int ysz);
 	void paintGL();
+
+	void mousePressEvent(QMouseEvent *ev);
+	void mouseMoveEvent(QMouseEvent *ev);
 };
 
 #endif	// GOATVIEW_H_
