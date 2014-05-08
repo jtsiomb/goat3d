@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <QtOpenGL/QtOpenGL>
-#include <GL/glu.h>
+#include "opengl.h"
 #include <vmath/vmath.h>
 #include "goatview.h"
 #include "goat3d.h"
@@ -153,7 +153,9 @@ QSize GoatViewport::sizeHint() const
 
 void GoatViewport::initializeGL()
 {
-	glClearColor(0.1, 0.1, 0.1, 1);
+	init_opengl();
+
+	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -193,13 +195,15 @@ static void draw_node(goat3d_node *node)
 	float xform[16];
 	goat3d_get_node_matrix(node, xform, anim_time);
 	for(int i=0; i<4; i++) {
-		float *row = xform + i * 4;
-		printf("[%3.3f %3.3f %3.3f %3.3f]\n", row[0], row[1], row[2], row[3]);
+		for(int j=0; j<i; j++) {
+			float tmp = xform[i * 4 + j];
+			xform[i * 4 + j] = xform[j * 4 + i];
+			xform[j * 4 + i] = tmp;
+		}
 	}
-	putchar('\n');
 
 	glPushMatrix();
-	glMultTransposeMatrixf(xform);
+	glLoadMatrixf(xform);
 
 	if(goat3d_get_node_type(node) == GOAT3D_NODE_MESH) {
 		goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);

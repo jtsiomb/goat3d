@@ -27,10 +27,18 @@
     <ClCompile Include="src\moc_goatview.cc">
       <Filter>moc</Filter>
     </ClCompile>
+    <ClCompile Include="src\opengl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="src\goatview.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\opengl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
