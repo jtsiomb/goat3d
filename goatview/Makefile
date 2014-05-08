@@ -1,15 +1,17 @@
 PREFIX = /usr/local
 
 src = $(wildcard src/*.cc)
+csrc = $(wildcard src/*.c)
 mochdr = src/goatview.h
 mocsrc = $(patsubst src/%.h,src/moc_%.cc,$(mochdr))
-obj = $(sort $(src:.cc=.o) $(mocsrc:.cc=.o))
+obj = $(sort $(csrc:.c=.o) $(src:.cc=.o) $(mocsrc:.cc=.o))
 dep = $(obj:.o=.d)
 bin = goatview
 
 goat_root = ..
 
-CXXFLAGS = -std=c++11 -pedantic -Wall -g $(pic) -I$(goat_root)/src $(qtinc)
+CFLAGS = -pedantic -Wall -g $(pic) -I$(goat_root)/src $(qtinc)
+CXXFLAGS = -std=c++11 $(CFLAGS)
 LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath
 MOC = moc
 
@@ -33,6 +35,9 @@ moc_%.cc: %.h
 	$(MOC) -o $@ $<
 
 -include $(dep)
+
+%.d: %.c
+	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 %.d: %.cc
 	@$(CPP) $(CXXFLAGS) $< -MM -MT $(@:.d=.o) >$@

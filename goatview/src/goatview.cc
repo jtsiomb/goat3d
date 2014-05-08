@@ -183,9 +183,9 @@ void GoatViewport::paintGL()
 		int node_count = goat3d_get_node_count(scene);
 		for(int i=0; i<node_count; i++) {
 			goat3d_node *node = goat3d_get_node(scene, i);
-			if(!goat3d_get_node_parent(node)) {
+			//if(!goat3d_get_node_parent(node)) {
 				draw_node(node);	// only draw root nodes, the rest will be drawn recursively
-			}
+			//}
 		}
 	}
 }
@@ -203,7 +203,7 @@ static void draw_node(goat3d_node *node)
 	}
 
 	glPushMatrix();
-	glLoadMatrixf(xform);
+	glMultMatrixf(xform);
 
 	if(goat3d_get_node_type(node) == GOAT3D_NODE_MESH) {
 		goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);
@@ -236,10 +236,10 @@ static void draw_node(goat3d_node *node)
 		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	}
 
-	int num_child = goat3d_get_node_child_count(node);
+	/*int num_child = goat3d_get_node_child_count(node);
 	for(int i=0; i<num_child; i++) {
 		draw_node(goat3d_get_node_child(node, i));
-	}
+	}*/
 
 	glPopMatrix();
 }
@@ -256,6 +256,8 @@ void GoatViewport::mouseMoveEvent(QMouseEvent *ev)
 {
 	int dx = ev->x() - prev_x;
 	int dy = ev->y() - prev_y;
+	prev_x = ev->x();
+	prev_y = ev->y();
 
 	if(!dx && !dy) return;
 
