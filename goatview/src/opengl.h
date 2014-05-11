@@ -2,6 +2,7 @@
 #define OPENGL_H_
 
 #include <GL/glew.h>
+#define QT_NO_OPENGL_ES_2
 
 #ifdef WIN32
 #include <windows.h>
@@ -25,4 +26,4 @@ int init_opengl(void);
 }
 #endif
 
-#endif	/* OPENGL_G_ */
+#endif	/* OPENGL_H_ */

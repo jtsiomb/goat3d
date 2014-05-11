@@ -11,6 +11,9 @@ public:
 
 	AABox();
 	AABox(const Vector3 &b0, const Vector3 &b1);
+
+	bool operator ==(const AABox &rhs) const;
+	bool operator !=(const AABox &rhs) const;
 };
 
 AABox aabox_union(const AABox &a, const AABox &b);

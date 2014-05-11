@@ -7,13 +7,16 @@
 #include "goat3d.h"
 
 extern goat3d *scene;
-extern QSettings *settings;
 
-bool load_scene(const char *fname);
+class GoatViewport;
 
 class GoatView : public QMainWindow {
 	Q_OBJECT
 private:
+	GoatViewport *glview;
+	QStandardItemModel *sgmodel;	// scene graph model
+	QTreeWidget *scntree;
+
 	void closeEvent(QCloseEvent *ev);
 	bool make_menu();
 	bool make_dock();
@@ -26,12 +29,19 @@ private slots:
 public:
 	GoatView();
 	~GoatView();
+
+	bool load_scene(const char *fname);
 };
 
 class GoatViewport : public QGLWidget {
+private:
 	Q_OBJECT
+
+	QWidget *main_win;
+	bool initialized;
+
 public:
-	GoatViewport();
+	GoatViewport(QWidget *main_win);
 	~GoatViewport();
 
 	QSize sizeHint() const;

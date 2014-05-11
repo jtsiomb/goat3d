@@ -8,7 +8,8 @@ int main(int argc, char **argv)
 	app.setOrganizationName("Mutant Stargoat");
 	app.setOrganizationDomain("mutantstargoat.com");
 	app.setApplicationName("GoatView");
-	settings = new QSettings;
+
+	GoatView gview;
 
 	QCommandLineParser argparse;
 	argparse.addHelpOption();
@@ -25,7 +26,7 @@ int main(int argc, char **argv)
 		}
 		std::string fname = args.at(0).toStdString();
 		printf("loading scene file: %s ...\n", fname.c_str());
-		if(!load_scene(fname.c_str())) {
+		if(!gview.load_scene(fname.c_str())) {
 			fprintf(stderr, "failed to load scene: %s\n", fname.c_str());
 			return 1;
 		}
@@ -43,7 +44,6 @@ int main(int argc, char **argv)
 		}
 	}
 
-	GoatView gview;
 	gview.show();
 
 	return app.exec();

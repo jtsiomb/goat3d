@@ -253,13 +253,18 @@ GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g)
 	return &g->scn->get_ambient().x;
 }
 
-GOAT3DAPI void goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax)
+GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax)
 {
 	AABox bbox = g->scn->get_bounds();
+	if(bbox == AABox()) {
+		return -1;
+	}
+
 	for(int i=0; i<3; i++) {
 		bmin[i] = bbox.bmin[i];
 		bmax[i] = bbox.bmax[i];
 	}
+	return 0;
 }
 
 // ---- materials ----
@@ -926,7 +931,7 @@ GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr
 
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec)
 {
-	node->get_xform(tmsec, (Matrix4x4*)matrix);
+	node->get_node_xform(tmsec, (Matrix4x4*)matrix);
 }
 
 

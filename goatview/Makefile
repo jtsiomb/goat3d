@@ -10,7 +10,7 @@ bin = goatview
 
 goat_root = ..
 
-CFLAGS = -pedantic -Wall -g $(pic) -I$(goat_root)/src $(qtinc)
+CFLAGS = -Wall -Wno-cpp -g $(pic) -I$(goat_root)/src $(qtinc)
 CXXFLAGS = -std=c++11 $(CFLAGS)
 LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath
 MOC = moc

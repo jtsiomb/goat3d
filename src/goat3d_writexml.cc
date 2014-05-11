@@ -33,6 +33,8 @@ static void xmlout(goat3d_io *io, int level, const char *fmt, ...);
 
 bool Scene::savexml(goat3d_io *io) const
 {
+	xmlout(io, 0, "<!-- vi:set filetype=xml: -->\n");
+	xmlout(io, 0, "<!-- Goat3D XML scene description -->\n");
 	xmlout(io, 0, "<scene>\n");
 
 	// write environment stuff
@@ -62,6 +64,8 @@ bool Scene::savexml(goat3d_io *io) const
 
 bool Scene::save_anim_xml(goat3d_io *io) const
 {
+	xmlout(io, 0, "<!-- vi:set filetype=xml: -->\n");
+	xmlout(io, 0, "<!-- Goat3D XML animation -->\n");
 	xmlout(io, 0, "<anim>\n");
 
 	if(!nodes.empty()) {
