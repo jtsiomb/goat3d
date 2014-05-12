@@ -17,29 +17,43 @@ static long anim_time;
 static float cam_theta, cam_phi, cam_dist = 8;
 static float fov = 60.0;
 static bool use_nodes = true;
+static bool use_lighting = true;
 
 
 GoatView::GoatView()
 {
 	glview = 0;
 
+	QSettings *settings = new QSettings;
+	resize(settings->value("main/size", QSize(1024, 768)).toSize());
+	move(settings->value("main/pos", QPoint(100, 100)).toPoint());
+	use_nodes = settings->value("use_nodes", true).toBool();
+	use_lighting = settings->value("use_lighting", true).toBool();
+	delete settings;
+
+	make_center();	// must be first
 	make_menu();
 	make_dock();
-	make_center();
 
 	statusBar();
 
 	setWindowTitle("GoatView");
-
-	QSettings *settings = new QSettings;
-	resize(settings->value("main/size", QSize(1024, 768)).toSize());
-	move(settings->value("main/pos", QPoint(100, 100)).toPoint());
-	delete settings;
 }
 
 GoatView::~GoatView()
 {
 }
+
+void GoatView::closeEvent(QCloseEvent *ev)
+{
+	QSettings *settings = new QSettings;
+	settings->setValue("main/size", size());
+	settings->setValue("main/pos", pos());
+	settings->setValue("use_nodes", use_nodes);
+	settings->setValue("use_lighting", use_lighting);
+	delete settings;
+}
+
 
 bool GoatView::load_scene(const char *fname)
 {
@@ -53,20 +67,12 @@ bool GoatView::load_scene(const char *fname)
 	float bmin[3], bmax[3];
 	if(goat3d_get_bounds(scene, bmin, bmax) != -1) {
 		float bsize = (Vector3(bmax[0], bmax[1], bmax[2]) - Vector3(bmin[0], bmin[1], bmin[2])).length();
-		cam_dist = bsize / tan(DEG_TO_RAD(fov) / 2.0) + bsize;
+		cam_dist = bsize / tan(DEG_TO_RAD(fov) / 2.0);
 		printf("bounds size: %f, cam_dist: %f\n", bsize, cam_dist);
 	}
 
 	update_tree(scntree);
 	return true;
-}
-
-void GoatView::closeEvent(QCloseEvent *ev)
-{
-	QSettings *settings = new QSettings;
-	settings->setValue("main/size", size());
-	settings->setValue("main/pos", pos());
-	delete settings;
 }
 
 bool GoatView::make_menu()
@@ -94,8 +100,22 @@ bool GoatView::make_menu()
 	QAction *act_use_nodes = new QAction("use nodes", this);
 	act_use_nodes->setCheckable(true);
 	act_use_nodes->setChecked(use_nodes);
-	connect(act_use_nodes, &QAction::triggered, this, [&](){use_nodes = !use_nodes; glview->updateGL();});
+	connect(act_use_nodes, &QAction::triggered, this,
+			[&](){ use_nodes = !use_nodes; glview->updateGL(); });
 	menu_view->addAction(act_use_nodes);
+
+	QAction *act_use_lighting = new QAction("lighting", this);
+	act_use_lighting->setCheckable(true);
+	act_use_lighting->setChecked(use_lighting);
+	connect(act_use_lighting, &QAction::triggered, glview, &GoatViewport::toggle_lighting);
+	menu_view->addAction(act_use_lighting);
+
+	// help menu
+	QMenu *menu_help = menuBar()->addMenu("&Help");
+
+	QAction *act_about = new QAction("&About", this);
+	connect(act_about, &QAction::triggered, this, &GoatView::show_about);
+	menu_help->addAction(act_about);
 	return true;
 }
 
@@ -246,6 +266,13 @@ void GoatViewport::initializeGL()
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
+	if(use_lighting) {
+		glEnable(GL_LIGHTING);
+	}
+	glEnable(GL_LIGHT0);
+
+	float ldir[] = {-1, 1, 2, 0};
+	glLightfv(GL_LIGHT0, GL_POSITION, ldir);
 }
 
 void GoatViewport::resizeGL(int xsz, int ysz)
@@ -272,7 +299,9 @@ void GoatViewport::paintGL()
 		int node_count = goat3d_get_node_count(scene);
 		for(int i=0; i<node_count; i++) {
 			goat3d_node *node = goat3d_get_node(scene, i);
-			draw_node(node);	// only draw root nodes, the rest will be drawn recursively
+			if(!goat3d_get_node_parent(node)) {
+				draw_node(node);	// only draw root nodes, the rest will be drawn recursively
+			}
 		}
 	} else {
 		int mesh_count = goat3d_get_mesh_count(scene);
@@ -281,6 +310,17 @@ void GoatViewport::paintGL()
 			draw_mesh(mesh);
 		}
 	}
+}
+
+void GoatViewport::toggle_lighting()
+{
+	use_lighting = !use_lighting;
+	if(use_lighting) {
+		glEnable(GL_LIGHTING);
+	} else {
+		glDisable(GL_LIGHTING);
+	}
+	updateGL();
 }
 
 #ifndef GLEW_ARB_transpose_matrix
@@ -301,16 +341,40 @@ static void draw_node(goat3d_node *node)
 		draw_mesh(mesh);
 	}
 
-	/*int num_child = goat3d_get_node_child_count(node);
+	int num_child = goat3d_get_node_child_count(node);
 	for(int i=0; i<num_child; i++) {
 		draw_node(goat3d_get_node_child(node, i));
-	}*/
+	}
 
 	glPopMatrix();
 }
 
 static void draw_mesh(goat3d_mesh *mesh)
 {
+	static const float white[] = {1, 1, 1, 1};
+	static const float black[] = {0, 0, 0, 1};
+
+	const float *color;
+	goat3d_material *mtl = goat3d_get_mesh_mtl(mesh);
+
+	if(mtl && (color = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_DIFFUSE))) {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+	} else {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, white);
+	}
+	if(mtl && (color = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SPECULAR))) {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
+	} else {
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, black);
+	}
+	if(mtl && (color = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SHININESS))) {
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, color[0]);
+	} else {
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 60.0);
+	}
+	// TODO texture
+
+
 	int num_faces = goat3d_get_mesh_face_count(mesh);
 	int num_verts = goat3d_get_mesh_attrib_count(mesh, GOAT3D_MESH_ATTR_VERTEX);
 
@@ -369,4 +433,26 @@ void GoatViewport::mouseMoveEvent(QMouseEvent *ev)
 		if(cam_dist < 0.0) cam_dist = 0.0;
 	}
 	updateGL();
+}
+
+static const char *about_str =
+	"GoatView - Goat3D scene file viewer<br>"
+	"Copyright (C) 2014 John Tsiombikas &lt;<a href=\"mailto:nuclear@mutantstargoat.com\">nuclear@mutantstargoat.com</a>&gt;<br>"
+	"<br>"
+	"This program is free software: you can redistribute it and/or modify<br>"
+	"it under the terms of the GNU General Public License as published by<br>"
+	"the Free Software Foundation, either version 3 of the License, or<br>"
+	"(at your option) any later version.<br>"
+	"<br>"
+	"This program is distributed in the hope that it will be useful,<br>"
+	"but WITHOUT ANY WARRANTY; without even the implied warranty of<br>"
+	"MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the<br>"
+	"GNU General Public License for more details.<br>"
+	"<br>"
+	"You should have received a copy of the GNU General Public License<br>"
+	"along with this program.  If not, see <a href=\"http://www.gnu.org/licenses/gpl\">http://www.gnu.org/licenses/gpl</a>.";
+
+void GoatView::show_about()
+{
+	QMessageBox::information(this, "About GoatView", about_str);
 }

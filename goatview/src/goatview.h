@@ -11,10 +11,10 @@ extern goat3d *scene;
 class GoatViewport;
 
 class GoatView : public QMainWindow {
-	Q_OBJECT
 private:
+	Q_OBJECT
+
 	GoatViewport *glview;
-	QStandardItemModel *sgmodel;	// scene graph model
 	QTreeWidget *scntree;
 
 	void closeEvent(QCloseEvent *ev);
@@ -31,6 +31,8 @@ public:
 	~GoatView();
 
 	bool load_scene(const char *fname);
+
+	void show_about();
 };
 
 class GoatViewport : public QGLWidget {
@@ -49,6 +51,8 @@ public:
 	void initializeGL();
 	void resizeGL(int xsz, int ysz);
 	void paintGL();
+
+	void toggle_lighting();
 
 	void mousePressEvent(QMouseEvent *ev);
 	void mouseMoveEvent(QMouseEvent *ev);

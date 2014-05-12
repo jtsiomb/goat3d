@@ -286,7 +286,7 @@ static Node *read_node(Scene *scn, XMLElement *xml_node, std::map<Node*, std::st
 	if((elem = xml_node->FirstChildElement("pos"))) {
 		const char *val = elem->Attribute("float3");
 		if(val && sscanf(val, "%f %f %f", vec, vec + 1, vec + 2) == 3) {
-			node->set_position(Vector3(val[0], val[1], val[2]));
+			node->set_position(Vector3(vec[0], vec[1], vec[2]));
 		} else {
 			logmsg(LOG_ERROR, "node %s: invalid position tag\n", node->get_name());
 		}

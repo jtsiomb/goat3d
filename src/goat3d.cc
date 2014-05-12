@@ -58,7 +58,7 @@ GOAT3DAPI struct goat3d *goat3d_create(void)
 
 GOAT3DAPI void goat3d_free(struct goat3d *g)
 {
-	delete g->search_path;
+	delete [] g->search_path;
 	delete g->scn;
 	delete g;
 }
