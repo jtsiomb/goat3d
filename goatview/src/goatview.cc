@@ -24,12 +24,11 @@ GoatView::GoatView()
 {
 	glview = 0;
 
-	QSettings *settings = new QSettings;
-	resize(settings->value("main/size", QSize(1024, 768)).toSize());
-	move(settings->value("main/pos", QPoint(100, 100)).toPoint());
-	use_nodes = settings->value("use_nodes", true).toBool();
-	use_lighting = settings->value("use_lighting", true).toBool();
-	delete settings;
+	QSettings settings;
+	resize(settings.value("main/size", QSize(1024, 768)).toSize());
+	move(settings.value("main/pos", QPoint(100, 100)).toPoint());
+	use_nodes = settings.value("use_nodes", true).toBool();
+	use_lighting = settings.value("use_lighting", true).toBool();
 
 	make_center();	// must be first
 	make_menu();
@@ -46,12 +45,11 @@ GoatView::~GoatView()
 
 void GoatView::closeEvent(QCloseEvent *ev)
 {
-	QSettings *settings = new QSettings;
-	settings->setValue("main/size", size());
-	settings->setValue("main/pos", pos());
-	settings->setValue("use_nodes", use_nodes);
-	settings->setValue("use_lighting", use_lighting);
-	delete settings;
+	QSettings settings;
+	settings.setValue("main/size", size());
+	settings.setValue("main/pos", pos());
+	settings.setValue("use_nodes", use_nodes);
+	settings.setValue("use_lighting", use_lighting);
 }
 
 
@@ -193,6 +191,8 @@ void GoatView::open_anim()
 
 static void update_tree(QTreeWidget *tree)
 {
+	tree->clear();
+
 	if(!scene) return;
 
 	int num_nodes = goat3d_get_node_count(scene);
