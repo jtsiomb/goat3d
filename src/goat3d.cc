@@ -897,7 +897,7 @@ GOAT3DAPI void goat3d_set_node_pivot(struct goat3d_node *node, float px, float p
 
 GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
-	Vector3 pos = node->get_position(tmsec);
+	Vector3 pos = node->get_node_position(tmsec);
 	*xptr = pos.x;
 	*yptr = pos.y;
 	*zptr = pos.z;
@@ -905,7 +905,7 @@ GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *x
 
 GOAT3DAPI void goat3d_get_node_rotation(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, float *wptr, long tmsec)
 {
-	Quaternion q = node->get_rotation(tmsec);
+	Quaternion q = node->get_node_rotation(tmsec);
 	*xptr = q.v.x;
 	*yptr = q.v.y;
 	*zptr = q.v.z;
@@ -914,7 +914,7 @@ GOAT3DAPI void goat3d_get_node_rotation(const struct goat3d_node *node, float *x
 
 GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
-	Vector3 scale = node->get_scaling(tmsec);
+	Vector3 scale = node->get_node_scaling(tmsec);
 	*xptr = scale.x;
 	*yptr = scale.y;
 	*zptr = scale.z;
