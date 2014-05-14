@@ -5,17 +5,20 @@
 #include <QtWidgets/QtWidgets>
 #include <QtOpenGL/QGLWidget>
 #include "goat3d.h"
+#include "scenemodel.h"
 
 extern goat3d *scene;
 
 class GoatViewport;
+
 
 class GoatView : public QMainWindow {
 private:
 	Q_OBJECT
 
 	GoatViewport *glview;
-	QTreeWidget *scntree;
+	QTreeView *treeview;
+	SceneModel *scene_model;
 
 	void closeEvent(QCloseEvent *ev);
 	bool make_menu();

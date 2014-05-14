@@ -1,17 +1,16 @@
 #include <stdio.h>
+#include <map>
 #include "opengl.h"
 #include <QtOpenGL/QtOpenGL>
 #include <vmath/vmath.h>
 #include "goatview.h"
 #include "goat3d.h"
 
-static void update_tree(QTreeWidget *tree);
-static void add_tree(QTreeWidget *tree, goat3d_node *node, QTreeWidgetItem *parent);
-
 static void draw_node(goat3d_node *node);
 static void draw_mesh(goat3d_mesh *mesh);
 
 goat3d *scene;
+static SceneModel *sdata;
 
 static long anim_time;
 static float cam_theta, cam_phi, cam_dist = 8;
@@ -23,6 +22,7 @@ static bool use_lighting = true;
 GoatView::GoatView()
 {
 	glview = 0;
+	scene_model = 0;
 
 	QSettings settings;
 	resize(settings.value("main/size", QSize(1024, 768)).toSize());
@@ -41,6 +41,8 @@ GoatView::GoatView()
 
 GoatView::~GoatView()
 {
+	delete scene_model;
+	sdata = 0;
 }
 
 void GoatView::closeEvent(QCloseEvent *ev)
@@ -69,7 +71,11 @@ bool GoatView::load_scene(const char *fname)
 		printf("bounds size: %f, cam_dist: %f\n", bsize, cam_dist);
 	}
 
-	update_tree(scntree);
+	scene_model->set_scene(scene);
+	treeview->expandAll();
+	treeview->resizeColumnToContents(0);
+
+	sdata = scene_model;	// set the global sdata ptr
 	return true;
 }
 
@@ -130,20 +136,24 @@ bool GoatView::make_dock()
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
 
 	// make the tree view widget
-	scntree = new QTreeWidget;
+	treeview = new QTreeView;
+	/*
 	scntree->setColumnCount(1);
 	QStringList hdrstr;
 	hdrstr << "Node";// << "Type";
 	scntree->setHeaderItem(new QTreeWidgetItem((QTreeWidget*)0, hdrstr));
-	scntree->setAlternatingRowColors(true);
-	dock_vbox->addWidget(scntree);
+	*/
+	treeview->setAlternatingRowColors(true);
+	dock_vbox->addWidget(treeview);
 
-	update_tree(scntree);
+	scene_model = new SceneModel;
+	connect(scene_model, &SceneModel::dataChanged, [&](){ glview->updateGL(); });
+	treeview->setModel(scene_model);
 
 	// misc
 	QPushButton *bn_quit = new QPushButton("quit");
 	dock_vbox->addWidget(bn_quit);
-	connect(bn_quit, &QPushButton::clicked, [&](){qApp->quit();});
+	connect(bn_quit, &QPushButton::clicked, [&](){ qApp->quit(); });
 
 	// ---- bottom dock ----
 	dock_cont = new QWidget;
@@ -188,43 +198,6 @@ void GoatView::open_anim()
 {
 	statusBar()->showMessage("opening animation...");
 }
-
-static void update_tree(QTreeWidget *tree)
-{
-	tree->clear();
-
-	if(!scene) return;
-
-	int num_nodes = goat3d_get_node_count(scene);
-	for(int i=0; i<num_nodes; i++) {
-		goat3d_node *node = goat3d_get_node(scene, i);
-		if(goat3d_get_node_parent(node)) {
-			continue;
-		}
-
-		// only add the root nodes, the rest will be added recursively by them
-		add_tree(tree, node, 0);
-	}
-	tree->expandAll();
-}
-
-static void add_tree(QTreeWidget *tree, goat3d_node *node, QTreeWidgetItem *parent)
-{
-	//char icon_name[64];
-	//sprintf(icon_name, ":/icons/icons/icon_%s.png", node->get_type());
-
-	QStringList row;
-	row << goat3d_get_node_name(node) << "M";
-	QTreeWidgetItem *item = new QTreeWidgetItem(parent, row);
-	//item->setIcon(0, QIcon(icon_name));
-	tree->addTopLevelItem(item);
-
-	int num_children = goat3d_get_node_child_count(node);
-	for(int i=0; i<num_children; i++) {
-		add_tree(tree, goat3d_get_node_child(node, i), item);
-	}
-}
-
 
 
 // ---- OpenGL viewport ----
@@ -329,16 +302,21 @@ void GoatViewport::toggle_lighting()
 
 static void draw_node(goat3d_node *node)
 {
+	SceneNodeData *data = sdata ? sdata->get_node_data(node) : 0;
+	if(!data) return;
+
 	float xform[16];
 	goat3d_get_node_matrix(node, xform, anim_time);
 
 	glPushMatrix();
 	glMultTransposeMatrixf(xform);
 
-	if(goat3d_get_node_type(node) == GOAT3D_NODE_MESH) {
-		goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);
+	if(data->visible) {
+		if(goat3d_get_node_type(node) == GOAT3D_NODE_MESH) {
+			goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);
 
-		draw_mesh(mesh);
+			draw_mesh(mesh);
+		}
 	}
 
 	int num_child = goat3d_get_node_child_count(node);

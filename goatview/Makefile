@@ -2,7 +2,7 @@ PREFIX = /usr/local
 
 src = $(wildcard src/*.cc)
 csrc = $(wildcard src/*.c)
-mochdr = src/goatview.h
+mochdr = src/goatview.h src/scenemodel.h
 mocsrc = $(patsubst src/%.h,src/moc_%.cc,$(mochdr))
 obj = $(sort $(csrc:.c=.o) $(src:.cc=.o) $(mocsrc:.cc=.o))
 dep = $(obj:.o=.d)
