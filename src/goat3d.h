@@ -213,6 +213,8 @@ GOAT3DAPI void goat3d_skin_matrix4i(int x, int y, int z, int w);
 GOAT3DAPI void goat3d_color3f(float x, float y, float z);
 GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w);
 
+GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax);
+
 /* lights */
 GOAT3DAPI void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt);
 GOAT3DAPI int goat3d_get_light_count(struct goat3d *g);
@@ -277,6 +279,8 @@ GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xp
 GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr);
 
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec);
+
+GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmin, float *bmax);
 
 #ifdef __cplusplus
 }

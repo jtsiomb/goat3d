@@ -11,12 +11,18 @@ static void draw_mesh(goat3d_mesh *mesh);
 
 goat3d *scene;
 static SceneModel *sdata;
+static GoatViewport *glview;
 
 static long anim_time;
 static float cam_theta, cam_phi, cam_dist = 8;
 static float fov = 60.0;
 static bool use_nodes = true;
 static bool use_lighting = true;
+
+void post_redisplay()
+{
+	glview->updateGL();
+}
 
 
 GoatView::GoatView()
@@ -105,7 +111,7 @@ bool GoatView::make_menu()
 	act_use_nodes->setCheckable(true);
 	act_use_nodes->setChecked(use_nodes);
 	connect(act_use_nodes, &QAction::triggered, this,
-			[&](){ use_nodes = !use_nodes; glview->updateGL(); });
+			[&](){ use_nodes = !use_nodes; post_redisplay(); });
 	menu_view->addAction(act_use_nodes);
 
 	QAction *act_use_lighting = new QAction("lighting", this);
@@ -137,18 +143,16 @@ bool GoatView::make_dock()
 
 	// make the tree view widget
 	treeview = new QTreeView;
-	/*
-	scntree->setColumnCount(1);
-	QStringList hdrstr;
-	hdrstr << "Node";// << "Type";
-	scntree->setHeaderItem(new QTreeWidgetItem((QTreeWidget*)0, hdrstr));
-	*/
 	treeview->setAlternatingRowColors(true);
+	treeview->setSelectionMode(QAbstractItemView::SingleSelection);
 	dock_vbox->addWidget(treeview);
 
 	scene_model = new SceneModel;
-	connect(scene_model, &SceneModel::dataChanged, [&](){ glview->updateGL(); });
+	connect(scene_model, &SceneModel::dataChanged, [&](){ post_redisplay(); });
 	treeview->setModel(scene_model);
+
+	connect(treeview->selectionModel(), &QItemSelectionModel::selectionChanged,
+			[&](){ scene_model->selchange(treeview->selectionModel()->selectedIndexes()); });
 
 	// misc
 	QPushButton *bn_quit = new QPushButton("quit");
@@ -174,7 +178,7 @@ bool GoatView::make_dock()
 
 bool GoatView::make_center()
 {
-	glview = new GoatViewport(this);
+	glview = ::glview = new GoatViewport(this);
 	setCentralWidget(glview);
 	return true;
 }
@@ -316,6 +320,43 @@ static void draw_node(goat3d_node *node)
 			goat3d_mesh *mesh = (goat3d_mesh*)goat3d_get_node_object(node);
 
 			draw_mesh(mesh);
+
+			if(data->selected) {
+				float bmin[3], bmax[3];
+				goat3d_get_mesh_bounds(mesh, bmin, bmax);
+
+				glPushAttrib(GL_ENABLE_BIT);
+				glDisable(GL_LIGHTING);
+
+				glColor3f(0.3, 1, 0.2);
+
+				glBegin(GL_LINE_LOOP);
+				glVertex3f(bmin[0], bmin[1], bmin[2]);
+				glVertex3f(bmax[0], bmin[1], bmin[2]);
+				glVertex3f(bmax[0], bmin[1], bmax[2]);
+				glVertex3f(bmin[0], bmin[1], bmax[2]);
+				glEnd();
+
+				glBegin(GL_LINE_LOOP);
+				glVertex3f(bmin[0], bmax[1], bmin[2]);
+				glVertex3f(bmax[0], bmax[1], bmin[2]);
+				glVertex3f(bmax[0], bmax[1], bmax[2]);
+				glVertex3f(bmin[0], bmax[1], bmax[2]);
+				glEnd();
+
+				glBegin(GL_LINES);
+				glVertex3f(bmin[0], bmin[1], bmin[2]);
+				glVertex3f(bmin[0], bmax[1], bmin[2]);
+				glVertex3f(bmin[0], bmin[1], bmax[2]);
+				glVertex3f(bmin[0], bmax[1], bmax[2]);
+				glVertex3f(bmax[0], bmin[1], bmin[2]);
+				glVertex3f(bmax[0], bmax[1], bmin[2]);
+				glVertex3f(bmax[0], bmin[1], bmax[2]);
+				glVertex3f(bmax[0], bmax[1], bmax[2]);
+				glEnd();
+
+				glPopAttrib();
+			}
 		}
 	}
 

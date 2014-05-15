@@ -7,10 +7,11 @@
 #include "goat3d.h"
 #include "scenemodel.h"
 
+void post_redisplay();
+
 extern goat3d *scene;
 
 class GoatViewport;
-
 
 class GoatView : public QMainWindow {
 private:

@@ -1,5 +1,6 @@
 #include <assert.h>
 #include "scenemodel.h"
+#include "goatview.h"
 
 SceneModel::SceneModel()
 {
@@ -25,6 +26,7 @@ void SceneModel::set_scene(goat3d *scn)
 
 		SceneNodeData data;
 		data.visible = true;
+		data.selected = false;
 
 		node_data[node] = data;
 	}
@@ -245,4 +247,26 @@ QModelIndex SceneModel::parent(const QModelIndex &index) const
 	}
 
 	return createIndex(pidx, 0, (void*)parent);
+}
+
+
+void SceneModel::selchange(const QModelIndexList &selidx)
+{
+	// go over the previously selected and unselect them
+	std::set<goat3d_node*>::iterator it = selected.begin();
+	while(it != selected.end()) {
+		goat3d_node *node = *it++;
+		SceneNodeData *data = get_node_data(node);
+		data->selected = false;
+	}
+	selected.clear();
+
+	for(int i=0; i<selidx.size(); i++) {
+		goat3d_node *node = (goat3d_node*)selidx.at(i).internalPointer();
+		SceneNodeData *data = get_node_data(node);
+		data->selected = true;
+		selected.insert(node);
+	}
+
+	post_redisplay();
 }

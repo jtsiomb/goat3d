@@ -2,11 +2,13 @@
 #define SCENEMODEL_H_
 
 #include <map>
+#include <set>
 #include <QtCore/QAbstractItemModel>
 #include "goat3d.h"
 
 struct SceneNodeData {
 	bool visible;
+	bool selected;
 };
 
 class SceneModel : public QAbstractItemModel {
@@ -15,6 +17,7 @@ private:
 
 	goat3d *scn;
 	std::map<goat3d_node*, SceneNodeData> node_data;
+	std::set<goat3d_node*> selected;
 
 public:
 	SceneModel();
@@ -34,6 +37,8 @@ public:
 	bool hasChildren(const QModelIndex &parent) const;
 	QModelIndex index(int row, int column, const QModelIndex &parent) const;
 	QModelIndex parent(const QModelIndex &index) const;
+
+	void selchange(const QModelIndexList &selidx);
 };
 
 #endif	// SCENEMODEL_H_

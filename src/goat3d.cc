@@ -676,6 +676,17 @@ GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w)
 	im_use[GOAT3D_MESH_ATTR_COLOR] = true;
 }
 
+
+GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax)
+{
+	AABox box = mesh->get_bounds(Matrix4x4::identity);
+
+	for(int i=0; i<3; i++) {
+		bmin[i] = box.bmin[i];
+		bmax[i] = box.bmax[i];
+	}
+}
+
 /* lights */
 GOAT3DAPI void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt)
 {
@@ -934,6 +945,15 @@ GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *mat
 	node->get_node_xform(tmsec, (Matrix4x4*)matrix);
 }
 
+GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmin, float *bmax)
+{
+	AABox box = node->get_bounds();
+
+	for(int i=0; i<3; i++) {
+		bmin[i] = box.bmin[i];
+		bmax[i] = box.bmax[i];
+	}
+}
 
 }	// extern "C"
 
