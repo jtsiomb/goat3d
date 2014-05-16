@@ -30,9 +30,18 @@
     <ClCompile Include="src\opengl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\scenemodel.cc">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\moc_scenemodel.cc">
+      <Filter>moc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="src\goatview.h">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="src\scenemodel.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

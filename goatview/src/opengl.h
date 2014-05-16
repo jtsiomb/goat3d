@@ -5,7 +5,9 @@
 #define QT_NO_OPENGL_ES_2
 
 #ifdef WIN32
+#define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
+#undef min
 #endif
 
 #ifdef __APPLE__
