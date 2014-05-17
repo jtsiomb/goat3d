@@ -6,22 +6,27 @@
 #include "goatview.h"
 #include "goat3d.h"
 
+static void draw_grid();
+static void draw_grid(float sz, int nlines, float alpha = 1.0f);
 static void draw_node(goat3d_node *node);
 static void draw_mesh(goat3d_mesh *mesh);
+static int next_pow2(int x);
 
 goat3d *scene;
 static SceneModel *sdata;
 static GoatViewport *glview;
 
 static long anim_time;
-static float cam_theta, cam_phi, cam_dist = 8;
+static float cam_theta, cam_phi = 25, cam_dist = 8;
 static float fov = 60.0;
 static bool use_nodes = true;
 static bool use_lighting = true;
 
 void post_redisplay()
 {
-	glview->updateGL();
+	if(glview) {
+		glview->updateGL();
+	}
 }
 
 
@@ -101,7 +106,7 @@ bool GoatView::make_menu()
 
 	QAction *act_quit = new QAction("&Quit", this);
 	act_quit->setShortcuts(QKeySequence::Quit);
-	connect(act_quit, &QAction::triggered, [&](){qApp->quit();});
+	connect(act_quit, &QAction::triggered, [&](){ qApp->quit(); });
 	menu_file->addAction(act_quit);
 
 	// view menu
@@ -136,7 +141,7 @@ bool GoatView::make_dock()
 	QVBoxLayout *dock_vbox = new QVBoxLayout;
 	dock_cont->setLayout(dock_vbox);
 
-	QDockWidget *dock = new QDockWidget("Scene graph", this);
+	QDockWidget *dock = new QDockWidget(this);
 	dock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	dock->setWidget(dock_cont);
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
@@ -164,11 +169,37 @@ bool GoatView::make_dock()
 	QHBoxLayout *dock_hbox = new QHBoxLayout;
 	dock_cont->setLayout(dock_hbox);
 
-	QSlider *slider_time = new QSlider(Qt::Orientation::Horizontal);
+	// animation control box
+	QGridLayout *anim_ctl_box = new QGridLayout;
+	dock_hbox->addLayout(anim_ctl_box);
+
+	anim_ctl_box->addWidget(new QLabel("Animation"), 0, 0);
+	cbox_anims = new QComboBox;
+	cbox_anims->setDisabled(true);
+	anim_ctl_box->addWidget(cbox_anims, 0, 1);
+
+	chk_loop = new QCheckBox("loop");
+	chk_loop->setChecked(false);
+	anim_ctl_box->addWidget(chk_loop, 1, 0);
+
+	QToolBar *toolbar_ctl = new QToolBar;
+	anim_ctl_box->addWidget(toolbar_ctl, 1, 1);
+
+	act_rewind = new QAction(style()->standardIcon(QStyle::SP_MediaSkipBackward), "Rewind", this);
+	act_rewind->setDisabled(true);
+	toolbar_ctl->addAction(act_rewind);
+	act_play = new QAction(style()->standardIcon(QStyle::SP_MediaPlay), "Play", this);
+	act_play->setDisabled(true);
+	toolbar_ctl->addAction(act_play);
+
+	// timeline slider
+	slider_time = new QSlider(Qt::Orientation::Horizontal);
 	slider_time->setDisabled(true);
+	connect(slider_time, &QSlider::valueChanged,
+		[&](){ anim_time = slider_time->value(); post_redisplay(); });
 	dock_hbox->addWidget(slider_time);
 
-	dock = new QDockWidget("Animation", this);
+	dock = new QDockWidget(this);
 	dock->setAllowedAreas(Qt::BottomDockWidgetArea);
 	dock->setWidget(dock_cont);
 	addDockWidget(Qt::BottomDockWidgetArea, dock);
@@ -270,6 +301,8 @@ void GoatViewport::paintGL()
 	glRotatef(cam_phi, 1, 0, 0);
 	glRotatef(cam_theta, 0, 1, 0);
 
+	draw_grid();
+
 	if(!scene) return;
 
 	if(use_nodes) {
@@ -304,6 +337,63 @@ void GoatViewport::toggle_lighting()
 #error "GLEW_ARB_transpose_matrix undefined?"
 #endif
 
+static void draw_grid()
+{
+	float viewsz_orig = cam_dist * tan(DEG_TO_RAD(fov) / 2.0);
+	float sz1 = next_pow2((int)viewsz_orig);
+	float sz0 = sz1 / 2.0;
+	float t = (viewsz_orig - sz0) / (sz1 - sz0);
+	float alpha = t < 0.333333 ? 0.0 : (t > 0.666666 ? 1.0 : (t - 0.333333) / 0.333333);
+
+	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BITS);
+
+	glEnable(GL_BLEND);
+	glDepthFunc(GL_ALWAYS);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	draw_grid(sz0 * 2.0, 10, 1.0 - alpha);
+	draw_grid(sz1 * 2.0, 10, alpha);
+
+	glPopAttrib();
+}
+
+static void draw_grid(float sz, int nlines, float alpha)
+{
+	float hsz = sz / 2.0;
+	float offs = sz / (float)nlines;
+
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+
+	glLineWidth(2.0);
+	glBegin(GL_LINES);
+	glColor4f(1, 0, 0, alpha);
+	glVertex3f(-hsz, 0, 0);
+	glVertex3f(hsz, 0, 0);
+	glColor4f(0, 0, 1, alpha);
+	glVertex3f(0, 0, -hsz);
+	glVertex3f(0, 0, hsz);
+	glEnd();
+
+	glLineWidth(1.0);
+	glBegin(GL_LINES);
+	glColor4f(0.5, 0.5, 0.5, alpha);
+	for(int i=0; i<nlines / 2; i++) {
+		float dist = (float)(i + 1) * offs;
+		for(int j=0; j<2; j++) {
+			float sign = j > 0 ? -1.0 : 1.0;
+			glVertex3f(-hsz, 0, dist * sign);
+			glVertex3f(hsz, 0, dist * sign);
+			glVertex3f(dist * sign, 0, -hsz);
+			glVertex3f(dist * sign, 0, hsz);
+		}
+	}
+	glEnd();
+
+	glPopAttrib();
+}
+
 static void draw_node(goat3d_node *node)
 {
 	SceneNodeData *data = sdata ? sdata->get_node_data(node) : 0;
@@ -336,14 +426,12 @@ static void draw_node(goat3d_node *node)
 				glVertex3f(bmax[0], bmin[1], bmax[2]);
 				glVertex3f(bmin[0], bmin[1], bmax[2]);
 				glEnd();
-
 				glBegin(GL_LINE_LOOP);
 				glVertex3f(bmin[0], bmax[1], bmin[2]);
 				glVertex3f(bmax[0], bmax[1], bmin[2]);
 				glVertex3f(bmax[0], bmax[1], bmax[2]);
 				glVertex3f(bmin[0], bmax[1], bmax[2]);
 				glEnd();
-
 				glBegin(GL_LINES);
 				glVertex3f(bmin[0], bmin[1], bmin[2]);
 				glVertex3f(bmin[0], bmax[1], bmin[2]);
@@ -378,8 +466,10 @@ static void draw_mesh(goat3d_mesh *mesh)
 
 	if(mtl && (color = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_DIFFUSE))) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, color);
+		glColor3fv(color);
 	} else {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, white);
+		glColor3fv(white);
 	}
 	if(mtl && (color = goat3d_get_mtl_attrib(mtl, GOAT3D_MAT_ATTR_SPECULAR))) {
 		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, color);
@@ -474,4 +564,16 @@ static const char *about_str =
 void GoatView::show_about()
 {
 	QMessageBox::information(this, "About GoatView", about_str);
+}
+
+
+static int next_pow2(int x)
+{
+	x--;
+	x = (x >> 1) | x;
+	x = (x >> 2) | x;
+	x = (x >> 4) | x;
+	x = (x >> 8) | x;
+	x = (x >> 16) | x;
+	return x + 1;
 }

@@ -21,6 +21,12 @@ private:
 	QTreeView *treeview;
 	SceneModel *scene_model;
 
+	// animation controls
+	QSlider *slider_time;
+	QComboBox *cbox_anims;
+	QCheckBox *chk_loop;
+	QAction *act_play, *act_rewind;
+
 	void closeEvent(QCloseEvent *ev);
 	bool make_menu();
 	bool make_dock();

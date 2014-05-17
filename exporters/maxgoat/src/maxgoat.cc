@@ -295,13 +295,13 @@ void GoatExporter::process_node(goat3d *goat, goat3d_node *parent, IGameNode *ma
 	// grab the animation data
 	if(!dynamic_cast<GoatAnimExporter*>(this)) {
 		// no animation, just get the static PRS
-		GMatrix maxmatrix = maxnode->GetObjectTM();
+		GMatrix maxmatrix = maxnode->GetLocalTM();
 		Point3 trans = maxmatrix.Translation();
 		Quat rot = maxmatrix.Rotation();
 		Point3 scale = maxmatrix.Scaling();
 
 		goat3d_set_node_position(node, trans.x, trans.y, trans.z, 0);
-		goat3d_set_node_rotation(node, rot.x, rot.y, rot.z, rot.w, 0);
+		goat3d_set_node_rotation(node, rot.x, rot.y, rot.z, -rot.w, 0);
 		goat3d_set_node_scaling(node, scale.x, scale.y, scale.z, 0);
 
 	} else {
@@ -412,19 +412,19 @@ static void get_rotation_keys(IGameControl *ctrl, goat3d_node *node)
 		maxlog("node %s: getting %d linear rotation keys\n", nodename, rkeys.Count());
 		for(int i=0; i<rkeys.Count(); i++) {
 			Quat q = rkeys[i].linearKey.qval;
-			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, -q.w, KEY_TIME(rkeys[i]));
 		}
 	} else if(ctrl->GetBezierKeys(rkeys, IGAME_ROT)) {
 		maxlog("node %s: getting %d bezier rotation keys\n", nodename, rkeys.Count());
 		for(int i=0; i<rkeys.Count(); i++) {
 			Quat q = rkeys[i].bezierKey.qval;
-			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, -q.w, KEY_TIME(rkeys[i]));
 		}
 	} else if(ctrl->GetTCBKeys(rkeys, IGAME_ROT)) {
 		maxlog("node %s: getting %d TCB rotation keys\n", nodename, rkeys.Count());
 		for(int i=0; i<rkeys.Count(); i++) {
 			Quat q(rkeys[i].tcbKey.aval);
-			goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, KEY_TIME(rkeys[i]));
+			goat3d_set_node_rotation(node, q.x, q.y, q.z, -q.w, KEY_TIME(rkeys[i]));
 		}
 	} else {
 		get_euler_keys(ctrl, node);
@@ -471,7 +471,7 @@ static void get_euler_keys(IGameControl *ctrl, goat3d_node *node)
 	while(it != euler.end()) {
 		Quat q;
 		EulerToQuat(it->second, q, order);
-		goat3d_set_node_rotation(node, q.x, q.y, q.z, q.w, it->first);
+		goat3d_set_node_rotation(node, q.x, q.y, q.z, -q.w, it->first);
 		++it;
 	}
 }
