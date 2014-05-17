@@ -21,6 +21,7 @@ static float cam_theta, cam_phi = 25, cam_dist = 8;
 static float fov = 60.0;
 static bool use_nodes = true;
 static bool use_lighting = true;
+static bool use_textures = true;
 
 void post_redisplay()
 {
@@ -35,11 +36,16 @@ GoatView::GoatView()
 	glview = 0;
 	scene_model = 0;
 
+	QGLFormat glfmt = QGLFormat::defaultFormat();
+	glfmt.setSampleBuffers(true);
+	QGLFormat::setDefaultFormat(glfmt);
+
 	QSettings settings;
 	resize(settings.value("main/size", QSize(1024, 768)).toSize());
 	move(settings.value("main/pos", QPoint(100, 100)).toPoint());
 	use_nodes = settings.value("use_nodes", true).toBool();
 	use_lighting = settings.value("use_lighting", true).toBool();
+	use_textures = settings.value("use_textures", true).toBool();
 
 	make_center();	// must be first
 	make_menu();
@@ -237,7 +243,7 @@ void GoatView::open_anim()
 
 // ---- OpenGL viewport ----
 GoatViewport::GoatViewport(QWidget *main_win)
-	: QGLWidget(QGLFormat(QGL::DepthBuffer))
+	: QGLWidget(QGLFormat(QGL::DepthBuffer | QGL::SampleBuffers))
 {
 	this->main_win = main_win;
 	initialized = false;
@@ -281,6 +287,8 @@ void GoatViewport::initializeGL()
 
 	float ldir[] = {-1, 1, 2, 0};
 	glLightfv(GL_LIGHT0, GL_POSITION, ldir);
+
+	glEnable(GL_MULTISAMPLE);
 }
 
 void GoatViewport::resizeGL(int xsz, int ysz)

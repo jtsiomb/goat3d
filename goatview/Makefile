@@ -14,7 +14,7 @@ warn = -Wall
 
 CFLAGS = $(warn) -g $(pic) -I$(goat_root)/src $(qtinc)
 CXXFLAGS = -std=c++11 $(CFLAGS)
-LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath
+LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath -lanim
 MOC = moc
 
 qtinc = `pkg-config --cflags Qt5Gui Qt5Core Qt5OpenGL`
@@ -24,6 +24,8 @@ ifeq ($(shell uname -s), Darwin)
 	libgl = -framework OpenGL -framework GLUT -lGLEW
 	libgoat = $(goat_root)/libgoat3d.dylib
 	warn += -Wno-deprecated-declarations
+	bundle = $(bin).app
+	dmg = $(bin).dmg
 else
 	pic = -fPIC
 	libgl = -lGL -lGLU -lglut -lGLEW
@@ -35,6 +37,7 @@ ifeq ($(CC), gcc)
 endif
 ifneq ($(shell $(CC) --version | grep LLVM),)
 	CXXFLAGS += -stdlib=libc++
+	warn += '-Wno-\#warnings'
 endif
 
 $(bin): $(obj) $(libgoat)
@@ -55,6 +58,8 @@ moc_%.cc: %.h
 .PHONY: clean
 clean:
 	rm -f $(obj) $(bin)
+	[ -n "$(bundle)" ] && rm -rf $(bundle) || true
+	[ -n "$(dmg)" ] && rm -rf $(dmg) || true
 
 .PHONY: cleandep
 cleandep:
@@ -67,3 +72,36 @@ install: $(bin)
 .PHONY: uninstall
 uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/bin/$(bin)
+
+.PHONY: echo
+echo:
+	@echo $(var)=\"$($(var))\"
+
+.PHONY: bundle
+bundle: $(bundle)
+
+.PHONY: dmg
+dmg: $(dmg)
+
+$(bundle): $(bin) $(libgoat)
+	rm -rf $(bundle)
+	mkdir -p $(bundle)/Contents/MacOS
+	mkdir -p $(bundle)/Contents/Frameworks
+	cp $(bin) $(bundle)/Contents/MacOS/$(bin)
+	macdeployqt $(bundle)
+	cp $(libgoat) $(bundle)/Contents/Frameworks
+	cp /usr/local/lib/libvmath.dylib $(bundle)/Contents/Frameworks
+	cp /usr/local/lib/libanim.dylib $(bundle)/Contents/Frameworks
+
+$(dmg): $(bundle)
+	rm -f $@
+	hdiutil create -format UDBZ -quiet -srcfolder $< $@
+
+.PHONY: run
+ifeq ($(shell uname -s), Darwin)
+run: $(bundle)
+	./$(bundle)/Contents/MacOS/$(bin)
+else
+run: $(bin)
+	./$(bin)
+endif
