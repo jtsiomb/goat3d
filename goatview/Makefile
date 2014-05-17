@@ -10,7 +10,9 @@ bin = goatview
 
 goat_root = ..
 
-CFLAGS = -Wall -Wno-cpp -g $(pic) -I$(goat_root)/src $(qtinc)
+warn = -Wall
+
+CFLAGS = $(warn) -g $(pic) -I$(goat_root)/src $(qtinc)
 CXXFLAGS = -std=c++11 $(CFLAGS)
 LDFLAGS = $(libgoat) $(libgl) $(qtlib) -lvmath
 MOC = moc
@@ -21,10 +23,18 @@ qtlib = `pkg-config --libs Qt5Gui Qt5Core Qt5OpenGL`
 ifeq ($(shell uname -s), Darwin)
 	libgl = -framework OpenGL -framework GLUT -lGLEW
 	libgoat = $(goat_root)/libgoat3d.dylib
+	warn += -Wno-deprecated-declarations
 else
 	pic = -fPIC
 	libgl = -lGL -lGLU -lglut -lGLEW
 	libgoat = $(goat_root)/libgoat3d.so.0.1
+endif
+
+ifeq ($(CC), gcc)
+	warn += -Wno-cpp
+endif
+ifneq ($(shell $(CC) --version | grep LLVM),)
+	CXXFLAGS += -stdlib=libc++
 endif
 
 $(bin): $(obj) $(libgoat)
