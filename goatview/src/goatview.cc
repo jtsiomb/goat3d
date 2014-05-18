@@ -93,6 +93,7 @@ bool GoatView::load_scene(const char *fname)
 	treeview->resizeColumnToContents(0);
 
 	sdata = scene_model;	// set the global sdata ptr
+	post_redisplay();
 	return true;
 }
 
