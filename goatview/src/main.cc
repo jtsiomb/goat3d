@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 
 	argparse.addPositionalArgument("scene", "scene file to open");
 	argparse.addOption(QCommandLineOption("a", "add animation file"));
-	argparse.process(app);
+	argparse.parse(app.arguments());
 
 	const QStringList &args = argparse.positionalArguments();
 	if(!args.isEmpty()) {

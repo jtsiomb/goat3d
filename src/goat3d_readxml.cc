@@ -175,7 +175,7 @@ static Material *read_material(Scene *scn, XMLElement *xml_mtl)
 
 static const char *read_material_attrib(MaterialAttrib *attr, XMLElement *xml_attr)
 {
-	const char *name;
+	const char *name = 0;
 
 	XMLElement *elem;
 	if((elem = xml_attr->FirstChildElement("name"))) {

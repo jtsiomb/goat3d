@@ -233,12 +233,26 @@ void GoatView::open_scene()
 	statusBar()->showMessage("opening scene file");
 	if(!load_scene(fname.c_str())) {
 		statusBar()->showMessage("failed to load scene file");
+		return;
 	}
+	statusBar()->showMessage("Successfully loaded scene: " + QString(fname));
 }
 
 void GoatView::open_anim()
 {
-	statusBar()->showMessage("opening animation...");
+	std::string fname = QFileDialog::getOpenFileName(this, "Open animation file", "",
+		"Goat3D Animation (*.goatanm);;All Files (*)").toStdString();
+	if(fname.empty()) {
+		statusBar()->showMessage("Abot: No file selected!");
+		return;
+	}
+
+	statusBar()->showMessage("opening animation file");
+	if(!load_anim(fname.c_str())) {
+		statusBar()->showMessage("failed to load animation file");
+		return;
+	}
+	statusBar()->showMessage("Successfully loaded animation: " + QString(fname));
 }
 
 
