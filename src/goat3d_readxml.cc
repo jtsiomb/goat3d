@@ -245,16 +245,16 @@ static bool read_track(Scene *scn, XMLElement *xml_track, int *anim_idx)
 		}
 	}
 
-	for(auto key : keys) {
+	for(size_t i=0; i<keys.size(); i++) {
 		switch(type) {
 		case XFormNode::POSITION_TRACK:
-			node->set_position(Vector3(key.val.x, key.val.y, key.val.z), key.tm);
+			node->set_position(Vector3(keys[i].val.x, keys[i].val.y, keys[i].val.z), keys[i].tm);
 			break;
 		case XFormNode::ROTATION_TRACK:
-			node->set_rotation(Quaternion(key.val.w, key.val.x, key.val.y, key.val.z), key.tm);
+			node->set_rotation(Quaternion(keys[i].val.w, keys[i].val.x, keys[i].val.y, keys[i].val.z), keys[i].tm);
 			break;
 		case XFormNode::SCALING_TRACK:
-			node->set_scaling(Vector3(key.val.x, key.val.y, key.val.z), key.tm);
+			node->set_scaling(Vector3(keys[i].val.x, keys[i].val.y, keys[i].val.z), keys[i].tm);
 		}
 	}
 	return true;
