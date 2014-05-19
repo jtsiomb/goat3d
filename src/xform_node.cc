@@ -90,6 +90,18 @@ const XFormNode *XFormNode::get_parent() const
 	return parent;
 }
 
+XFormNode *XFormNode::get_root()
+{
+	if(!parent) return this;
+	return parent->get_root();
+}
+
+const XFormNode *XFormNode::get_root() const
+{
+	if(!parent) return this;
+	return parent->get_root();
+}
+
 void XFormNode::add_child(XFormNode *child)
 {
 	if(!child || child == this) return;
@@ -201,6 +213,37 @@ void XFormNode::set_animation_name(const char *name)
 const char *XFormNode::get_animation_name() const
 {
 	return anm_get_active_animation_name(anm);
+}
+
+bool XFormNode::get_timeline_bounds(long *start, long *end)
+{
+	long node_start = LONG_MAX;
+	long node_end = LONG_MIN;
+
+	for(int i=0; i<3; i++) {
+		int nkeys = get_key_count(i);
+		if(nkeys > 0) {
+			long tmp = get_key_time(i, 0);
+			if(tmp < node_start) node_start = tmp;
+			tmp = get_key_time(i, nkeys - 1);
+			if(tmp > node_end) node_end = tmp;
+		}
+	}
+
+	for(size_t i=0; i<children.size(); i++) {
+		long cstart, cend;
+		if(children[i]->get_timeline_bounds(&cstart, &cend)) {
+			if(cstart < node_start) node_start = cstart;
+			if(cend > node_end) node_end = cend;
+		}
+	}
+
+	if(node_start != LONG_MAX) {
+		*start = node_start;
+		*end = node_end;
+		return true;
+	}
+	return false;
 }
 
 static const int track_type_base[] = {ANM_TRACK_POS_X, ANM_TRACK_ROT_X, ANM_TRACK_SCL_X};

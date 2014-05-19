@@ -885,6 +885,63 @@ GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node)
 	return node->get_animation_name();
 }
 
+GOAT3DAPI long goat3d_get_anim_timeline(struct goat3d_node *root, long *tstart, long *tend)
+{
+	if(root->get_timeline_bounds(tstart, tend)) {
+		return *tend - *tstart;
+	}
+	return -1;
+}
+
+GOAT3DAPI int goat3d_get_node_position_key_count(struct goat3d_node *node)
+{
+	return node->get_position_key_count();
+}
+
+GOAT3DAPI int goat3d_get_node_rotation_key_count(struct goat3d_node *node)
+{
+	return node->get_rotation_key_count();
+}
+
+GOAT3DAPI int goat3d_get_node_scaling_key_count(struct goat3d_node *node)
+{
+	return node->get_scaling_key_count();
+}
+
+GOAT3DAPI long goat3d_get_node_position_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
+{
+	Vector3 pos = node->get_position_key_value(idx);
+	long tm = node->get_position_key_time(idx);
+
+	if(xptr) *xptr = pos.x;
+	if(yptr) *yptr = pos.y;
+	if(zptr) *zptr = pos.z;
+	return tm;
+}
+
+GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr, float *wptr)
+{
+	Quaternion rot = node->get_rotation_key_value(idx);
+	long tm = node->get_rotation_key_time(idx);
+
+	if(xptr) *xptr = rot.v.x;
+	if(yptr) *yptr = rot.v.y;
+	if(zptr) *zptr = rot.v.z;
+	if(wptr) *wptr = rot.s;
+	return tm;
+}
+
+GOAT3DAPI long goat3d_get_node_scaling_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
+{
+	Vector3 scale = node->get_scaling_key_value(idx);
+	long tm = node->get_scaling_key_time(idx);
+
+	if(xptr) *xptr = scale.x;
+	if(yptr) *yptr = scale.y;
+	if(zptr) *zptr = scale.z;
+	return tm;
+}
+
 GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec)
 {
 	node->set_position(Vector3(x, y, z), tmsec);

@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <limits.h>
 #include <map>
 #include "opengl.h"
 #include <QtOpenGL/QtOpenGL>
@@ -78,6 +79,7 @@ bool GoatView::load_scene(const char *fname)
 		goat3d_free(scene);
 	}
 	if(!(scene = goat3d_create()) || goat3d_load(scene, fname) == -1) {
+		QMessageBox::critical(this, "Error", "Failed to load scene file: " + QString(fname));
 		return false;
 	}
 
@@ -93,6 +95,52 @@ bool GoatView::load_scene(const char *fname)
 	treeview->resizeColumnToContents(0);
 
 	sdata = scene_model;	// set the global sdata ptr
+	post_redisplay();
+	return true;
+}
+
+bool GoatView::load_anim(const char *fname)
+{
+	if(!scene) {
+		QMessageBox::critical(this, "Error", "You must load a scene before loading any animations!");
+		return false;
+	}
+
+	if(goat3d_load_anim(scene, fname) == -1) {
+		QMessageBox::critical(this, "Error", QString("Failed to load animation: ") + QString(fname));
+		return false;
+	}
+
+
+	long tstart = LONG_MAX, tend = LONG_MIN;
+	int num_nodes = goat3d_get_node_count(scene);
+	for(int i=0; i<num_nodes; i++) {
+		goat3d_node *node = goat3d_get_node(scene, i);
+		if(goat3d_get_node_parent(node)) {
+			continue;
+		}
+
+		long t0, t1;
+		if(goat3d_get_anim_timeline(node, &t0, &t1) != -1) {
+			if(t0 < tstart) tstart = t0;
+			if(t1 > tend) tend = t1;
+		}
+	}
+
+	if(tstart != LONG_MAX) {
+		act_play->setDisabled(false);
+		act_rewind->setDisabled(false);
+		chk_loop->setDisabled(false);
+
+		slider_time->setDisabled(false);
+		slider_time->setMinimum(tstart);
+		slider_time->setMaximum(tend);
+
+		spin_time->setDisabled(false);
+		spin_time->setMinimum(tstart);
+		spin_time->setMaximum(tend);
+	}
+
 	post_redisplay();
 	return true;
 }
@@ -177,34 +225,56 @@ bool GoatView::make_dock()
 	dock_cont->setLayout(dock_hbox);
 
 	// animation control box
-	QGridLayout *anim_ctl_box = new QGridLayout;
-	dock_hbox->addLayout(anim_ctl_box);
+	QGroupBox *grp_anim_ctl = new QGroupBox("Animation controls");
+	// TODO figure out how these fucking stretching policies work...
+	//grp_anim_ctl->sizePolicy().setHorizontalPolicy(QSizePolicy::Maximum);
+	grp_anim_ctl->sizePolicy().setHorizontalStretch(1);
+	dock_hbox->addWidget(grp_anim_ctl);
 
-	anim_ctl_box->addWidget(new QLabel("Animation"), 0, 0);
-	cbox_anims = new QComboBox;
-	cbox_anims->setDisabled(true);
-	anim_ctl_box->addWidget(cbox_anims, 0, 1);
+	QVBoxLayout *anim_ctl_box = new QVBoxLayout;
+	grp_anim_ctl->setLayout(anim_ctl_box);
 
 	chk_loop = new QCheckBox("loop");
+	chk_loop->setDisabled(true);
 	chk_loop->setChecked(false);
-	anim_ctl_box->addWidget(chk_loop, 1, 0);
+	anim_ctl_box->addWidget(chk_loop);
 
 	QToolBar *toolbar_ctl = new QToolBar;
-	anim_ctl_box->addWidget(toolbar_ctl, 1, 1);
+	anim_ctl_box->addWidget(toolbar_ctl);
 
 	act_rewind = new QAction(style()->standardIcon(QStyle::SP_MediaSkipBackward), "Rewind", this);
 	act_rewind->setDisabled(true);
+	connect(act_rewind, &QAction::triggered, [this](){ slider_time->setValue(slider_time->minimum()); });
 	toolbar_ctl->addAction(act_rewind);
+
 	act_play = new QAction(style()->standardIcon(QStyle::SP_MediaPlay), "Play", this);
 	act_play->setDisabled(true);
 	toolbar_ctl->addAction(act_play);
 
-	// timeline slider
+	// slider and spinbox
+	QWidget *ssgroup = new QWidget;
+	ssgroup->sizePolicy().setHorizontalStretch(4);
+	dock_hbox->addWidget(ssgroup);
+
+	QGridLayout *ssgrid = new QGridLayout;
+	//dock_hbox->addLayout(ssgrid);
+	ssgroup->setLayout(ssgrid);
+
+	ssgrid->addWidget(new QLabel("msec"), 0, 0);
+	spin_time = new QSpinBox;
+	spin_time->setDisabled(true);
+	ssgrid->addWidget(spin_time, 0, 1);
+
 	slider_time = new QSlider(Qt::Orientation::Horizontal);
 	slider_time->setDisabled(true);
+	ssgrid->addWidget(slider_time, 1, 0, 1, 3);
+
 	connect(slider_time, &QSlider::valueChanged,
-		[&](){ anim_time = slider_time->value(); post_redisplay(); });
-	dock_hbox->addWidget(slider_time);
+		[&](){ anim_time = slider_time->value(); spin_time->setValue(anim_time); post_redisplay(); });
+
+	typedef void (QSpinBox::*ValueChangedIntFunc)(int);
+	connect(spin_time, (ValueChangedIntFunc)&QSpinBox::valueChanged,
+		[&](){ anim_time = spin_time->value(); slider_time->setValue(anim_time); post_redisplay(); });
 
 	dock = new QDockWidget(this);
 	dock->setAllowedAreas(Qt::BottomDockWidgetArea);
@@ -235,7 +305,7 @@ void GoatView::open_scene()
 		statusBar()->showMessage("failed to load scene file");
 		return;
 	}
-	statusBar()->showMessage("Successfully loaded scene: " + QString(fname));
+	statusBar()->showMessage("Successfully loaded scene: " + QString(fname.c_str()));
 }
 
 void GoatView::open_anim()
@@ -252,7 +322,7 @@ void GoatView::open_anim()
 		statusBar()->showMessage("failed to load animation file");
 		return;
 	}
-	statusBar()->showMessage("Successfully loaded animation: " + QString(fname));
+	statusBar()->showMessage("Successfully loaded animation: " + QString(fname.c_str()));
 }
 
 

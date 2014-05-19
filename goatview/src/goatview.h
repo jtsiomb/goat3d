@@ -23,7 +23,7 @@ private:
 
 	// animation controls
 	QSlider *slider_time;
-	QComboBox *cbox_anims;
+	QSpinBox *spin_time;
 	QCheckBox *chk_loop;
 	QAction *act_play, *act_rewind;
 
@@ -41,6 +41,7 @@ public:
 	~GoatView();
 
 	bool load_scene(const char *fname);
+	bool load_anim(const char *fname);
 
 	void show_about();
 };

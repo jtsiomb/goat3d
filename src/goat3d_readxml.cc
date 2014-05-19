@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <map>
 #include <string>
+#include <algorithm>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "tinyxml2.h"
@@ -25,6 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 using namespace g3dimpl;
 using namespace tinyxml2;
+
+struct Key {
+	long tm;
+	Vector4 val;
+};
+
+static bool read_track(Scene *scn, XMLElement *xml_track, int *anim_idx);
+static Key read_key(XMLElement *xml_key);
 
 static Material *read_material(Scene *scn, XMLElement *xml_mtl);
 static const char *read_material_attrib(MaterialAttrib *attr, XMLElement *xml_attr);
@@ -132,25 +141,162 @@ bool Scene::load_anim_xml(goat3d_io *io)
 
 	XMLElement *root = xml.RootElement();
 	if(strcmp(root->Name(), "anim") != 0) {
-		logmsg(LOG_ERROR, "invalid XML file, root node is not <anim>\n");
+		logmsg(LOG_ERROR, "%s: root node is not <anim>\n", __FUNCTION__);
 		delete [] buf;
 		return false;
 	}
 
-	XMLElement *elem;
-
-	elem = root->FirstChildElement();
+	int anim_idx = -1;
+	XMLElement *elem = root->FirstChildElement();
 	while(elem) {
 		const char *elem_name = elem->Name();
 
-		if(strcmp(elem_name, "name") == 0) {
-		} else if(strcmp(elem_name, "attr") == 0) {
+		if(strcmp(elem_name, "track") != 0) {
+			logmsg(LOG_ERROR, "%s: only <track>s allowed in <anim>\n", __FUNCTION__);
+			delete [] buf;
+			return false;
+		}
+
+		if(!read_track(this, elem, &anim_idx)) {
+			delete [] buf;
+			return false;
 		}
 		elem = elem->NextSiblingElement();
 	}
 
+	if(anim_idx == -1) {
+		logmsg(LOG_INFO, "%s: WARNING animation affected 0 nodes\n", __FUNCTION__);
+	}
+
 	delete [] buf;
 	return true;
+}
+
+static bool read_track(Scene *scn, XMLElement *xml_track, int *anim_idx)
+{
+	Node *node = 0;
+	int type = -1;
+	std::vector<Key> keys;
+
+	XMLElement *elem = xml_track->FirstChildElement();
+	while(elem) {
+		const char *elem_name = elem->Name();
+
+		if(strcmp(elem_name, "node") == 0) {
+			const char *name = elem->Attribute("string");
+			if(!name || !(node = scn->get_node(name))) {
+				logmsg(LOG_ERROR, "%s: invalid track node: %s\n", __FUNCTION__, name);
+				return false;
+			}
+
+		} else if(strcmp(elem_name, "attr") == 0) {
+			const char *str = elem->Attribute("string");
+			if(str && strcmp(str, "position") == 0) {
+				type = XFormNode::POSITION_TRACK;
+			} else if(str && strcmp(str, "rotation") == 0) {
+				type = XFormNode::ROTATION_TRACK;
+			} else if(str && strcmp(str, "scaling") == 0) {
+				type = XFormNode::SCALING_TRACK;
+			} else {
+				logmsg(LOG_ERROR, "%s: invalid track attribute specifier: %s\n", __FUNCTION__, str);
+				return false;
+			}
+
+		} else if(strcmp(elem_name, "key") == 0) {
+			Key key = read_key(elem);
+			if(key.tm == LONG_MIN) {
+				return false;	// logging in read_key
+			}
+			keys.push_back(key);
+
+		} else {
+			logmsg(LOG_ERROR, "%s: unexpected element <%s> in <track>\n", __FUNCTION__, elem_name);
+			return false;
+		}
+		elem = elem->NextSiblingElement();
+	}
+
+	if(!node) {
+		logmsg(LOG_ERROR, "%s: invalid track, missing node reference\n", __FUNCTION__);
+		return false;
+	}
+	if(type == -1) {
+		logmsg(LOG_ERROR, "%s: invalid track, missing attribute specifier\n", __FUNCTION__);
+		return false;
+	}
+
+	if(*anim_idx == -1) {
+		// this is the first node we encounter. add a new animation and activate it
+		XFormNode *root = node->get_root();
+		*anim_idx = root->get_animation_count() + 1;
+
+		char name[64];
+		sprintf(name, "anim%03d\n", *anim_idx);
+		root->add_animation(name);
+		root->use_animation(*anim_idx);
+	} else {
+		// make sure this node hierarchy already has this animation, otherwise add it
+		XFormNode *root = node->get_root();
+		if(root->get_active_animation_index() != *anim_idx) {
+			char name[64];
+			sprintf(name, "anim%03d\n", *anim_idx);
+			root->add_animation(name);
+			root->use_animation(*anim_idx);
+		}
+	}
+
+	for(auto key : keys) {
+		switch(type) {
+		case XFormNode::POSITION_TRACK:
+			node->set_position(Vector3(key.val.x, key.val.y, key.val.z), key.tm);
+			break;
+		case XFormNode::ROTATION_TRACK:
+			node->set_rotation(Quaternion(key.val.w, key.val.x, key.val.y, key.val.z), key.tm);
+			break;
+		case XFormNode::SCALING_TRACK:
+			node->set_scaling(Vector3(key.val.x, key.val.y, key.val.z), key.tm);
+		}
+	}
+	return true;
+}
+
+static Key read_key(XMLElement *xml_key)
+{
+	Key key;
+	key.tm = LONG_MIN;	// initialize to invalid time
+
+	XMLElement *xml_time = xml_key->FirstChildElement("time");
+	XMLElement *xml_value = xml_key->FirstChildElement("value");
+
+	if(!xml_time || !xml_value) {
+		logmsg(LOG_ERROR, "%s: invalid key, missing either <time> or <value> elements\n", __FUNCTION__);
+		return key;
+	}
+
+	int ival;
+	if(xml_time->QueryIntAttribute("int", &ival) != XML_NO_ERROR) {
+		logmsg(LOG_ERROR, "%s: invalid time element in <key>\n", __FUNCTION__);
+		return key;
+	}
+
+	const char *vstr;
+	if((vstr = xml_value->Attribute("float3"))) {
+		if(sscanf(vstr, "%f %f %f", &key.val.x, &key.val.y, &key.val.z) != 3) {
+			logmsg(LOG_ERROR, "%s: invalid float3 value element in <key>: %s\n", __FUNCTION__, vstr);
+			return key;
+		}
+	} else if((vstr = xml_value->Attribute("float4"))) {
+		if(sscanf(vstr, "%f %f %f %f", &key.val.x, &key.val.y, &key.val.z, &key.val.w) != 4) {
+			logmsg(LOG_ERROR, "%s: invalid float4 value element in <key>: %s\n", __FUNCTION__, vstr);
+			return key;
+		}
+	} else {
+		logmsg(LOG_ERROR, "%s: invalid value element in <key>: missing float3 or float4 attributes\n", __FUNCTION__);
+		return key;
+	}
+
+	key.tm = ival;
+	return key;
 }
 
 static Material *read_material(Scene *scn, XMLElement *xml_mtl)

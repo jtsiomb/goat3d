@@ -69,6 +69,9 @@ public:
 	virtual XFormNode *get_parent();
 	virtual const XFormNode *get_parent() const;
 
+	virtual XFormNode *get_root();
+	virtual const XFormNode *get_root() const;
+
 	// children management
 	virtual void add_child(XFormNode *child);
 	virtual void remove_child(XFormNode *child);
@@ -94,6 +97,8 @@ public:
 	// set/get the current animation name (set is recursive)
 	virtual void set_animation_name(const char *name);
 	virtual const char *get_animation_name() const;
+
+	virtual bool get_timeline_bounds(long *start, long *end);
 
 	// raw keyframe retrieval without interpolation
 	// NOTE: trackid parameters correspond to the values of the unnamed enumeration at the top

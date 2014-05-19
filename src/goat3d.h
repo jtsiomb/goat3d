@@ -268,6 +268,15 @@ GOAT3DAPI void goat3d_add_anim(struct goat3d_node *root);
 GOAT3DAPI void goat3d_set_anim_name(struct goat3d_node *root, const char *name);
 GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node);
 
+GOAT3DAPI long goat3d_get_anim_timeline(struct goat3d_node *root, long *tstart, long *tend);
+
+GOAT3DAPI int goat3d_get_node_position_key_count(struct goat3d_node *node);
+GOAT3DAPI int goat3d_get_node_rotation_key_count(struct goat3d_node *node);
+GOAT3DAPI int goat3d_get_node_scaling_key_count(struct goat3d_node *node);
+GOAT3DAPI long goat3d_get_node_position_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr);
+GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr, float *wptr);
+GOAT3DAPI long goat3d_get_node_scaling_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr);
+
 GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec);
 GOAT3DAPI void goat3d_set_node_rotation(struct goat3d_node *node, float qx, float qy, float qz, float qw, long tmsec);
 GOAT3DAPI void goat3d_set_node_scaling(struct goat3d_node *node, float sx, float sy, float sz, long tmsec);
