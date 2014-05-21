@@ -334,6 +334,9 @@ void GoatView::close_scene()
 	treeview->reset();
 	goat3d_free(scene);
 	scene = 0;
+
+	grp_anim_ctl->setDisabled(true);
+	grp_anim_time->setDisabled(true);
 }
 
 void GoatView::open_anim()
