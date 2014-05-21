@@ -425,25 +425,25 @@ void GoatViewport::paintGL()
 	glRotatef(cam_phi, 1, 0, 0);
 	glRotatef(cam_theta, 0, 1, 0);
 
-	draw_grid();
-
-	if(!scene) return;
-
-	if(use_nodes) {
-		int node_count = goat3d_get_node_count(scene);
-		for(int i=0; i<node_count; i++) {
-			goat3d_node *node = goat3d_get_node(scene, i);
-			if(!goat3d_get_node_parent(node)) {
-				draw_node(node);	// only draw root nodes, the rest will be drawn recursively
+	if(scene) {
+		if(use_nodes) {
+			int node_count = goat3d_get_node_count(scene);
+			for(int i=0; i<node_count; i++) {
+				goat3d_node *node = goat3d_get_node(scene, i);
+				if(!goat3d_get_node_parent(node)) {
+					draw_node(node);	// only draw root nodes, the rest will be drawn recursively
+				}
+			}
+		} else {
+			int mesh_count = goat3d_get_mesh_count(scene);
+			for(int i=0; i<mesh_count; i++) {
+				goat3d_mesh *mesh = goat3d_get_mesh(scene, i);
+				draw_mesh(mesh);
 			}
 		}
-	} else {
-		int mesh_count = goat3d_get_mesh_count(scene);
-		for(int i=0; i<mesh_count; i++) {
-			goat3d_mesh *mesh = goat3d_get_mesh(scene, i);
-			draw_mesh(mesh);
-		}
 	}
+
+	draw_grid();
 }
 
 void GoatViewport::toggle_lighting()
@@ -472,12 +472,13 @@ static void draw_grid()
 	glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BITS);
 
 	glEnable(GL_BLEND);
-	glDepthFunc(GL_ALWAYS);
+	glDepthMask(0);
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	draw_grid(sz0 * 2.0, 10, 1.0 - alpha);
 	draw_grid(sz1 * 2.0, 10, alpha);
 
+	glDepthMask(1);
 	glPopAttrib();
 }
 
