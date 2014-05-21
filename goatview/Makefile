@@ -20,6 +20,13 @@ MOC = moc
 qtinc = `pkg-config --cflags Qt5Gui Qt5Core Qt5OpenGL`
 qtlib = `pkg-config --libs Qt5Gui Qt5Core Qt5OpenGL`
 
+ifeq ($(compiler), clang)
+	CXXFLAGS += -stdlib=libc++
+	warn += '-Wno-\#warnings'
+else
+	warn += -Wno-cpp
+endif
+
 ifeq ($(shell uname -s), Darwin)
 	libgl = -framework OpenGL -framework GLUT -lGLEW
 	libgoat = $(goat_root)/libgoat3d.dylib
@@ -30,14 +37,6 @@ else
 	pic = -fPIC
 	libgl = -lGL -lGLU -lglut -lGLEW
 	libgoat = $(goat_root)/libgoat3d.so.0.1
-endif
-
-ifeq ($(CC), gcc)
-	warn += -Wno-cpp
-endif
-ifneq ($(shell $(CC) --version | grep LLVM),)
-	CXXFLAGS += -stdlib=libc++
-	warn += '-Wno-\#warnings'
 endif
 
 $(bin): $(obj) $(libgoat)
@@ -104,4 +103,13 @@ run: $(bundle)
 else
 run: $(bin)
 	./$(bin)
+endif
+
+ccver = $(shell $(CC) --version)
+ifneq (,$(findstring LLVM,$(ccver)))
+	# clang/llvm
+	compiler = clang
+else
+	# other, assume gcc
+	compiler = gcc
 endif

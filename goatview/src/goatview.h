@@ -36,6 +36,7 @@ private:
 
 private slots:
 	void open_scene();
+	void close_scene();
 	void open_anim();
 
 public:
