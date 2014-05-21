@@ -76,7 +76,7 @@ void GoatView::closeEvent(QCloseEvent *ev)
 bool GoatView::load_scene(const char *fname)
 {
 	if(scene) {
-		goat3d_free(scene);
+		close_scene();
 	}
 	if(!(scene = goat3d_create()) || goat3d_load(scene, fname) == -1) {
 		QMessageBox::critical(this, "Error", "Failed to load scene file: " + QString(fname));
@@ -158,6 +158,12 @@ bool GoatView::make_menu()
 	QAction *act_open_anm = new QAction("Open &Animation", this);
 	connect(act_open_anm, &QAction::triggered, this, &GoatView::open_anim);
 	menu_file->addAction(act_open_anm);
+
+	QAction *act_close = new QAction("&Close", this);
+	connect(act_close, &QAction::triggered, this, &GoatView::close_scene);
+	menu_file->addAction(act_close);
+
+	menu_file->addSeparator();
 
 	QAction *act_quit = new QAction("&Quit", this);
 	act_quit->setShortcuts(QKeySequence::Quit);
@@ -308,12 +314,20 @@ void GoatView::open_scene()
 	statusBar()->showMessage("Successfully loaded scene: " + QString(fname.c_str()));
 }
 
+void GoatView::close_scene()
+{
+	scene_model->clear_scene();
+	treeview->reset();
+	goat3d_free(scene);
+	scene = 0;
+}
+
 void GoatView::open_anim()
 {
 	std::string fname = QFileDialog::getOpenFileName(this, "Open animation file", "",
 		"Goat3D Animation (*.goatanm);;All Files (*)").toStdString();
 	if(fname.empty()) {
-		statusBar()->showMessage("Abot: No file selected!");
+		statusBar()->showMessage("Abort: No file selected!");
 		return;
 	}
 
