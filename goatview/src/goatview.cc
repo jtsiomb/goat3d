@@ -128,17 +128,17 @@ bool GoatView::load_anim(const char *fname)
 	}
 
 	if(tstart != LONG_MAX) {
-		act_play->setDisabled(false);
-		act_rewind->setDisabled(false);
-		chk_loop->setDisabled(false);
+		grp_anim_ctl->setDisabled(false);
+		grp_anim_time->setDisabled(false);
 
-		slider_time->setDisabled(false);
 		slider_time->setMinimum(tstart);
 		slider_time->setMaximum(tend);
 
-		spin_time->setDisabled(false);
 		spin_time->setMinimum(tstart);
 		spin_time->setMaximum(tend);
+
+		label_time_start->setText(QString::number(tstart));
+		label_time_end->setText(QString::number(tend));
 	}
 
 	post_redisplay();
@@ -225,17 +225,15 @@ bool GoatView::make_dock()
 	dock_cont->setLayout(dock_hbox);
 
 	// animation control box
-	QGroupBox *grp_anim_ctl = new QGroupBox("Animation controls");
-	// TODO figure out how these fucking stretching policies work...
-	//grp_anim_ctl->sizePolicy().setHorizontalPolicy(QSizePolicy::Maximum);
-	grp_anim_ctl->sizePolicy().setHorizontalStretch(1);
+	grp_anim_ctl = new QGroupBox("Animation controls");
+	grp_anim_ctl->setSizePolicy(QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred));
+	grp_anim_ctl->setDisabled(true);
 	dock_hbox->addWidget(grp_anim_ctl);
 
 	QVBoxLayout *anim_ctl_box = new QVBoxLayout;
 	grp_anim_ctl->setLayout(anim_ctl_box);
 
 	chk_loop = new QCheckBox("loop");
-	chk_loop->setDisabled(true);
 	chk_loop->setChecked(false);
 	anim_ctl_box->addWidget(chk_loop);
 
@@ -243,31 +241,47 @@ bool GoatView::make_dock()
 	anim_ctl_box->addWidget(toolbar_ctl);
 
 	act_rewind = new QAction(style()->standardIcon(QStyle::SP_MediaSkipBackward), "Rewind", this);
-	act_rewind->setDisabled(true);
 	connect(act_rewind, &QAction::triggered, [this](){ slider_time->setValue(slider_time->minimum()); });
 	toolbar_ctl->addAction(act_rewind);
 
 	act_play = new QAction(style()->standardIcon(QStyle::SP_MediaPlay), "Play", this);
-	act_play->setDisabled(true);
 	toolbar_ctl->addAction(act_play);
 
-	// slider and spinbox
-	QWidget *ssgroup = new QWidget;
-	ssgroup->sizePolicy().setHorizontalStretch(4);
-	dock_hbox->addWidget(ssgroup);
+	/* timeline controls
+	 * /------------------------------\ grp_anim_time with vbox_timeline layout
+	 * | /-------+---------+--------\ |
+	 * | | label | spinbox | spacer | <-- hbox_timespin
+	 * | \-------+---------+--------/ |
+	 * +------------------------------+
+	 * | /-------+---------+--------\ |
+	 * | | label | slider  | label  | <-- hbox_timeslider
+	 * | \-------+---------+--------/ |
+	 * \------------------------------/
+	 */
+	grp_anim_time = new QGroupBox("Timeline");
+	grp_anim_time->setDisabled(true);
+	dock_hbox->addWidget(grp_anim_time);
 
-	QGridLayout *ssgrid = new QGridLayout;
-	//dock_hbox->addLayout(ssgrid);
-	ssgroup->setLayout(ssgrid);
+	QVBoxLayout *vbox_timeline = new QVBoxLayout;
+	grp_anim_time->setLayout(vbox_timeline);
+	QHBoxLayout *hbox_timespin = new QHBoxLayout;
+	vbox_timeline->addLayout(hbox_timespin);
+	QHBoxLayout *hbox_timeslider = new QHBoxLayout;
+	vbox_timeline->addLayout(hbox_timeslider);
 
-	ssgrid->addWidget(new QLabel("msec"), 0, 0);
+	hbox_timespin->addWidget(new QLabel("msec"));
 	spin_time = new QSpinBox;
-	spin_time->setDisabled(true);
-	ssgrid->addWidget(spin_time, 0, 1);
+	hbox_timespin->addWidget(spin_time);
+	hbox_timespin->addStretch();
+
+	label_time_start = new QLabel;
+	hbox_timeslider->addWidget(label_time_start);
 
 	slider_time = new QSlider(Qt::Orientation::Horizontal);
-	slider_time->setDisabled(true);
-	ssgrid->addWidget(slider_time, 1, 0, 1, 3);
+	hbox_timeslider->addWidget(slider_time);
+
+	label_time_end = new QLabel;
+	hbox_timeslider->addWidget(label_time_end);
 
 	connect(slider_time, &QSlider::valueChanged,
 		[&](){ anim_time = slider_time->value(); spin_time->setValue(anim_time); post_redisplay(); });

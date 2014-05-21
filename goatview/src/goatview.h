@@ -22,7 +22,9 @@ private:
 	SceneModel *scene_model;
 
 	// animation controls
+	QGroupBox *grp_anim_time, *grp_anim_ctl;
 	QSlider *slider_time;
+	QLabel *label_time_start, *label_time_end;
 	QSpinBox *spin_time;
 	QCheckBox *chk_loop;
 	QAction *act_play, *act_rewind;
