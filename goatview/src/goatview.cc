@@ -454,7 +454,7 @@ void GoatViewport::toggle_lighting()
 	} else {
 		glDisable(GL_LIGHTING);
 	}
-	updateGL();
+	post_redisplay();
 }
 
 #ifndef GLEW_ARB_transpose_matrix
@@ -666,7 +666,7 @@ void GoatViewport::mouseMoveEvent(QMouseEvent *ev)
 
 		if(cam_dist < 0.0) cam_dist = 0.0;
 	}
-	updateGL();
+	post_redisplay();
 }
 
 static const char *about_str =
