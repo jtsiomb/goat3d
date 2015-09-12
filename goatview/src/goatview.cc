@@ -27,7 +27,7 @@ static bool use_textures = true;
 void post_redisplay()
 {
 	if(glview) {
-		glview->updateGL();
+		glview->update();
 	}
 }
 
