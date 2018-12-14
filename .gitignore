@@ -1,0 +1,5 @@
+*.o
+*.d
+*.swp
+libgoat3d.a
+libgoat3d.so*
