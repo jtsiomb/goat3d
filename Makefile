@@ -1,18 +1,13 @@
 # ----- options -----
+#  TODO make configure script
 PREFIX = /usr/local
 dbg = -g
 opt = -O0
 # -------------------
 
-src = $(wildcard src/*.cc)
-obj = $(src:.cc=.o)
+src = $(wildcard src/*.c)
+obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
-
-openctm = libs/openctm/libopenctm.a
-tinyxml2 = libs/tinyxml2/libtinyxml2.a
-
-extinc = -Ilibs/openctm -Ilibs/tinyxml2
-extlibs = $(openctm) $(tinyxml2)
 
 name = goat3d
 so_major = 0
@@ -24,7 +19,7 @@ ifeq ($(shell uname -s), Darwin)
 	lib_so = lib$(name).dylib
 	shared = -dynamiclib
 else
-	devlink = lib$(name).so
+	ldname = lib$(name).so
 	soname = lib$(name).so.$(so_major)
 	lib_so = lib$(name).so.$(so_major).$(so_minor)
 
@@ -32,41 +27,27 @@ else
 	pic = -fPIC
 endif
 
-CC = clang
-CXX = clang++
-CXXFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(extinc)
-LDFLAGS = $(extlibs) -lvmath -lanim -lpthread
+CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic)
+LDFLAGS = -lanim
 
 .PHONY: all
 all: $(lib_so) $(lib_a)
 
-$(lib_so): $(obj) $(extlibs)
-	$(CXX) -o $@ $(shared) $(obj) $(LDFLAGS)
+$(lib_so): $(obj)
+	$(CC) -o $@ $(shared) $(obj) $(LDFLAGS)
 
-$(lib_a): $(obj) $(extlibs)
-	$(AR) rcs $@ $(obj) $(extlibs)
-
-.PHONY: $(openctm)
-$(openctm):
-	$(MAKE) -C libs/openctm
-
-.PHONY: $(tinyxml2)
-$(tinyxml2):
-	$(MAKE) -C libs/tinyxml2
+$(lib_a): $(obj)
+	$(AR) rcs $@ $(obj)
 
 -include $(dep)
 
-%.d: %.cc
-	@$(CPP) $(CXXFLAGS) $< -MM -MT $(@:.d=.o) >$@
+%.d: %.c
+	@echo "generating depfile $@"
+	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 .PHONY: clean
 clean:
 	rm -f $(obj) $(lib_a) $(lib_so)
-
-.PHONY: cleanlibs
-cleanlibs:
-	$(MAKE) -C libs/openctm clean
-	$(MAKE) -C libs/tinyxml2 clean
 
 .PHONY: cleandep
 cleandep:
@@ -78,11 +59,11 @@ install: $(lib_so) $(lib_a)
 	cp src/goat3d.h $(DESTDIR)$(PREFIX)/include/goat3d.h
 	cp $(lib_a) $(DESTDIR)$(PREFIX)/lib/$(lib_a)
 	cp $(lib_so) $(DESTDIR)$(PREFIX)/lib/$(lib_so)
-	[ -n "$(devlink)" ] && \
+	[ -n "$(ldname)" ] && \
 		cd $(DESTDIR)$(PREFIX)/lib && \
-		rm -f $(soname) $(devlink) && \
+		rm -f $(soname) $(ldname) && \
 		ln -s $(lib_so) $(soname) && \
-		ln -s $(soname) $(devlink) || \
+		ln -s $(soname) $(ldname) || \
 		true
 
 .PHONY: uninstall
@@ -90,7 +71,7 @@ uninstall:
 	rm -f $(DESTDIR)$(PREFIX)/include/goat3d.h
 	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_so)
 	rm -f $(DESTDIR)$(PREFIX)/lib/$(lib_a)
-	[ -n "$(devlink)" ] && \
+	[ -n "$(ldname)" ] && \
 		rm -f $(DESTDIR)$(PREFIX)/lib/$(soname) && \
-		rm -f $(DESTDIR)$(PREFIX)/lib/$(devlink) || \
+		rm -f $(DESTDIR)$(PREFIX)/lib/$(ldname) || \
 		true
