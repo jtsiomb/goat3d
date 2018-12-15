@@ -69,7 +69,7 @@ struct material {
 	cgm_vec3 scale; \
 	void *next
 
-struct any {
+struct object {
 	OBJECT_COMMON;
 };
 
@@ -106,15 +106,8 @@ struct camera {
 	cgm_vec3 target, up;
 };
 
-union object {
-	struct any any;
-	struct mesh mesh;
-	struct light light;
-	struct camera cam;
-};
-
-int g3dimpl_obj_init(union object *o, int type);
-void g3dimpl_obj_destroy(union object *o);
+int g3dimpl_obj_init(struct object *o, int type);
+void g3dimpl_obj_destroy(struct object *o);
 
 void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform);
 

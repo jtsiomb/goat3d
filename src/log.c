@@ -1,6 +1,6 @@
 /*
-goat3d - 3D scene, character, and animation file format library.
-Copyright (C) 2013-2014  John Tsiombikas <nuclear@member.fsf.org>
+goat3d - 3D scene, and animation file format library.
+Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -19,13 +19,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdarg.h>
 #include "log.h"
 
-int goat_log_level = 256;
+int goat3d_log_level = 256;
 
-void g3dimpl::logmsg(int prio, const char *fmt, ...)
+void g3dimpl_logmsg(int prio, const char *fmt, ...)
 {
 	va_list ap;
 
-	if(goat_log_level < prio) {
+	if(goat3d_log_level < prio) {
 		return;
 	}
 

@@ -1,6 +1,6 @@
 /*
-goat3d - 3D scene, character, and animation file format library.
-Copyright (C) 2013-2014  John Tsiombikas <nuclear@member.fsf.org>
+goat3d - 3D scene, and animation file format library.
+Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -28,14 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include <malloc.h>
 #endif
-
-using namespace g3dimpl;
-
-struct goat3d_material : public Material {};
-struct goat3d_mesh : public Mesh {};
-struct goat3d_light : public Light {};
-struct goat3d_camera : public Camera {};
-struct goat3d_node : public Node {};
 
 
 static long read_file(void *buf, size_t bytes, void *uptr);

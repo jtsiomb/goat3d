@@ -19,68 +19,75 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "object.h"
 #include "dynarr.h"
 
-int g3dimpl_obj_init(union object *o, int type)
+int g3dimpl_obj_init(struct object *o, int type)
 {
 	struct mesh *m;
 	struct light *lt;
 	struct camera *cam;
 
-	memset(o, 0, sizeof *o);
-	o->any.type = type;
-	cgm_qcons(&o->any.rot, 0, 0, 0, 1);
-	cgm_vcons(&o->any.scale, 1, 1, 1);
-
 	switch(type) {
 	case OBJTYPE_MESH:
-		m = &o->mesh;
-		if(!(m->vertices = dynarr_alloc(0, sizeof *m->vertices))) break;
-		if(!(m->normals = dynarr_alloc(0, sizeof *m->normals))) break;
-		if(!(m->tangents = dynarr_alloc(0, sizeof *m->tangents))) break;
-		if(!(m->texcoords = dynarr_alloc(0, sizeof *m->texcoords))) break;
-		if(!(m->skin_weights = dynarr_alloc(0, sizeof *m->skin_weights))) break;
-		if(!(m->skin_matrices = dynarr_alloc(0, sizeof *m->skin_matrices))) break;
-		if(!(m->colors = dynarr_alloc(0, sizeof *m->colors))) break;
-		if(!(m->faces = dynarr_alloc(0, sizeof *m->faces))) break;
-		if(!(m->bones = dynarr_alloc(0, sizeof *m->bones))) break;
-		return 0;
+		m = (struct mesh*)o;
+		memset(m, 0, sizeof *m);
+		if(!(m->vertices = dynarr_alloc(0, sizeof *m->vertices))) goto err;
+		if(!(m->normals = dynarr_alloc(0, sizeof *m->normals))) goto err;
+		if(!(m->tangents = dynarr_alloc(0, sizeof *m->tangents))) goto err;
+		if(!(m->texcoords = dynarr_alloc(0, sizeof *m->texcoords))) goto err;
+		if(!(m->skin_weights = dynarr_alloc(0, sizeof *m->skin_weights))) goto err;
+		if(!(m->skin_matrices = dynarr_alloc(0, sizeof *m->skin_matrices))) goto err;
+		if(!(m->colors = dynarr_alloc(0, sizeof *m->colors))) goto err;
+		if(!(m->faces = dynarr_alloc(0, sizeof *m->faces))) goto err;
+		if(!(m->bones = dynarr_alloc(0, sizeof *m->bones))) goto err;
+		break;
 
 	case OBJTYPE_LIGHT:
-		lt = &o->light;
+		lt = (struct light*)o;
+		memset(lt, 0, sizeof *lt);
 		cgm_vcons(&lt->color, 1, 1, 1);
 		cgm_vcons(&lt->attenuation, 1, 0, 0);
 		cgm_vcons(&lt->dir, 0, 0, 1);
 		lt->inner_cone = cgm_deg_to_rad(30);
 		lt->outer_cone = cgm_deg_to_rad(45);
-		return 0;
+		break;
 
 	case OBJTYPE_CAMERA:
-		cam = &o->cam;
+		cam = (struct camera*)o;
+		memset(cam, 0, sizeof *cam);
 		cam->near_clip = 0.5f;
 		cam->far_clip = 500.0f;
 		cgm_vcons(&cam->up, 0, 1, 0);
-		return 0;
+		break;
 
 	default:
-		break;
+		return -1;
 	}
 
+	o->type = type;
+	cgm_qcons(&o->rot, 0, 0, 0, 1);
+	cgm_vcons(&o->scale, 1, 1, 1);
+	return 0;
+
+err:
 	g3dimpl_obj_destroy(o);
 	return -1;
 }
 
-void g3dimpl_obj_destroy(union object *o)
+void g3dimpl_obj_destroy(struct object *o)
 {
-	switch(o->any.type) {
+	struct mesh *m;
+
+	switch(o->type) {
 	case OBJTYPE_MESH:
-		dynarr_free(o->mesh.vertices);
-		dynarr_free(o->mesh.normals);
-		dynarr_free(o->mesh.tangents);
-		dynarr_free(o->mesh.texcoords);
-		dynarr_free(o->mesh.skin_weights);
-		dynarr_free(o->mesh.skin_matrices);
-		dynarr_free(o->mesh.colors);
-		dynarr_free(o->mesh.faces);
-		dynarr_free(o->mesh.bones);
+		m = (struct mesh*)o;
+		dynarr_free(m->vertices);
+		dynarr_free(m->normals);
+		dynarr_free(m->tangents);
+		dynarr_free(m->texcoords);
+		dynarr_free(m->skin_weights);
+		dynarr_free(m->skin_matrices);
+		dynarr_free(m->colors);
+		dynarr_free(m->faces);
+		dynarr_free(m->bones);
 		break;
 
 	default:
@@ -123,12 +130,12 @@ struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const ch
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n)
 {
-	union object *obj = n->data;
+	struct object *obj = n->data;
 	struct anm_node *cn = n->child;
 	float *xform = anm_get_matrix(n, 0, 0);
 
-	if(obj) {
-		g3dimpl_mesh_bounds(bb, &obj->mesh, xform);
+	if(obj && obj->type == OBJTYPE_MESH) {
+		g3dimpl_mesh_bounds(bb, (struct mesh*)obj, xform);
 	} else {
 		g3dimpl_aabox_init(bb);
 	}

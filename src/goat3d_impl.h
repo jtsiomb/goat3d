@@ -1,6 +1,6 @@
 /*
-goat3d - 3D scene, character, and animation file format library.
-Copyright (C) 2013-2014  John Tsiombikas <nuclear@member.fsf.org>
+goat3d - 3D scene, and animation file format library.
+Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,59 +18,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef GOAT3D_IMPL_H_
 #define GOAT3D_IMPL_H_
 
-#include <string>
-#include <vmath/vmath.h>
+#include <cgmath/cgmath.h>
 #include "goat3d.h"
-#include "mesh.h"
-#include "light.h"
-#include "camera.h"
-#include "material.h"
-#include "node.h"
+#include "object.h"
 #include "aabox.h"
 
-namespace g3dimpl {
-class Scene;
-}
-
 struct goat3d {
-	g3dimpl::Scene *scn;
 	unsigned int flags;
 	char *search_path;
+
+	char *name;
+	cgm_vec3 ambient;
+
+	/* dynamic arrays */
+	struct material *materials;
+	union object *meshes;
+	union object *lights;
+	union object *cameras;
+	struct anm_node *nodes;
+
+	struct aabox bbox;
 };
 
+extern int goat3d_log_level;
 
-namespace g3dimpl {
-
-extern int goat_log_level;
-
-#if __cplusplus >= 201103L
-#define MOVE(x)	std::move(x)
-#else
-#define MOVE(x) x
-#endif
-
-#define VECDATA(type, data, num) \
-	MOVE(std::vector<type>((type*)(data), (type*)(data) + (num)))
-
-std::string clean_filename(const char *str);
-
-
-class Scene {
-private:
-	std::string name;
-	Vector3 ambient;
-
-	std::vector<Material*> materials;
-	std::vector<Mesh*> meshes;
-	std::vector<Light*> lights;
-	std::vector<Camera*> cameras;
-	std::vector<Node*> nodes;
-
-	mutable AABox bbox;
-	mutable bool bbox_valid;
-
-public:
-	goat3d *goat;
+int goat3d_init(struct goat3d *g);
+void goat3d_destroy(struct goat3d *g);
 
 	Scene();
 	~Scene();
@@ -125,6 +98,8 @@ public:
 
 void io_fprintf(goat3d_io *io, const char *fmt, ...);
 void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
+
+char *g3dimpl_clean_filename(char *str);
 
 }	// namespace g3dimpl
 
