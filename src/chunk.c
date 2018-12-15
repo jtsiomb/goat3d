@@ -1,6 +1,6 @@
 /*
-goat3d - 3D scene, character, and animation file format library.
-Copyright (C) 2013-2014  John Tsiombikas <nuclear@member.fsf.org>
+goat3d - 3D scene, and animation file format library.
+Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,34 +18,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "goat3d.h"
 #include "chunk.h"
 
-using namespace g3dimpl;
-
-ChunkHeader chunk_header(int id)
+void g3dimpl_chunk_header(struct chunk_header *hdr, int id)
 {
-	ChunkHeader hdr;
-	hdr.id = id;
-	hdr.size = sizeof hdr;
-	return hdr;
+	hdr->id = id;
+	hdr->size = sizeof *hdr;
 }
 
-bool g3dimpl::write_chunk_header(const ChunkHeader *hdr, goat3d_io *io)
+int g3dimpl_write_chunk_header(const struct chunk_header *hdr, struct goat3d_io *io)
 {
 	io->seek(-(long)hdr->size, SEEK_CUR, io->cls);
 	if(io->write(hdr, sizeof *hdr, io->cls) < (long)sizeof *hdr) {
-		return false;
+		return -1;
 	}
-	return true;
+	return 0;
 }
 
-bool g3dimpl::read_chunk_header(ChunkHeader *hdr, goat3d_io *io)
+int g3dimpl_read_chunk_header(struct chunk_header *hdr, struct goat3d_io *io)
 {
 	if(io->read(hdr, sizeof *hdr, io->cls) < (long)sizeof *hdr) {
-		return false;
+		return -1;
 	}
-	return true;
+	return 0;
 }
 
-void g3dimpl::skip_chunk(const ChunkHeader *hdr, goat3d_io *io)
+void g3dimpl_skip_chunk(const struct chunk_header *hdr, struct goat3d_io *io)
 {
 	io->seek(hdr->size - sizeof *hdr, SEEK_CUR, io->cls);
 }
