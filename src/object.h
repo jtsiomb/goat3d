@@ -1,6 +1,6 @@
 /*
-goat3d - 3D scene, character, and animation file format library.
-Copyright (C) 2013-2014  John Tsiombikas <nuclear@member.fsf.org>
+goat3d - 3D scene, and animation file format library.
+Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -18,26 +18,108 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef OBJECT_H_
 #define OBJECT_H_
 
-#include <string>
-#include <vmath/vmath.h>
+#include <cgmath/cgmath.h>
+#include <anim/anim.h>
 #include "aabox.h"
 
-namespace g3dimpl {
-
-class Object {
-public:
-	std::string name;
-
-	Vector3 pos;
-	Quaternion rot;
-	Vector3 scale;
-
-	Object() : scale(1, 1, 1) {}
-	virtual ~Object() {}
-
-	virtual AABox get_bounds(const Matrix4x4 &xform) const { return AABox(); }
+enum {
+	OBJTYPE_UNKNOWN,
+	OBJTYPE_MESH,
+	OBJTYPE_LIGHT,
+	OBJTYPE_CAMERA
 };
 
-}
+enum {
+	LTYPE_POINT,
+	LTYPE_DIR,
+	LTYPE_SPOT
+};
 
-#endif	// OBJECT_H_
+enum {
+	CAMTYPE_PRS,
+	CAMTYPE_TARGET
+};
+
+
+struct face {
+	int v[3];
+};
+
+typedef struct int4 {
+	int x, y, z, w;
+} int4;
+
+struct material_attrib {
+	char *name;
+	cgm_vec4 value;
+	char *map;
+};
+
+struct material {
+	char *name;
+	struct material_attrib *attrib;	/* dynarr */
+};
+
+
+#define OBJECT_COMMON	\
+	int type; \
+	char *name; \
+	cgm_vec3 pos; \
+	cgm_quat rot; \
+	cgm_vec3 scale; \
+	void *next
+
+struct any {
+	OBJECT_COMMON;
+};
+
+struct mesh {
+	OBJECT_COMMON;
+	struct material *mtl;
+
+	/* dynamic arrays */
+	cgm_vec3 *vertices;
+	cgm_vec3 *normals;
+	cgm_vec3 *tangents;
+	cgm_vec2 *texcoords;
+	cgm_vec4 *skin_weights;
+	int4 *skin_matrices;
+	cgm_vec4 *colors;
+	struct face *faces;
+	struct anm_node *bones;
+};
+
+struct light {
+	OBJECT_COMMON;
+	int ltype;
+	cgm_vec3 color;
+	cgm_vec3 attenuation;
+	float max_dist;
+	cgm_vec3 dir;					/* for LTYPE_DIR */
+	float inner_cone, outer_cone;	/* for LTYPE_SPOT */
+};
+
+struct camera {
+	OBJECT_COMMON;
+	int camtype;
+	float near_clip, far_clip;
+	cgm_vec3 target, up;
+};
+
+union object {
+	struct any any;
+	struct mesh mesh;
+	struct light light;
+	struct camera cam;
+};
+
+int g3dimpl_obj_init(union object *o, int type);
+void g3dimpl_obj_destroy(union object *o);
+
+void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform);
+
+struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const char *name);
+
+void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n);
+
+#endif	/* OBJECT_H_ */
