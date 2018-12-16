@@ -34,25 +34,76 @@ static long read_file(void *buf, size_t bytes, void *uptr);
 static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
 
-extern "C" {
-
 GOAT3DAPI struct goat3d *goat3d_create(void)
 {
-	goat3d *goat = new goat3d;
-	goat->flags = 0;
-	goat->search_path = 0;
-	goat->scn = new Scene;
-	goat->scn->goat = goat;
+	struct goat3d *g;
 
-	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
+	if(!(g = malloc(sizeof *g))) {
+		return 0;
+	}
+	if(goat3d_init(g) == -1) {
+		free(g);
+		return 0;
+	}
 	return goat;
 }
 
 GOAT3DAPI void goat3d_free(struct goat3d *g)
 {
-	delete [] g->search_path;
-	delete g->scn;
-	delete g;
+	goat3d_destroy(g);
+	free(g);
+}
+
+int goat3d_init(struct goat3d *g)
+{
+	memset(g, 0, sizeof *g);
+
+	if(goat3d_set_name(g, "unnamed") == -1) goto err;
+	cgm_vcons(&g->ambient, 0.05, 0.05, 0.05);
+
+	if(!(g->materials = dynarr_alloc(0, sizeof *g->materials))) goto err;
+	if(!(g->meshes = dynarr_alloc(0, sizeof *g->meshes))) goto err;
+	if(!(g->lights = dynarr_alloc(0, sizeof *g->lights))) goto err;
+	if(!(g->cameras = dynarr_alloc(0, sizeof *g->cameras))) goto err;
+	if(!(g->nodes = dynarr_alloc(0, sizeof *g->nodes))) goto err;
+
+	goat3d_setopt(g, GOAT3D_OPT_SAVEXML, 1);
+	return 0;
+
+err:
+	goat3d_destroy(g);
+	return -1;
+}
+
+void goat3d_destroy(struct goat3d *g)
+{
+	goat3d_clear(g);
+
+	dynarr_free(g->materials);
+	dynarr_free(g->meshes);
+	dynarr_free(g->lights);
+	dynarr_free(g->cameras);
+	dynarr_free(g->nodes);
+}
+
+void goat3d_clear(struct goat3d *g)
+{
+	int i, j, num;
+
+	num = dynarr_size(g->materials);
+	for(i=0; i<num; i++) {
+		free(g->materials[i].name);
+		for(j=0; j<dynarr_size(g->materials[i].attrib); j++) {
+			free(g->materials[i].attrib[j].name);
+			free(g->materials[i].attrib[j].map);
+		}
+		dynarr_free(g->materials[i].attrib);
+	}
+	dynarr_clear(g->materials);
+
+	/* TODO cont. clear */
+
+	goat3d_set_name(g, "unnamed");
 }
 
 GOAT3DAPI void goat3d_setopt(struct goat3d *g, enum goat3d_option opt, int val)
@@ -115,7 +166,7 @@ GOAT3DAPI int goat3d_save(const struct goat3d *g, const char *fname)
 
 GOAT3DAPI int goat3d_load_file(struct goat3d *g, FILE *fp)
 {
-	goat3d_io io;
+	struct goat3d_io io;
 	io.cls = fp;
 	io.read = read_file;
 	io.write = write_file;
@@ -126,7 +177,7 @@ GOAT3DAPI int goat3d_load_file(struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_save_file(const struct goat3d *g, FILE *fp)
 {
-	goat3d_io io;
+	struct goat3d_io io;
 	io.cls = fp;
 	io.read = read_file;
 	io.write = write_file;
@@ -137,8 +188,8 @@ GOAT3DAPI int goat3d_save_file(const struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 {
-	if(!g->scn->load(io)) {
-		if(!g->scn->loadxml(io)) {
+	if(g3dimpl_scnload_bin(g, io)) {
+		if(!g3dimpl_scnload_text(g, io)) {
 			return -1;
 		}
 	}
@@ -148,39 +199,46 @@ GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		return g->scn->savexml(io) ? 0 : -1;
+		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		return -1;
+	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
+		return g3dimpl_scnsave_text(g, io);
 	}
-	return g->scn->save(io) ? 0 : -1;
+	return g3dimpl_scnsave_bin(g, io);
 }
 
 /* save/load animations */
 GOAT3DAPI int goat3d_load_anim(struct goat3d *g, const char *fname)
 {
-	FILE *fp = fopen(fname, "rb");
-	if(!fp) {
+	int res;
+	FILE *fp;
+
+	if(!(fp = fopen(fname, "rb"))) {
 		return -1;
 	}
 
-	int res = goat3d_load_anim_file(g, fp);
+	res = goat3d_load_anim_file(g, fp);
 	fclose(fp);
 	return res;
 }
 
 GOAT3DAPI int goat3d_save_anim(const struct goat3d *g, const char *fname)
 {
-	FILE *fp = fopen(fname, "wb");
-	if(!fp) {
+	int res;
+	FILE *fp;
+
+	if(!(fp = fopen(fname, "wb"))) {
 		return -1;
 	}
 
-	int res = goat3d_save_anim_file(g, fp);
+	res = goat3d_save_anim_file(g, fp);
 	fclose(fp);
 	return res;
 }
 
 GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp)
 {
-	goat3d_io io;
+	struct goat3d_io io;
 	io.cls = fp;
 	io.read = read_file;
 	io.write = write_file;
@@ -191,7 +249,7 @@ GOAT3DAPI int goat3d_load_anim_file(struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp)
 {
-	goat3d_io io;
+	struct goat3d_io io;
 	io.cls = fp;
 	io.read = read_file;
 	io.write = write_file;
@@ -202,8 +260,8 @@ GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 {
-	if(!g->scn->load_anim(io)) {
-		if(!g->scn->load_anim_xml(io)) {
+	if(g3dimpl_anmload_bin(g, io) == -1) {
+		if(g3dimpl_anmload_text(g, io) == -1) {
 			return -1;
 		}
 	}
@@ -213,51 +271,76 @@ GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		return g->scn->save_anim_xml(io) ? 0 : -1;
+		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		return -1;
+	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
+		return g3dimpl_anmsave_text(io);
 	}
-	return g->scn->save_anim(io) ? 0 : -1;
+	return g3dimpl_anmsave_bin(io);
 }
 
 
 GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name)
 {
-	g->scn->set_name(name);
+	int len = strlen(name);
+
+	free(g->name);
+	if(!(g->name = malloc(len + 1))) {
+		return -1;
+	}
+	memcpy(g->name, name, len + 1);
 	return 0;
 }
 
 GOAT3DAPI const char *goat3d_get_name(const struct goat3d *g)
 {
-	return g->scn->get_name();
+	return g->name;
 }
 
 GOAT3DAPI void goat3d_set_ambient(struct goat3d *g, const float *amb)
 {
-	g->scn->set_ambient(Vector3(amb[0], amb[1], amb[2]));
+	cgm_vcons(&g->ambient, amb[0], amb[1], amb[2]);
 }
 
 GOAT3DAPI void goat3d_set_ambient3f(struct goat3d *g, float ar, float ag, float ab)
 {
-	g->scn->set_ambient(Vector3(ar, ag, ab));
+	cgm_vcons(&g->ambient, ar, ag, ab);
 }
 
 GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g)
 {
-	return &g->scn->get_ambient().x;
+	return &g->ambient.x;
 }
 
 GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax)
 {
-	AABox bbox = g->scn->get_bounds();
-	if(bbox == AABox()) {
-		return -1;
+	int i, num_nodes;
+	struct aabox node_bbox;
+
+	if(!g->bbox_valid) {
+		g3dimpl_aabox_init(&g->bbox);
+
+		num_nodes = dynarr_size(g->nodes);
+		for(i=0; i<num_nodes; i++) {
+			if(g->nodes[i]->parent) {
+				continue;
+			}
+			g3dimpl_node_bounds(&node_bbox, g->nodes[i]);
+			g3dimpl_aabox_union(&g->bbox, &g->bbox, &node_bbox);
+		}
+		g->bbox_valid = 1;
 	}
 
-	for(int i=0; i<3; i++) {
-		bmin[i] = bbox.bmin[i];
-		bmax[i] = bbox.bmax[i];
-	}
+	bmin[0] = g->bbox.min.x;
+	bmin[1] = g->bbox.min.y;
+	bmin[2] = g->bbox.min.z;
+	bmax[0] = g->bbox.max.x;
+	bmax[1] = g->bbox.max.y;
+	bmax[2] = g->bbox.max.z;
 	return 0;
 }
+
+/* TODO cont. */
 
 // ---- materials ----
 GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
@@ -1003,8 +1086,6 @@ GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmi
 		bmax[i] = box.bmax[i];
 	}
 }
-
-}	// extern "C"
 
 
 static long read_file(void *buf, size_t bytes, void *uptr)

@@ -116,6 +116,25 @@ void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform)
 	}
 }
 
+int g3dimpl_mtl_init(struct material *mtl)
+{
+	memset(mtl, 0, sizeof *mtl);
+	if(!(mtl->attrib = dynarr_alloc(0, sizeof *mtl->attrib))) {
+		return -1;
+	}
+	return 0;
+}
+
+void g3dimpl_mtl_destroy(struct material *mtl)
+{
+	int i, num = dynarr_size(mtl->attrib);
+	for(i=0; i<num; i++) {
+		free(mtl->attrib[i].name);
+		free(mtl->attrib[i].map);
+	}
+	dynarr_free(mtl->attrib);
+}
+
 struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const char *name)
 {
 	int i, num = dynarr_size(mtl->attrib);

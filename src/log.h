@@ -20,6 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 enum { LOG_ERROR, LOG_INFO };
 
-void g3dimpl_logmsg(int prio, const char *fmt, ...);
+void goat3d_logmsg(int prio, const char *fmt, ...);
 
 #endif	/* LOG_H_ */

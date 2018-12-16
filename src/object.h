@@ -111,6 +111,8 @@ void g3dimpl_obj_destroy(struct object *o);
 
 void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform);
 
+int g3dimpl_mtl_init(struct material *mtl);
+void g3dimpl_mtl_destroy(struct material *mtl);
 struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const char *name);
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n);

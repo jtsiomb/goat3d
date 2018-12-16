@@ -64,7 +64,8 @@ enum goat3d_im_primitive {
 
 
 enum goat3d_option {
-	GOAT3D_OPT_SAVEXML,		/* save in XML format */
+	GOAT3D_OPT_SAVEXML,		/* save in XML format (dropped) */
+	GOAT3D_OPT_SAVETEXT,	/* save in text format */
 
 	NUM_GOAT3D_OPTIONS
 };

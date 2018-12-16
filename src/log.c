@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int goat3d_log_level = 256;
 
-void g3dimpl_logmsg(int prio, const char *fmt, ...)
+void goat3d_logmsg(int prio, const char *fmt, ...)
 {
 	va_list ap;
 
