@@ -135,7 +135,7 @@ void g3dimpl_mtl_destroy(struct material *mtl)
 	dynarr_free(mtl->attrib);
 }
 
-struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const char *name)
+struct material_attrib *g3dimpl_mtl_findattr(struct material *mtl, const char *name)
 {
 	int i, num = dynarr_size(mtl->attrib);
 
@@ -145,6 +145,31 @@ struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const ch
 		}
 	}
 	return 0;
+}
+
+struct material_attrib *g3dimpl_mtl_getattr(struct material *mtl, const char *name)
+{
+	int idx, len;
+	char *tmpname;
+	struct material_attrib *tmpattr, *ma;
+
+	if((ma = g3dimpl_mtl_findattr(mtl, name))) {
+		return ma;
+	}
+
+	len = strlen(name);
+	if(!(tmpname = malloc(len + 1))) {
+		return 0;
+	}
+	memcpy(tmpname, name, len + 1);
+
+	idx = dynarr_size(mtl->attrib);
+	if(!(tmpattr = dynarr_push(mtl->attrib, attr))) {
+		free(tmpname);
+		return 0;
+	}
+	mtl->attrib = tmpattr;
+	return mtl->attrib + idx;
 }
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n)

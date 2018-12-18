@@ -55,7 +55,7 @@ struct material_attrib {
 	char *map;
 };
 
-struct material {
+struct goat3d_material {
 	char *name;
 	struct material_attrib *attrib;	/* dynarr */
 };
@@ -73,7 +73,7 @@ struct object {
 	OBJECT_COMMON;
 };
 
-struct mesh {
+struct goat3d_mesh {
 	OBJECT_COMMON;
 	struct material *mtl;
 
@@ -89,7 +89,7 @@ struct mesh {
 	struct anm_node *bones;
 };
 
-struct light {
+struct goat3d_light {
 	OBJECT_COMMON;
 	int ltype;
 	cgm_vec3 color;
@@ -99,11 +99,15 @@ struct light {
 	float inner_cone, outer_cone;	/* for LTYPE_SPOT */
 };
 
-struct camera {
+struct goat3d_camera {
 	OBJECT_COMMON;
 	int camtype;
 	float near_clip, far_clip;
 	cgm_vec3 target, up;
+};
+
+struct goat3d_node {
+	struct anm_node anm;
 };
 
 int g3dimpl_obj_init(struct object *o, int type);
@@ -113,7 +117,8 @@ void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform);
 
 int g3dimpl_mtl_init(struct material *mtl);
 void g3dimpl_mtl_destroy(struct material *mtl);
-struct material_attrib *g3dimpl_material_findattr(struct material *mtl, const char *name);
+struct material_attrib *g3dimpl_mtl_findattr(struct material *mtl, const char *name);
+int g3dimpl_mtl_newattr(struct material *mtl, const char *name);
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n);
 

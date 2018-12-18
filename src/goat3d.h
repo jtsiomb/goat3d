@@ -127,7 +127,7 @@ GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g);
 GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax);
 
 /* materials */
-GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
+GOAT3DAPI int goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl);
 GOAT3DAPI int goat3d_get_mtl_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_material *goat3d_get_mtl(struct goat3d *g, int idx);
 GOAT3DAPI struct goat3d_material *goat3d_get_mtl_by_name(struct goat3d *g, const char *name);
@@ -135,13 +135,13 @@ GOAT3DAPI struct goat3d_material *goat3d_get_mtl_by_name(struct goat3d *g, const
 GOAT3DAPI struct goat3d_material *goat3d_create_mtl(void);
 GOAT3DAPI void goat3d_destroy_mtl(struct goat3d_material *mtl);
 
-GOAT3DAPI void goat3d_set_mtl_name(struct goat3d_material *mtl, const char *name);
+GOAT3DAPI int goat3d_set_mtl_name(struct goat3d_material *mtl, const char *name);
 GOAT3DAPI const char *goat3d_get_mtl_name(const struct goat3d_material *mtl);
 
-GOAT3DAPI void goat3d_set_mtl_attrib(struct goat3d_material *mtl, const char *attrib, const float *val);
-GOAT3DAPI void goat3d_set_mtl_attrib1f(struct goat3d_material *mtl, const char *attrib, float val);
-GOAT3DAPI void goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b);
-GOAT3DAPI void goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a);
+GOAT3DAPI int goat3d_set_mtl_attrib(struct goat3d_material *mtl, const char *attrib, const float *val);
+GOAT3DAPI int goat3d_set_mtl_attrib1f(struct goat3d_material *mtl, const char *attrib, float val);
+GOAT3DAPI int goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b);
+GOAT3DAPI int goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a);
 GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attrib);
 
 GOAT3DAPI void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname);

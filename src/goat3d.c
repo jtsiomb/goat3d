@@ -340,83 +340,136 @@ GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax
 	return 0;
 }
 
-/* TODO cont. */
-
 // ---- materials ----
-GOAT3DAPI void goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
+GOAT3DAPI int goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
 {
-	g->scn->add_material(mtl);
+	struct material *newarr;
+	if(!(newarr = dynarr_push(g->materials, &mtl))) {
+		return -1;
+	}
+	g->materials = newarr;
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_mtl_count(struct goat3d *g)
 {
-	return g->scn->get_material_count();
+	return dynarr_size(g->materials);
 }
 
 GOAT3DAPI struct goat3d_material *goat3d_get_mtl(struct goat3d *g, int idx)
 {
-	return (goat3d_material*)g->scn->get_material(idx);
+	return g->materials[idx];
 }
 
 GOAT3DAPI struct goat3d_material *goat3d_get_mtl_by_name(struct goat3d *g, const char *name)
 {
-	return (goat3d_material*)g->scn->get_material(name);
+	int i, num = dynarr_size(g->materials);
+	for(i=0; i<num; i++) {
+		if(strcmp(g->materials[i]->name, name) == 0) {
+			return g->materials[i];
+		}
+	}
+	return 0;
 }
 
 GOAT3DAPI struct goat3d_material *goat3d_create_mtl(void)
 {
-	return new goat3d_material;
+	struct goat3d_material *mtl;
+	if(!(mtl = malloc(sizeof *mtl))) {
+		return 0;
+	}
+	g3dimpl_mtl_init(mtl);
+	return mtl;
 }
 
 GOAT3DAPI void goat3d_destroy_mtl(struct goat3d_material *mtl)
 {
-	delete mtl;
+	g3dimpl_mtl_destroy(mtl);
+	free(mtl);
 }
 
-GOAT3DAPI void goat3d_set_mtl_name(struct goat3d_material *mtl, const char *name)
+GOAT3DAPI int goat3d_set_mtl_name(struct goat3d_material *mtl, const char *name)
 {
-	mtl->name = std::string(name);
+	char *tmp;
+	int len = strlen(name);
+	if(!(tmp = malloc(len + 1))) {
+		return -1;
+	}
+	memcpy(tmp, name, len + 1);
+	free(mtl->name);
+	mtl->name = tmp;
+	return 0;
 }
 
 GOAT3DAPI const char *goat3d_get_mtl_name(const struct goat3d_material *mtl)
 {
-	return mtl->name.c_str();
+	return mtl->name;
 }
 
-GOAT3DAPI void goat3d_set_mtl_attrib(struct goat3d_material *mtl, const char *attrib, const float *val)
+GOAT3DAPI int goat3d_set_mtl_attrib(struct goat3d_material *mtl, const char *attrib, const float *val)
 {
-	(*mtl)[attrib].value = Vector4(val[0], val[1], val[2], val[3]);
+	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attr);
+	if(!ma) return -1;
+	cgm_vcons(&ma->value, val[0], val[1], val[2], val[3]);
+	return 0;
 }
 
-GOAT3DAPI void goat3d_set_mtl_attrib1f(struct goat3d_material *mtl, const char *attrib, float val)
+GOAT3DAPI int goat3d_set_mtl_attrib1f(struct goat3d_material *mtl, const char *attrib, float val)
 {
-	goat3d_set_mtl_attrib4f(mtl, attrib, val, 0, 0, 1);
+	return goat3d_set_mtl_attrib4f(mtl, attrib, val, 0, 0, 1);
 }
 
-GOAT3DAPI void goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b)
+GOAT3DAPI int goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b)
 {
-	goat3d_set_mtl_attrib4f(mtl, attrib, r, g, b, 1);
+	return goat3d_set_mtl_attrib4f(mtl, attrib, r, g, b, 1);
 }
 
-GOAT3DAPI void goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a)
+GOAT3DAPI int goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a)
 {
-	(*mtl)[attrib].value = Vector4(r, g, b, a);
+	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attr);
+	if(!ma) return -1;
+	cgm_vcons(&ma->value, r, g, b, a);
+	return 0;
 }
 
 GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attrib)
 {
-	return &(*mtl)[attrib].value.x;
+	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attr);
+	return ma ? &ma->value.x : 0;
 }
 
-GOAT3DAPI void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
+GOAT3DAPI int goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname)
 {
-	(*mtl)[attrib].map = clean_filename(mapname);
+	int len;
+	char *tmp;
+	struct material_attrib *ma;
+
+	len = strlen(mapname);
+	if(!(tmp = malloc(len + 1))) {
+		return -1;
+	}
+	memcpy(tmp, mapname, len + 1);
+
+	if(!(ma = g3dimpl_mtl_getattr(mtl, attr))) {
+		free(tmp);
+		return -1;
+	}
+	free(ma->map);
+	ma->map = tmp;
+	tmp = clean_filename(ma->map);
+	if(tmp != ma->map) {
+		memmove(ma->map, tmp, len - (tmp - ma->map) + 1);
+	}
+	return 0;
 }
 
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
 {
-	return (*mtl)[attrib].map.c_str();
+	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attr);
+	return ma->map;
 }
+
+// TODO cont.
 
 // ---- meshes ----
 GOAT3DAPI void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)

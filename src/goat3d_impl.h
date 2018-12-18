@@ -1,6 +1,6 @@
 /*
 goat3d - 3D scene, and animation file format library.
-Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2013-2019  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -31,11 +31,11 @@ struct goat3d {
 	cgm_vec3 ambient;
 
 	/* dynamic arrays */
-	struct material **materials;
-	union object **meshes;
-	union object **lights;
-	union object **cameras;
-	struct anm_node **nodes;
+	struct goat3d_material **materials;
+	struct goat3d_mesh **meshes;
+	struct goat3d_light **lights;
+	struct goat3d_camera **cameras;
+	struct goat3d_node **nodes;
 
 	struct aabox bbox;
 	int bbox_valid;
