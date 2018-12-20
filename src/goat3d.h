@@ -148,7 +148,7 @@ GOAT3DAPI void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib);
 
 /* meshes */
-GOAT3DAPI void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
+GOAT3DAPI int goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
 GOAT3DAPI int goat3d_get_mesh_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx);
 GOAT3DAPI struct goat3d_mesh *goat3d_get_mesh_by_name(struct goat3d *g, const char *name);
@@ -156,7 +156,7 @@ GOAT3DAPI struct goat3d_mesh *goat3d_get_mesh_by_name(struct goat3d *g, const ch
 GOAT3DAPI struct goat3d_mesh *goat3d_create_mesh(void);
 GOAT3DAPI void goat3d_destroy_mesh(struct goat3d_mesh *mesh);
 
-GOAT3DAPI void goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name);
+GOAT3DAPI int goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name);
 GOAT3DAPI const char *goat3d_get_mesh_name(const struct goat3d_mesh *mesh);
 
 GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_material *mtl);
@@ -176,14 +176,14 @@ GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh);
  *  - GOAT3D_MESH_ATTR_SKIN_MATRIX  - 4 ints per vertex
  *  - GOAT3D_MESH_ATTR_COLOR        - 4 floats per vertex
  */
-GOAT3DAPI void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		const void *data, int vnum);
-GOAT3DAPI void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, float val);
-GOAT3DAPI void goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, float val);
+GOAT3DAPI int goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y);
-GOAT3DAPI void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z);
-GOAT3DAPI void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z, float w);
 /* returns a pointer to the beginning of the requested mesh attribute array */
 GOAT3DAPI void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib);
@@ -191,8 +191,8 @@ GOAT3DAPI void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_me
 GOAT3DAPI void *goat3d_get_mesh_attrib(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, int idx);
 
 /* sets all the faces in one go. data is an array of 3 int vertex indices per face */
-GOAT3DAPI void goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int fnum);
-GOAT3DAPI void goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c);
+GOAT3DAPI int goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int fnum);
+GOAT3DAPI int goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c);
 /* returns a pointer to the beginning of the face index array */
 GOAT3DAPI int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh);
 /* returns a pointer to a face index */

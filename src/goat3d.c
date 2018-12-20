@@ -469,47 +469,74 @@ GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, con
 	return ma->map;
 }
 
-// TODO cont.
-
 // ---- meshes ----
-GOAT3DAPI void goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
+GOAT3DAPI int goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
 {
-	g->scn->add_mesh(mesh);
+	struct goat3d_mesh **arr;
+	if(!(arr = dynarr_push(g->meshes, &mesh))) {
+		return -1;
+	}
+	g->meshes = arr;
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_mesh_count(struct goat3d *g)
 {
-	return g->scn->get_mesh_count();
+	return dynarr_size(g->meshes);
 }
 
 GOAT3DAPI struct goat3d_mesh *goat3d_get_mesh(struct goat3d *g, int idx)
 {
-	return (goat3d_mesh*)g->scn->get_mesh(idx);
+	return g->meshes[idx];
 }
 
 GOAT3DAPI struct goat3d_mesh *goat3d_get_mesh_by_name(struct goat3d *g, const char *name)
 {
-	return (goat3d_mesh*)g->scn->get_mesh(name);
+	int i, num = dynarr_size(g->meshes);
+	for(i=0; i<num; i++) {
+		if(strcmp(g->meshes[i]->name, name) == 0) {
+			return g->meshes[i];
+		}
+	}
+	return 0;
 }
 
 GOAT3DAPI struct goat3d_mesh *goat3d_create_mesh(void)
 {
-	return new goat3d_mesh;
+	struct goat3d_mesh *m;
+
+	if(!(m = malloc(sizeof *m))) {
+		return 0;
+	}
+	if(g3dimpl_obj_init((struct object*)m, OBJTYPE_MESH) == -1) {
+		free(m);
+		return 0;
+	}
+	return m;
 }
 
 GOAT3DAPI void goat3d_destroy_mesh(struct goat3d_mesh *mesh)
 {
-	delete mesh;
+	g3dimpl_obj_destroy((struct object*)m);
 }
 
-GOAT3DAPI void goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name)
+GOAT3DAPI int goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name)
 {
-	mesh->name = std::string(name);
+	char *tmpname;
+	int len = strlen(name);
+
+	if(!(tmpname = malloc(len + 1))) {
+		return -1;
+	}
+	memcpy(tmpname, name, len + 1);
+	free(mesh->name);
+	mesh->name = tmpname;
+	return 0;
 }
 
 GOAT3DAPI const char *goat3d_get_mesh_name(const struct goat3d_mesh *mesh)
 {
-	return mesh->name.c_str();
+	return mesh->name;
 }
 
 GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_material *mtl)
@@ -519,100 +546,160 @@ GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_mater
 
 GOAT3DAPI struct goat3d_material *goat3d_get_mesh_mtl(struct goat3d_mesh *mesh)
 {
-	return (goat3d_material*)mesh->material;
+	return mesh->material;
 }
 
 GOAT3DAPI int goat3d_get_mesh_attrib_count(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
 {
-	return (int)mesh->vertices.size();
+	return dynarr_size(mesh->vertices);
 }
 
 GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh)
 {
-	return (int)mesh->faces.size();
+	return dynarr_size(mesh->faces);
 }
 
-// VECDATA is in goat3d_impl.h
-GOAT3DAPI void goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, const void *data, int vnum)
+#define SET_VERTEX_DATA(arr, p, n) \
+	do { \
+		void *tmp = dynarr_resize(arr, n); \
+		if(!tmp) { \
+			logmsg(LOG_ERROR, "failed to resize vertex array (%d)\n", n); \
+			return -1; \
+		} \
+		arr = tmp; \
+		memcpy(arr, p, n * sizeof *arr); \
+	} while(0)
+
+GOAT3DAPI int goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib, const void *data, int vnum)
 {
 	if(attrib == GOAT3D_MESH_ATTR_VERTEX) {
-		mesh->vertices = VECDATA(Vector3, data, vnum);
-		return;
+		SET_VERTEX_DATA(mesh->vertices, data, vnum);
+		return 0;
 	}
 
-	if(vnum != (int)mesh->vertices.size()) {
+	if(vnum != dynarr_size(mesh->vertices)) {
 		logmsg(LOG_ERROR, "trying to set mesh attrib data with number of elements different than the vertex array\n");
-		return;
+		return -1;
 	}
 
 	switch(attrib) {
 	case GOAT3D_MESH_ATTR_NORMAL:
-		mesh->normals = VECDATA(Vector3, data, vnum);
+		SET_VERTEX_DATA(mesh->normal, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_TANGENT:
-		mesh->tangents = VECDATA(Vector3, data, vnum);
+		SET_VERTEX_DATA(mesh->tangents, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_TEXCOORD:
-		mesh->texcoords = VECDATA(Vector2, data, vnum);
+		SET_VERTEX_DATA(mesh->texcoords, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
-		mesh->skin_weights = VECDATA(Vector4, data, vnum);
+		SET_VERTEX_DATA(mesh->skin_weights, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_SKIN_MATRIX:
-		mesh->skin_matrices = VECDATA(Int4, data, vnum);
+		SET_VERTEX_DATA(mesh->skin_matrices, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_COLOR:
-		mesh->colors = VECDATA(Vector4, data, vnum);
+		SET_VERTEX_DATA(mesh->colors, data, vnum);
 	default:
-		break;
+		logmsg(LOG_ERROR, "trying to set unknown vertex attrib: %d\n", attrib);
+		return -1;
 	}
+	return 0;
 }
 
-GOAT3DAPI void goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib1f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float val)
 {
-	goat3d_add_mesh_attrib4f(mesh, attrib, val, 0, 0, 1);
+	return goat3d_add_mesh_attrib4f(mesh, attrib, val, 0, 0, 1);
 }
 
-GOAT3DAPI void goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib2f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y)
 {
-	goat3d_add_mesh_attrib4f(mesh, attrib, x, y, 0, 1);
+	return goat3d_add_mesh_attrib4f(mesh, attrib, x, y, 0, 1);
 }
 
-GOAT3DAPI void goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z)
 {
-	goat3d_add_mesh_attrib4f(mesh, attrib, x, y, z, 1);
+	return goat3d_add_mesh_attrib4f(mesh, attrib, x, y, z, 1);
 }
 
-GOAT3DAPI void goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
+GOAT3DAPI int goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z, float w)
 {
+	cgm_vec4 vec;
+	int4 i4;
+	void *tmp;
+
 	switch(attrib) {
 	case GOAT3D_MESH_ATTR_VERTEX:
-		mesh->vertices.push_back(Vector3(x, y, z));
+		cgm_vcons(&vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->vertices, &vec))) {
+			goto err;
+		}
+		mesh->vertices = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_NORMAL:
-		mesh->normals.push_back(Vector3(x, y, z));
+		cgm_vcons(&vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->normals, &vec))) {
+			goto err;
+		}
+		mesh->normals = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_TANGENT:
-		mesh->tangents.push_back(Vector3(x, y, z));
+		cgm_vcons(&vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->tangents, &vec))) {
+			goto err;
+		}
+		mesh->tangents = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_TEXCOORD:
-		mesh->texcoords.push_back(Vector2(x, y));
+		cgm_vcons(&vec, x, y, 0);
+		if(!(tmp = dynarr_push(mesh->texcoords, &vec))) {
+			goto err;
+		}
+		mesh->texcoords = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
-		mesh->skin_weights.push_back(Vector4(x, y, z, w));
+		cgm_wcons(&vec, x, y, z, w);
+		if(!(tmp = dynarr_push(mesh->skin_weights, &vec))) {
+			goto err;
+		}
+		mesh->skin_weights = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_SKIN_MATRIX:
-		mesh->skin_matrices.push_back(Int4(x, y, z, w));
+		intvec.x = x;
+		intvec.y = y;
+		intvec.z = z;
+		intvec.w = w;
+		if(!(tmp = dynarr_push(mesh->skin_matrices, &intvec))) {
+			goto err;
+		}
+		mesh->skin_matrices = tmp;
 		break;
+
 	case GOAT3D_MESH_ATTR_COLOR:
-		mesh->colors.push_back(Vector4(x, y, z, w));
+		cgm_wcons(&vec, x, y, z, w);
+		if(!(tmp = dynarr_push(mesh->colors, &vec))) {
+			goto err;
+		}
+		mesh->colors = tmp;
+
 	default:
-		break;
+		logmsg(LOG_ERROR, "trying to add unknown vertex attrib: %d\n", attrib);
+		return -1;
 	}
+	return 0;
+
+err:
+	logmsg(LOG_ERROR, "failed to push vertex attrib\n");
+	return -1;
 }
 
 GOAT3DAPI void *goat3d_get_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
@@ -624,19 +711,19 @@ GOAT3DAPI void *goat3d_get_mesh_attrib(struct goat3d_mesh *mesh, enum goat3d_mes
 {
 	switch(attrib) {
 	case GOAT3D_MESH_ATTR_VERTEX:
-		return mesh->vertices.empty() ? 0 : (void*)&mesh->vertices[idx];
+		return dynarr_empty(mesh->vertices) ? 0 : mesh->vertices + idx;
 	case GOAT3D_MESH_ATTR_NORMAL:
-		return mesh->normals.empty() ? 0 : (void*)&mesh->normals[idx];
+		return dynarr_empty(mesh->normals) ? 0 : mesh->normals + idx;
 	case GOAT3D_MESH_ATTR_TANGENT:
-		return mesh->tangents.empty() ? 0 : (void*)&mesh->tangents[idx];
+		return dynarr_empty(mesh->tangents) ? 0 : mesh->tangents + idx;
 	case GOAT3D_MESH_ATTR_TEXCOORD:
-		return mesh->texcoords.empty() ? 0 : (void*)&mesh->texcoords[idx];
+		return dynarr_empty(mesh->texcoords) ? 0 : mesh->texcoords + idx;
 	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
-		return mesh->skin_weights.empty() ? 0 : (void*)&mesh->skin_weights[idx];
+		return dynarr_empty(mesh->skin_weights) ? 0 : mesh->skin_weights + idx;
 	case GOAT3D_MESH_ATTR_SKIN_MATRIX:
-		return mesh->skin_matrices.empty() ? 0 : (void*)&mesh->skin_matrices[idx];
+		return dynarr_empty(mesh->skin_matrices) ? 0 : mesh->skin_matrices + idx;
 	case GOAT3D_MESH_ATTR_COLOR:
-		return mesh->colors.empty() ? 0 : (void*)&mesh->colors[idx];
+		return dynarr_empty(mesh->colors) ? 0 : mesh->colors + idx;
 	default:
 		break;
 	}
@@ -644,18 +731,33 @@ GOAT3DAPI void *goat3d_get_mesh_attrib(struct goat3d_mesh *mesh, enum goat3d_mes
 }
 
 
-GOAT3DAPI void goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int num)
+GOAT3DAPI int goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, int num)
 {
-	mesh->faces = VECDATA(Face, data, num);
+	void *tmp;
+	if(!(tmp = dynarr_resize(mesh->faces, num))) {
+		logmsg(LOG_ERROR, "failed to resize face array (%d)\n", num);
+		return -1;
+	}
+	mesh->faces = tmp;
+	memcpy(mesh->faces, data, num * sizeof *mesh->faces);
+	return 0;
 }
 
-GOAT3DAPI void goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c)
+GOAT3DAPI int goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c)
 {
-	Face face;
+	void *tmp;
+	struct face face;
+
 	face.v[0] = a;
 	face.v[1] = b;
 	face.v[2] = c;
-	mesh->faces.push_back(face);
+
+	if(!(tmp = dynarr_push(mesh->faces, &face))) {
+		logmsg(LOG_ERROR, "failed to add face\n");
+		return -1;
+	}
+	mesh->faces = tmp;
+	return 0;
 }
 
 GOAT3DAPI int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh)
@@ -665,29 +767,29 @@ GOAT3DAPI int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh)
 
 GOAT3DAPI int *goat3d_get_mesh_face(struct goat3d_mesh *mesh, int idx)
 {
-	return mesh->faces.empty() ? 0 : mesh->faces[idx].v;
+	return dynarr_empty(mesh->faces) ? 0 : &mesh->faces[idx].v;
 }
 
 // immedate mode state
 static enum goat3d_im_primitive im_prim;
 static struct goat3d_mesh *im_mesh;
-static Vector3 im_norm, im_tang;
-static Vector2 im_texcoord;
-static Vector4 im_skinw, im_color = Vector4(1, 1, 1, 1);
-static Int4 im_skinmat;
-static bool im_use[NUM_GOAT3D_MESH_ATTRIBS];
+static cgm_vec3 im_norm, im_tang;
+static cgm_vec2 im_texcoord;
+static cgm_vec4 im_skinw, im_color = {1, 1, 1, 1};
+static int4 im_skinmat;
+static int im_use[NUM_GOAT3D_MESH_ATTRIBS];
 
 
 GOAT3DAPI void goat3d_begin(struct goat3d_mesh *mesh, enum goat3d_im_primitive prim)
 {
-	mesh->vertices.clear();
-	mesh->normals.clear();
-	mesh->tangents.clear();
-	mesh->texcoords.clear();
-	mesh->skin_weights.clear();
-	mesh->skin_matrices.clear();
-	mesh->colors.clear();
-	mesh->faces.clear();
+	dynarr_clear(mesh->vertices);
+	dynarr_clear(mesh->normals);
+	dynarr_clear(mesh->tangents);
+	dynarr_clear(mesh->texcoords);
+	dynarr_clear(mesh->skin_weights);
+	dynarr_clear(mesh->skin_matrices);
+	dynarr_clear(mesh->colors);
+	dynarr_clear(mesh->faces);
 
 	im_mesh = mesh;
 	memset(im_use, 0, sizeof im_use);
@@ -697,14 +799,20 @@ GOAT3DAPI void goat3d_begin(struct goat3d_mesh *mesh, enum goat3d_im_primitive p
 
 GOAT3DAPI void goat3d_end(void)
 {
+	int i, vidx, num_faces, num_quads;
+	void *tmp;
+
 	switch(im_prim) {
 	case GOAT3D_TRIANGLES:
 		{
-			int num_faces = (int)im_mesh->vertices.size() / 3;
-			im_mesh->faces.resize(num_faces);
+			num_faces = dynarr_size(im_mesh->vertices) / 3;
+			if(!(tmp = dynarr_resize(im_mesh->faces, num_faces))) {
+				return;
+			}
+			im_mesh->faces = tmp;
 
-			int vidx = 0;
-			for(int i=0; i<num_faces; i++) {
+			vidx = 0;
+			for(i=0; i<num_faces; i++) {
 				im_mesh->faces[i].v[0] = vidx++;
 				im_mesh->faces[i].v[1] = vidx++;
 				im_mesh->faces[i].v[2] = vidx++;
@@ -714,11 +822,14 @@ GOAT3DAPI void goat3d_end(void)
 
 	case GOAT3D_QUADS:
 		{
-			int num_quads = (int)im_mesh->vertices.size() / 4;
-			im_mesh->faces.resize(num_quads * 2);
+			num_quads = dynarr_size(im_mesh->vertices) / 4;
+			if(!(tmp = dynarr_resize(im_mesh->faces, num_quads * 2))) {
+				return;
+			}
+			im_mesh->faces = tmp;
 
-			int vidx = 0;
-			for(int i=0; i<num_quads; i++) {
+			vidx = 0;
+			for(i=0; i<num_quads; i++) {
 				im_mesh->faces[i * 2].v[0] = vidx;
 				im_mesh->faces[i * 2].v[1] = vidx + 1;
 				im_mesh->faces[i * 2].v[2] = vidx + 2;
@@ -733,55 +844,76 @@ GOAT3DAPI void goat3d_end(void)
 		break;
 
 	default:
-		return;
-	};
+		break;
+	}
 }
 
 GOAT3DAPI void goat3d_vertex3f(float x, float y, float z)
 {
-	im_mesh->vertices.push_back(Vector3(x, y, z));
+	void *tmp;
+	cgm_vec3 v;
+
+	cgm_vcons(&v, x, y, z);
+	if(!(tmp = dynarr_push(im_mesh->vertices, &vec))) {
+		return;
+	}
+	im_mesh->vertices = tmp;
+
 	if(im_use[GOAT3D_MESH_ATTR_NORMAL]) {
-		im_mesh->normals.push_back(im_norm);
+		if((tmp = dynarr_push(im_mesh->normals, &im_norm))) {
+			im_mesh->normals = tmp;
+		}
 	}
 	if(im_use[GOAT3D_MESH_ATTR_TANGENT]) {
-		im_mesh->tangents.push_back(im_tang);
+		if((tmp = dynarr_push(im_mesh->tangents, &im_tang))) {
+			im_mesh->tangents = tmp;
+		}
 	}
 	if(im_use[GOAT3D_MESH_ATTR_TEXCOORD]) {
-		im_mesh->texcoords.push_back(im_texcoord);
+		if((tmp = dynarr_push(im_mesh->texcoords, &im_texcoord))) {
+			im_mesh->texcoords = tmp;
+		}
 	}
 	if(im_use[GOAT3D_MESH_ATTR_SKIN_WEIGHT]) {
-		im_mesh->skin_weights.push_back(im_skinw);
+		if((tmp = dynarr_push(im_mesh->skin_weights, &im_skinw))) {
+			im_mesh->skin_weights = tmp;
+		}
 	}
 	if(im_use[GOAT3D_MESH_ATTR_SKIN_MATRIX]) {
-		im_mesh->skin_matrices.push_back(im_skinmat);
+		if((tmp = dynarr_push(im_mesh->skin_matrices, &im_skinmat))) {
+			im_mesh->skin_matrices = tmp;
+		}
 	}
 	if(im_use[GOAT3D_MESH_ATTR_COLOR]) {
-		im_mesh->colors.push_back(im_color);
+		if((tmp = dynarr_push(im_mesh->colors, &im_color))) {
+			im_mesh->colors = tmp;
+		}
 	}
 }
 
 GOAT3DAPI void goat3d_normal3f(float x, float y, float z)
 {
-	im_norm = Vector3(x, y, z);
-	im_use[GOAT3D_MESH_ATTR_NORMAL] = true;
+	cgm_vcons(&im_norm, x, y, z);
+	im_use[GOAT3D_MESH_ATTR_NORMAL] = 1;
 }
 
 GOAT3DAPI void goat3d_tangent3f(float x, float y, float z)
 {
-	im_tang = Vector3(x, y, z);
-	im_use[GOAT3D_MESH_ATTR_TANGENT] = true;
+	cgm_vcons(&im_tang, x, y, z);
+	im_use[GOAT3D_MESH_ATTR_TANGENT] = 1;
 }
 
 GOAT3DAPI void goat3d_texcoord2f(float x, float y)
 {
-	im_texcoord = Vector2(x, y);
-	im_use[GOAT3D_MESH_ATTR_TEXCOORD] = true;
+	im_texcoord.x = x;
+	im_texcoord.y = y;
+	im_use[GOAT3D_MESH_ATTR_TEXCOORD] = 1;
 }
 
 GOAT3DAPI void goat3d_skin_weight4f(float x, float y, float z, float w)
 {
-	im_skinw = Vector4(x, y, z, w);
-	im_use[GOAT3D_MESH_ATTR_SKIN_WEIGHT] = true;
+	cgm_wcons(&im_skinw, x, y, z, w);
+	im_use[GOAT3D_MESH_ATTR_SKIN_WEIGHT] = 1;
 }
 
 GOAT3DAPI void goat3d_skin_matrix4i(int x, int y, int z, int w)
@@ -790,7 +922,7 @@ GOAT3DAPI void goat3d_skin_matrix4i(int x, int y, int z, int w)
 	im_skinmat.y = y;
 	im_skinmat.z = z;
 	im_skinmat.w = w;
-	im_use[GOAT3D_MESH_ATTR_SKIN_MATRIX] = true;
+	im_use[GOAT3D_MESH_ATTR_SKIN_MATRIX] = 1;
 }
 
 GOAT3DAPI void goat3d_color3f(float x, float y, float z)
@@ -800,10 +932,11 @@ GOAT3DAPI void goat3d_color3f(float x, float y, float z)
 
 GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w)
 {
-	im_color = Vector4(x, y, z, w);
-	im_use[GOAT3D_MESH_ATTR_COLOR] = true;
+	cgm_wcons(&im_color, x, y, z, w);
+	im_use[GOAT3D_MESH_ATTR_COLOR] = 1;
 }
 
+// TODO cont.
 
 GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax)
 {
