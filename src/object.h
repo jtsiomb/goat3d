@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <cgmath/cgmath.h>
 #include <anim/anim.h>
+#include "goat3d.h"
 #include "aabox.h"
 
 enum {
@@ -75,7 +76,7 @@ struct object {
 
 struct goat3d_mesh {
 	OBJECT_COMMON;
-	struct material *mtl;
+	struct goat3d_material *mtl;
 
 	/* dynamic arrays */
 	cgm_vec3 *vertices;
@@ -118,10 +119,10 @@ void g3dimpl_obj_destroy(struct object *o);
 
 void g3dimpl_mesh_bounds(struct aabox *bb, struct goat3d_mesh *m, float *xform);
 
-int g3dimpl_mtl_init(struct material *mtl);
-void g3dimpl_mtl_destroy(struct material *mtl);
-struct material_attrib *g3dimpl_mtl_findattr(struct material *mtl, const char *name);
-int g3dimpl_mtl_newattr(struct material *mtl, const char *name);
+int g3dimpl_mtl_init(struct goat3d_material *mtl);
+void g3dimpl_mtl_destroy(struct goat3d_material *mtl);
+struct material_attrib *g3dimpl_mtl_findattr(struct goat3d_material *mtl, const char *name);
+struct material_attrib *g3dimpl_mtl_getattr(struct goat3d_material *mtl, const char *name);
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n);
 

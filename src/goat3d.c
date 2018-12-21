@@ -86,19 +86,41 @@ void goat3d_clear(struct goat3d *g)
 
 	num = dynarr_size(g->materials);
 	for(i=0; i<num; i++) {
-		free(g->materials[i]->name);
-		for(j=0; j<dynarr_size(g->materials[i]->attrib); j++) {
-			free(g->materials[i]->attrib[j].name);
-			free(g->materials[i]->attrib[j].map);
-		}
-		dynarr_free(g->materials[i]->attrib);
+		g3dimpl_mtl_destroy(g->materials[i]);
 		free(g->materials[i]);
 	}
 	dynarr_clear(g->materials);
 
-	/* TODO cont. clear */
+	num = dynarr_size(g->meshes);
+	for(i=0; i<num; i++) {
+		g3dimpl_obj_destroy((struct object*)g->meshes[i]);
+		free(g->meshes[i]);
+	}
+	dynarr_clear(g->meshes);
+
+	num = dynarr_size(g->lights);
+	for(i=0; i<num; i++) {
+		g3dimpl_obj_destroy((struct object*)g->lights[i]);
+		free(g->lights[i]);
+	}
+	dynarr_clear(g->lights);
+
+	num = dynarr_size(g->cameras);
+	for(i=0; i<num; i++) {
+		g3dimpl_obj_destroy((struct object*)g->cameras[i]);
+		free(g->cameras[i]);
+	}
+	dynarr_clear(g->cameras);
+
+	num = dynarr_size(g->nodes);
+	for(i=0; i<num; i++) {
+		anm_destroy_node(&g->nodes[i]->anm);
+		free(g->nodes[i]);
+	}
+	dynarr_clear(g->nodes);
 
 	goat3d_set_name(g, "unnamed");
+	g->bbox_valid = 0;
 }
 
 GOAT3DAPI void goat3d_setopt(struct goat3d *g, enum goat3d_option opt, int val)
@@ -200,7 +222,7 @@ GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		goat3d_goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
 		return g3dimpl_scnsave_text(g, io);
@@ -272,12 +294,12 @@ GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		goat3d_goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
-		return g3dimpl_anmsave_text(io);
+		return g3dimpl_anmsave_text(g, io);
 	}
-	return g3dimpl_anmsave_bin(io);
+	return g3dimpl_anmsave_bin(g, io);
 }
 
 
@@ -319,32 +341,32 @@ GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax
 	struct aabox node_bbox;
 
 	if(!g->bbox_valid) {
-		g3dimpl_aabox_init(&g->bbox);
+		g3dimpl_aabox_init((struct aabox*)&g->bbox);
 
 		num_nodes = dynarr_size(g->nodes);
 		for(i=0; i<num_nodes; i++) {
-			if(g->nodes[i]->parent) {
+			if(g->nodes[i]->anm.parent) {
 				continue;
 			}
-			g3dimpl_node_bounds(&node_bbox, g->nodes[i]);
-			g3dimpl_aabox_union(&g->bbox, &g->bbox, &node_bbox);
+			g3dimpl_node_bounds(&node_bbox, &g->nodes[i]->anm);
+			g3dimpl_aabox_union((struct aabox*)&g->bbox, &g->bbox, &node_bbox);
 		}
-		g->bbox_valid = 1;
+		((struct goat3d*)g)->bbox_valid = 1;
 	}
 
-	bmin[0] = g->bbox.min.x;
-	bmin[1] = g->bbox.min.y;
-	bmin[2] = g->bbox.min.z;
-	bmax[0] = g->bbox.max.x;
-	bmax[1] = g->bbox.max.y;
-	bmax[2] = g->bbox.max.z;
+	bmin[0] = g->bbox.bmin.x;
+	bmin[1] = g->bbox.bmin.y;
+	bmin[2] = g->bbox.bmin.z;
+	bmax[0] = g->bbox.bmax.x;
+	bmax[1] = g->bbox.bmax.y;
+	bmax[2] = g->bbox.bmax.z;
 	return 0;
 }
 
 // ---- materials ----
 GOAT3DAPI int goat3d_add_mtl(struct goat3d *g, struct goat3d_material *mtl)
 {
-	struct material *newarr;
+	struct goat3d_material **newarr;
 	if(!(newarr = dynarr_push(g->materials, &mtl))) {
 		return -1;
 	}
@@ -409,9 +431,9 @@ GOAT3DAPI const char *goat3d_get_mtl_name(const struct goat3d_material *mtl)
 
 GOAT3DAPI int goat3d_set_mtl_attrib(struct goat3d_material *mtl, const char *attrib, const float *val)
 {
-	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attr);
+	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attrib);
 	if(!ma) return -1;
-	cgm_vcons(&ma->value, val[0], val[1], val[2], val[3]);
+	cgm_wcons(&ma->value, val[0], val[1], val[2], val[3]);
 	return 0;
 }
 
@@ -427,15 +449,15 @@ GOAT3DAPI int goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *a
 
 GOAT3DAPI int goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a)
 {
-	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attr);
+	struct material_attrib *ma = g3dimpl_mtl_getattr(mtl, attrib);
 	if(!ma) return -1;
-	cgm_vcons(&ma->value, r, g, b, a);
+	cgm_wcons(&ma->value, r, g, b, a);
 	return 0;
 }
 
 GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attrib)
 {
-	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attr);
+	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attrib);
 	return ma ? &ma->value.x : 0;
 }
 
@@ -451,7 +473,7 @@ GOAT3DAPI int goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char 
 	}
 	memcpy(tmp, mapname, len + 1);
 
-	if(!(ma = g3dimpl_mtl_getattr(mtl, attr))) {
+	if(!(ma = g3dimpl_mtl_getattr(mtl, attrib))) {
 		free(tmp);
 		return -1;
 	}
@@ -466,7 +488,7 @@ GOAT3DAPI int goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char 
 
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib)
 {
-	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attr);
+	struct material_attrib *ma = g3dimpl_mtl_findattr(mtl, attrib);
 	return ma->map;
 }
 
@@ -518,7 +540,7 @@ GOAT3DAPI struct goat3d_mesh *goat3d_create_mesh(void)
 
 GOAT3DAPI void goat3d_destroy_mesh(struct goat3d_mesh *mesh)
 {
-	g3dimpl_obj_destroy((struct object*)m);
+	g3dimpl_obj_destroy((struct object*)mesh);
 	free(mesh);
 }
 
@@ -543,12 +565,12 @@ GOAT3DAPI const char *goat3d_get_mesh_name(const struct goat3d_mesh *mesh)
 
 GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_material *mtl)
 {
-	mesh->material = mtl;
+	mesh->mtl = mtl;
 }
 
 GOAT3DAPI struct goat3d_material *goat3d_get_mesh_mtl(struct goat3d_mesh *mesh)
 {
-	return mesh->material;
+	return mesh->mtl;
 }
 
 GOAT3DAPI int goat3d_get_mesh_attrib_count(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
@@ -586,7 +608,7 @@ GOAT3DAPI int goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh
 
 	switch(attrib) {
 	case GOAT3D_MESH_ATTR_NORMAL:
-		SET_VERTEX_DATA(mesh->normal, data, vnum);
+		SET_VERTEX_DATA(mesh->normals, data, vnum);
 		break;
 	case GOAT3D_MESH_ATTR_TANGENT:
 		SET_VERTEX_DATA(mesh->tangents, data, vnum);
@@ -630,46 +652,46 @@ GOAT3DAPI int goat3d_add_mesh_attrib3f(struct goat3d_mesh *mesh, enum goat3d_mes
 GOAT3DAPI int goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib,
 		float x, float y, float z, float w)
 {
-	cgm_vec4 vec;
-	int4 i4;
+	float vec[4];
+	int4 intvec;
 	void *tmp;
 
 	switch(attrib) {
 	case GOAT3D_MESH_ATTR_VERTEX:
-		cgm_vcons(&vec, x, y, z);
-		if(!(tmp = dynarr_push(mesh->vertices, &vec))) {
+		cgm_vcons((cgm_vec3*)vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->vertices, vec))) {
 			goto err;
 		}
 		mesh->vertices = tmp;
 		break;
 
 	case GOAT3D_MESH_ATTR_NORMAL:
-		cgm_vcons(&vec, x, y, z);
-		if(!(tmp = dynarr_push(mesh->normals, &vec))) {
+		cgm_vcons((cgm_vec3*)vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->normals, vec))) {
 			goto err;
 		}
 		mesh->normals = tmp;
 		break;
 
 	case GOAT3D_MESH_ATTR_TANGENT:
-		cgm_vcons(&vec, x, y, z);
-		if(!(tmp = dynarr_push(mesh->tangents, &vec))) {
+		cgm_vcons((cgm_vec3*)vec, x, y, z);
+		if(!(tmp = dynarr_push(mesh->tangents, vec))) {
 			goto err;
 		}
 		mesh->tangents = tmp;
 		break;
 
 	case GOAT3D_MESH_ATTR_TEXCOORD:
-		cgm_vcons(&vec, x, y, 0);
-		if(!(tmp = dynarr_push(mesh->texcoords, &vec))) {
+		cgm_vcons((cgm_vec3*)vec, x, y, 0);
+		if(!(tmp = dynarr_push(mesh->texcoords, vec))) {
 			goto err;
 		}
 		mesh->texcoords = tmp;
 		break;
 
 	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
-		cgm_wcons(&vec, x, y, z, w);
-		if(!(tmp = dynarr_push(mesh->skin_weights, &vec))) {
+		cgm_wcons((cgm_vec4*)vec, x, y, z, w);
+		if(!(tmp = dynarr_push(mesh->skin_weights, vec))) {
 			goto err;
 		}
 		mesh->skin_weights = tmp;
@@ -687,8 +709,8 @@ GOAT3DAPI int goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mes
 		break;
 
 	case GOAT3D_MESH_ATTR_COLOR:
-		cgm_wcons(&vec, x, y, z, w);
-		if(!(tmp = dynarr_push(mesh->colors, &vec))) {
+		cgm_wcons((cgm_vec4*)vec, x, y, z, w);
+		if(!(tmp = dynarr_push(mesh->colors, vec))) {
 			goto err;
 		}
 		mesh->colors = tmp;
@@ -769,7 +791,7 @@ GOAT3DAPI int *goat3d_get_mesh_faces(struct goat3d_mesh *mesh)
 
 GOAT3DAPI int *goat3d_get_mesh_face(struct goat3d_mesh *mesh, int idx)
 {
-	return dynarr_empty(mesh->faces) ? 0 : &mesh->faces[idx].v;
+	return dynarr_empty(mesh->faces) ? 0 : mesh->faces[idx].v;
 }
 
 // immedate mode state
@@ -856,7 +878,7 @@ GOAT3DAPI void goat3d_vertex3f(float x, float y, float z)
 	cgm_vec3 v;
 
 	cgm_vcons(&v, x, y, z);
-	if(!(tmp = dynarr_push(im_mesh->vertices, &vec))) {
+	if(!(tmp = dynarr_push(im_mesh->vertices, &v))) {
 		return;
 	}
 	im_mesh->vertices = tmp;
@@ -942,14 +964,14 @@ GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmi
 {
 	struct aabox box;
 
-	g3dimpl_mesh_bounds(&box, mesh, 0);
+	g3dimpl_mesh_bounds(&box, (struct goat3d_mesh*)mesh, 0);
 
-	bmin[0] = box.min.x;
-	bmin[1] = box.min.y;
-	bmin[2] = box.min.z;
-	bmax[0] = box.max.x;
-	bmax[1] = box.max.y;
-	bmax[2] = box.max.z;
+	bmin[0] = box.bmin.x;
+	bmin[1] = box.bmin.y;
+	bmin[2] = box.bmin.z;
+	bmax[0] = box.bmax.x;
+	bmax[1] = box.bmax.y;
+	bmax[2] = box.bmax.z;
 }
 
 /* lights */
@@ -977,7 +999,7 @@ GOAT3DAPI struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const 
 {
 	int i, num = dynarr_size(g->lights);
 	for(i=0; i<num; i++) {
-		if(strcmp(g->lights[i].name, name) == 0) {
+		if(strcmp(g->lights[i]->name, name) == 0) {
 			return g->lights[i];
 		}
 	}
@@ -1045,7 +1067,7 @@ GOAT3DAPI struct goat3d_camera *goat3d_create_camera(void)
 	if(!(cam = malloc(sizeof *cam))) {
 		return 0;
 	}
-	if(g3dimpl_obj_init((struct object*)cam) == -1) {
+	if(g3dimpl_obj_init((struct object*)cam, OBJTYPE_CAMERA) == -1) {
 		free(cam);
 		return 0;
 	}
@@ -1085,7 +1107,7 @@ GOAT3DAPI struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const ch
 {
 	int i, num = dynarr_size(g->nodes);
 	for(i=0; i<num; i++) {
-		if(strcmp(g->nodes[i].name, name) == 0) {
+		if(strcmp(g->nodes[i]->anm.name, name) == 0) {
 			return g->nodes[i];
 		}
 	}
@@ -1123,7 +1145,7 @@ GOAT3DAPI int goat3d_set_node_name(struct goat3d_node *node, const char *name)
 
 GOAT3DAPI const char *goat3d_get_node_name(const struct goat3d_node *node)
 {
-	return anm_get_node_name(&node->anm);
+	return anm_get_node_name((struct anm_node*)&node->anm);
 }
 
 GOAT3DAPI void goat3d_set_node_object(struct goat3d_node *node, enum goat3d_node_type type, void *obj)
@@ -1244,7 +1266,7 @@ static int get_key_count(struct anm_node *node, int trackid)
 static long get_key_time(struct anm_node *node, int trackid, int idx)
 {
 	struct anm_animation *anim = anm_get_active_animation(node, 0);
-	struct anm_keyframe *key = anm_get_keyframe(anim->trakcs + track_type_base[trackid], idx);
+	struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid], idx);
 	return ANM_TM2MSEC(key->time);
 }
 
@@ -1300,7 +1322,7 @@ GOAT3DAPI int goat3d_get_node_position_key_count(struct goat3d_node *node)
 
 GOAT3DAPI int goat3d_get_node_rotation_key_count(struct goat3d_node *node)
 {
-	return get_key_count(&node-anm, ROTATION_TRACK);
+	return get_key_count(&node->anm, ROTATION_TRACK);
 }
 
 GOAT3DAPI int goat3d_get_node_scaling_key_count(struct goat3d_node *node)
@@ -1330,10 +1352,10 @@ GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, f
 	get_key_value(&node->anm, ROTATION_TRACK, idx, &rot.x);
 	tm = get_key_time(&node->anm, ROTATION_TRACK, idx);
 
-	if(xptr) *xptr = rot.v.x;
-	if(yptr) *yptr = rot.v.y;
-	if(zptr) *zptr = rot.v.z;
-	if(wptr) *wptr = rot.s;
+	if(xptr) *xptr = rot.x;
+	if(yptr) *yptr = rot.y;
+	if(zptr) *zptr = rot.z;
+	if(wptr) *wptr = rot.w;
 	return tm;
 }
 
@@ -1375,7 +1397,7 @@ GOAT3DAPI void goat3d_set_node_pivot(struct goat3d_node *node, float px, float p
 GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
 	float pos[3];
-	anm_get_node_position(&node->anm, pos, ANM_MSEC2TM(tmsec));
+	anm_get_node_position((struct anm_node*)&node->anm, pos, ANM_MSEC2TM(tmsec));
 	*xptr = pos[0];
 	*yptr = pos[1];
 	*zptr = pos[2];
@@ -1384,7 +1406,7 @@ GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *x
 GOAT3DAPI void goat3d_get_node_rotation(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, float *wptr, long tmsec)
 {
 	float rot[4];
-	anm_get_node_rotation(&node->anm, rot, ANM_MSEC2TM(tmsec));
+	anm_get_node_rotation((struct anm_node*)&node->anm, rot, ANM_MSEC2TM(tmsec));
 	*xptr = rot[0];
 	*yptr = rot[1];
 	*zptr = rot[2];
@@ -1394,7 +1416,7 @@ GOAT3DAPI void goat3d_get_node_rotation(const struct goat3d_node *node, float *x
 GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
 	float scale[3];
-	anm_get_node_scaling(&node->anm, scaling, ANM_MSEC2TM(tmsec));
+	anm_get_node_scaling((struct anm_node*)&node->anm, scale, ANM_MSEC2TM(tmsec));
 	*xptr = scale[0];
 	*yptr = scale[1];
 	*zptr = scale[2];
@@ -1402,26 +1424,26 @@ GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xp
 
 GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
 {
-	anm_get_pivot(&node->anm, xptr, yptr, zptr);
+	anm_get_pivot((struct anm_node*)&node->anm, xptr, yptr, zptr);
 }
 
 
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec)
 {
-	anm_get_node_matrix(&node->anm, matrix, ANM_MSEC2TM(tmsec));
+	anm_get_node_matrix((struct anm_node*)&node->anm, matrix, ANM_MSEC2TM(tmsec));
 }
 
 GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmin, float *bmax)
 {
 	struct aabox box;
-	g3dimpl_node_bounds(&box, &node->anm);
+	g3dimpl_node_bounds(&box, (struct anm_node*)&node->anm);
 
-	bmin[0] = box.min.x;
-	bmin[1] = box.min.y;
-	bmin[2] = box.min.z;
-	bmax[0] = box.max.x;
-	bmax[1] = box.max.y;
-	bmax[2] = box.max.z;
+	bmin[0] = box.bmin.x;
+	bmin[1] = box.bmin.y;
+	bmin[2] = box.bmin.z;
+	bmax[0] = box.bmax.x;
+	bmax[1] = box.bmax.y;
+	bmax[2] = box.bmax.z;
 }
 
 
@@ -1445,7 +1467,7 @@ static long seek_file(long offs, int whence, void *uptr)
 
 static char *clean_filename(char *str)
 {
-	char *last_slash, ptr;
+	char *last_slash, *ptr;
 
 	if(!(last_slash = strrchr(str, '/'))) {
 		last_slash = strrchr(str, '\\');

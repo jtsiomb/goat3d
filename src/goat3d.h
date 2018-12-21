@@ -144,7 +144,7 @@ GOAT3DAPI int goat3d_set_mtl_attrib3f(struct goat3d_material *mtl, const char *a
 GOAT3DAPI int goat3d_set_mtl_attrib4f(struct goat3d_material *mtl, const char *attrib, float r, float g, float b, float a);
 GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const char *attrib);
 
-GOAT3DAPI void goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname);
+GOAT3DAPI int goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname);
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib);
 
 /* meshes */

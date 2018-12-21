@@ -21,13 +21,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int g3dimpl_obj_init(struct object *o, int type)
 {
-	struct mesh *m;
-	struct light *lt;
-	struct camera *cam;
+	struct goat3d_mesh *m;
+	struct goat3d_light *lt;
+	struct goat3d_camera *cam;
 
 	switch(type) {
 	case OBJTYPE_MESH:
-		m = (struct mesh*)o;
+		m = (struct goat3d_mesh*)o;
 		memset(m, 0, sizeof *m);
 		if(!(m->vertices = dynarr_alloc(0, sizeof *m->vertices))) goto err;
 		if(!(m->normals = dynarr_alloc(0, sizeof *m->normals))) goto err;
@@ -41,7 +41,7 @@ int g3dimpl_obj_init(struct object *o, int type)
 		break;
 
 	case OBJTYPE_LIGHT:
-		lt = (struct light*)o;
+		lt = (struct goat3d_light*)o;
 		memset(lt, 0, sizeof *lt);
 		cgm_vcons(&lt->color, 1, 1, 1);
 		cgm_vcons(&lt->attenuation, 1, 0, 0);
@@ -51,7 +51,7 @@ int g3dimpl_obj_init(struct object *o, int type)
 		break;
 
 	case OBJTYPE_CAMERA:
-		cam = (struct camera*)o;
+		cam = (struct goat3d_camera*)o;
 		memset(cam, 0, sizeof *cam);
 		cam->near_clip = 0.5f;
 		cam->far_clip = 500.0f;
@@ -74,11 +74,11 @@ err:
 
 void g3dimpl_obj_destroy(struct object *o)
 {
-	struct mesh *m;
+	struct goat3d_mesh *m;
 
 	switch(o->type) {
 	case OBJTYPE_MESH:
-		m = (struct mesh*)o;
+		m = (struct goat3d_mesh*)o;
 		dynarr_free(m->vertices);
 		dynarr_free(m->normals);
 		dynarr_free(m->tangents);
@@ -95,7 +95,7 @@ void g3dimpl_obj_destroy(struct object *o)
 	}
 }
 
-void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform)
+void g3dimpl_mesh_bounds(struct aabox *bb, struct goat3d_mesh *m, float *xform)
 {
 	int i, nverts;
 
@@ -116,7 +116,7 @@ void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform)
 	}
 }
 
-int g3dimpl_mtl_init(struct material *mtl)
+int g3dimpl_mtl_init(struct goat3d_material *mtl)
 {
 	memset(mtl, 0, sizeof *mtl);
 	if(!(mtl->attrib = dynarr_alloc(0, sizeof *mtl->attrib))) {
@@ -125,7 +125,7 @@ int g3dimpl_mtl_init(struct material *mtl)
 	return 0;
 }
 
-void g3dimpl_mtl_destroy(struct material *mtl)
+void g3dimpl_mtl_destroy(struct goat3d_material *mtl)
 {
 	int i, num = dynarr_size(mtl->attrib);
 	for(i=0; i<num; i++) {
@@ -135,7 +135,7 @@ void g3dimpl_mtl_destroy(struct material *mtl)
 	dynarr_free(mtl->attrib);
 }
 
-struct material_attrib *g3dimpl_mtl_findattr(struct material *mtl, const char *name)
+struct material_attrib *g3dimpl_mtl_findattr(struct goat3d_material *mtl, const char *name)
 {
 	int i, num = dynarr_size(mtl->attrib);
 
@@ -147,7 +147,7 @@ struct material_attrib *g3dimpl_mtl_findattr(struct material *mtl, const char *n
 	return 0;
 }
 
-struct material_attrib *g3dimpl_mtl_getattr(struct material *mtl, const char *name)
+struct material_attrib *g3dimpl_mtl_getattr(struct goat3d_material *mtl, const char *name)
 {
 	int idx, len;
 	char *tmpname;
@@ -164,12 +164,18 @@ struct material_attrib *g3dimpl_mtl_getattr(struct material *mtl, const char *na
 	memcpy(tmpname, name, len + 1);
 
 	idx = dynarr_size(mtl->attrib);
-	if(!(tmpattr = dynarr_push(mtl->attrib, attr))) {
+	if(!(tmpattr = dynarr_push(mtl->attrib, 0))) {
 		free(tmpname);
 		return 0;
 	}
 	mtl->attrib = tmpattr;
-	return mtl->attrib + idx;
+
+	ma = mtl->attrib + idx;
+	ma->name = tmpname;
+	ma->map = 0;
+	cgm_wcons(&ma->value, 1, 1, 1, 1);
+
+	return ma;
 }
 
 void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n)
@@ -179,7 +185,7 @@ void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n)
 	float *xform = anm_get_matrix(n, 0, 0);
 
 	if(obj && obj->type == OBJTYPE_MESH) {
-		g3dimpl_mesh_bounds(bb, (struct mesh*)obj, xform);
+		g3dimpl_mesh_bounds(bb, (struct goat3d_mesh*)obj, xform);
 	} else {
 		g3dimpl_aabox_init(bb);
 	}
