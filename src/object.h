@@ -107,13 +107,16 @@ struct goat3d_camera {
 };
 
 struct goat3d_node {
-	struct anm_node anm;
+	struct anm_node anm;	/* keep this at 0 offset */
+	enum goat3d_node_type type;
+	void *obj;
+	int child_count;
 };
 
 int g3dimpl_obj_init(struct object *o, int type);
 void g3dimpl_obj_destroy(struct object *o);
 
-void g3dimpl_mesh_bounds(struct aabox *bb, struct mesh *m, float *xform);
+void g3dimpl_mesh_bounds(struct aabox *bb, struct goat3d_mesh *m, float *xform);
 
 int g3dimpl_mtl_init(struct material *mtl);
 void g3dimpl_mtl_destroy(struct material *mtl);

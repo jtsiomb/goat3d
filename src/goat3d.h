@@ -217,7 +217,7 @@ GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w);
 GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax);
 
 /* lights */
-GOAT3DAPI void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt);
+GOAT3DAPI int goat3d_add_light(struct goat3d *g, struct goat3d_light *lt);
 GOAT3DAPI int goat3d_get_light_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_light *goat3d_get_light(struct goat3d *g, int idx);
 GOAT3DAPI struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const char *name);
@@ -226,7 +226,7 @@ GOAT3DAPI struct goat3d_light *goat3d_create_light(void);
 GOAT3DAPI void goat3d_destroy_light(struct goat3d_light *lt);
 
 /* cameras */
-GOAT3DAPI void goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam);
+GOAT3DAPI int goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam);
 GOAT3DAPI int goat3d_get_camera_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_camera *goat3d_get_camera(struct goat3d *g, int idx);
 GOAT3DAPI struct goat3d_camera *goat3d_get_camera_by_name(struct goat3d *g, const char *name);
@@ -235,7 +235,7 @@ GOAT3DAPI struct goat3d_camera *goat3d_create_camera(void);
 GOAT3DAPI void goat3d_destroy_camera(struct goat3d_camera *cam);
 
 /* nodes */
-GOAT3DAPI void goat3d_add_node(struct goat3d *g, struct goat3d_node *node);
+GOAT3DAPI int goat3d_add_node(struct goat3d *g, struct goat3d_node *node);
 GOAT3DAPI int goat3d_get_node_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_node *goat3d_get_node(struct goat3d *g, int idx);
 GOAT3DAPI struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const char *name);
@@ -243,7 +243,7 @@ GOAT3DAPI struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const ch
 GOAT3DAPI struct goat3d_node *goat3d_create_node(void);
 GOAT3DAPI void goat3d_destroy_node(struct goat3d_node *node);
 
-GOAT3DAPI void goat3d_set_node_name(struct goat3d_node *node, const char *name);
+GOAT3DAPI int goat3d_set_node_name(struct goat3d_node *node, const char *name);
 GOAT3DAPI const char *goat3d_get_node_name(const struct goat3d_node *node);
 
 GOAT3DAPI void goat3d_set_node_object(struct goat3d_node *node, enum goat3d_node_type type, void *obj);

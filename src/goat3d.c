@@ -18,21 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-#include <string>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "log.h"
-
-#ifndef _MSC_VER
-#include <alloca.h>
-#else
-#include <malloc.h>
-#endif
-
+#include "dynarr.h"
 
 static long read_file(void *buf, size_t bytes, void *uptr);
 static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
+static char *clean_filename(char *str);
 
 GOAT3DAPI struct goat3d *goat3d_create(void)
 {
@@ -45,7 +39,7 @@ GOAT3DAPI struct goat3d *goat3d_create(void)
 		free(g);
 		return 0;
 	}
-	return goat;
+	return g;
 }
 
 GOAT3DAPI void goat3d_free(struct goat3d *g)
@@ -92,12 +86,13 @@ void goat3d_clear(struct goat3d *g)
 
 	num = dynarr_size(g->materials);
 	for(i=0; i<num; i++) {
-		free(g->materials[i].name);
-		for(j=0; j<dynarr_size(g->materials[i].attrib); j++) {
-			free(g->materials[i].attrib[j].name);
-			free(g->materials[i].attrib[j].map);
+		free(g->materials[i]->name);
+		for(j=0; j<dynarr_size(g->materials[i]->attrib); j++) {
+			free(g->materials[i]->attrib[j].name);
+			free(g->materials[i]->attrib[j].map);
 		}
-		dynarr_free(g->materials[i].attrib);
+		dynarr_free(g->materials[i]->attrib);
+		free(g->materials[i]);
 	}
 	dynarr_clear(g->materials);
 
@@ -122,44 +117,50 @@ GOAT3DAPI int goat3d_getopt(const struct goat3d *g, enum goat3d_option opt)
 
 GOAT3DAPI int goat3d_load(struct goat3d *g, const char *fname)
 {
+	int len, res;
+	char *slash;
 	FILE *fp = fopen(fname, "rb");
 	if(!fp) {
-		logmsg(LOG_ERROR, "failed to open file \"%s\" for reading: %s\n", fname, strerror(errno));
+		goat3d_logmsg(LOG_ERROR, "failed to open file \"%s\" for reading: %s\n", fname, strerror(errno));
 		return -1;
 	}
 
 	/* if the filename contained any directory components, keep the prefix
 	 * to use it as a search path for external mesh file loading
 	 */
-	g->search_path = new char[strlen(fname) + 1];
-	strcpy(g->search_path, fname);
+	len = strlen(fname);
+	if(!(g->search_path = malloc(len + 1))) {
+		fclose(fp);
+		return -1;
+	}
+	memcpy(g->search_path, fname, len + 1);
 
-	char *slash = strrchr(g->search_path, '/');
-	if(slash) {
+	if((slash = strrchr(g->search_path, '/'))) {
 		*slash = 0;
 	} else {
 		if((slash = strrchr(g->search_path, '\\'))) {
 			*slash = 0;
 		} else {
-			delete [] g->search_path;
+			free(g->search_path);
 			g->search_path = 0;
 		}
 	}
 
-	int res = goat3d_load_file(g, fp);
+	res = goat3d_load_file(g, fp);
 	fclose(fp);
 	return res;
 }
 
 GOAT3DAPI int goat3d_save(const struct goat3d *g, const char *fname)
 {
+	int res;
 	FILE *fp = fopen(fname, "wb");
 	if(!fp) {
-		logmsg(LOG_ERROR, "failed to open file \"%s\" for writing: %s\n", fname, strerror(errno));
+		goat3d_logmsg(LOG_ERROR, "failed to open file \"%s\" for writing: %s\n", fname, strerror(errno));
 		return -1;
 	}
 
-	int res = goat3d_save_file(g, fp);
+	res = goat3d_save_file(g, fp);
 	fclose(fp);
 	return res;
 }
@@ -199,7 +200,7 @@ GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		goat3d_goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
 		return g3dimpl_scnsave_text(g, io);
@@ -271,7 +272,7 @@ GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
 {
 	if(goat3d_getopt(g, GOAT3D_OPT_SAVEXML)) {
-		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
+		goat3d_goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
 		return g3dimpl_anmsave_text(io);
@@ -518,6 +519,7 @@ GOAT3DAPI struct goat3d_mesh *goat3d_create_mesh(void)
 GOAT3DAPI void goat3d_destroy_mesh(struct goat3d_mesh *mesh)
 {
 	g3dimpl_obj_destroy((struct object*)m);
+	free(mesh);
 }
 
 GOAT3DAPI int goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name)
@@ -563,7 +565,7 @@ GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh)
 	do { \
 		void *tmp = dynarr_resize(arr, n); \
 		if(!tmp) { \
-			logmsg(LOG_ERROR, "failed to resize vertex array (%d)\n", n); \
+			goat3d_logmsg(LOG_ERROR, "failed to resize vertex array (%d)\n", n); \
 			return -1; \
 		} \
 		arr = tmp; \
@@ -578,7 +580,7 @@ GOAT3DAPI int goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh
 	}
 
 	if(vnum != dynarr_size(mesh->vertices)) {
-		logmsg(LOG_ERROR, "trying to set mesh attrib data with number of elements different than the vertex array\n");
+		goat3d_logmsg(LOG_ERROR, "trying to set mesh attrib data with number of elements different than the vertex array\n");
 		return -1;
 	}
 
@@ -601,7 +603,7 @@ GOAT3DAPI int goat3d_set_mesh_attribs(struct goat3d_mesh *mesh, enum goat3d_mesh
 	case GOAT3D_MESH_ATTR_COLOR:
 		SET_VERTEX_DATA(mesh->colors, data, vnum);
 	default:
-		logmsg(LOG_ERROR, "trying to set unknown vertex attrib: %d\n", attrib);
+		goat3d_logmsg(LOG_ERROR, "trying to set unknown vertex attrib: %d\n", attrib);
 		return -1;
 	}
 	return 0;
@@ -692,13 +694,13 @@ GOAT3DAPI int goat3d_add_mesh_attrib4f(struct goat3d_mesh *mesh, enum goat3d_mes
 		mesh->colors = tmp;
 
 	default:
-		logmsg(LOG_ERROR, "trying to add unknown vertex attrib: %d\n", attrib);
+		goat3d_logmsg(LOG_ERROR, "trying to add unknown vertex attrib: %d\n", attrib);
 		return -1;
 	}
 	return 0;
 
 err:
-	logmsg(LOG_ERROR, "failed to push vertex attrib\n");
+	goat3d_logmsg(LOG_ERROR, "failed to push vertex attrib\n");
 	return -1;
 }
 
@@ -735,7 +737,7 @@ GOAT3DAPI int goat3d_set_mesh_faces(struct goat3d_mesh *mesh, const int *data, i
 {
 	void *tmp;
 	if(!(tmp = dynarr_resize(mesh->faces, num))) {
-		logmsg(LOG_ERROR, "failed to resize face array (%d)\n", num);
+		goat3d_logmsg(LOG_ERROR, "failed to resize face array (%d)\n", num);
 		return -1;
 	}
 	mesh->faces = tmp;
@@ -753,7 +755,7 @@ GOAT3DAPI int goat3d_add_mesh_face(struct goat3d_mesh *mesh, int a, int b, int c
 	face.v[2] = c;
 
 	if(!(tmp = dynarr_push(mesh->faces, &face))) {
-		logmsg(LOG_ERROR, "failed to add face\n");
+		goat3d_logmsg(LOG_ERROR, "failed to add face\n");
 		return -1;
 	}
 	mesh->faces = tmp;
@@ -936,243 +938,383 @@ GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w)
 	im_use[GOAT3D_MESH_ATTR_COLOR] = 1;
 }
 
-// TODO cont.
-
 GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax)
 {
-	AABox box = mesh->get_bounds(Matrix4x4::identity);
+	struct aabox box;
 
-	for(int i=0; i<3; i++) {
-		bmin[i] = box.bmin[i];
-		bmax[i] = box.bmax[i];
-	}
+	g3dimpl_mesh_bounds(&box, mesh, 0);
+
+	bmin[0] = box.min.x;
+	bmin[1] = box.min.y;
+	bmin[2] = box.min.z;
+	bmax[0] = box.max.x;
+	bmax[1] = box.max.y;
+	bmax[2] = box.max.z;
 }
 
 /* lights */
-GOAT3DAPI void goat3d_add_light(struct goat3d *g, struct goat3d_light *lt)
+GOAT3DAPI int goat3d_add_light(struct goat3d *g, struct goat3d_light *lt)
 {
-	g->scn->add_light(lt);
+	struct goat3d_light **arr;
+	if(!(arr = dynarr_push(g->lights, &lt))) {
+		return -1;
+	}
+	g->lights = arr;
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_light_count(struct goat3d *g)
 {
-	return g->scn->get_light_count();
+	return dynarr_size(g->lights);
 }
 
 GOAT3DAPI struct goat3d_light *goat3d_get_light(struct goat3d *g, int idx)
 {
-	return (goat3d_light*)g->scn->get_light(idx);
+	return g->lights[idx];
 }
 
 GOAT3DAPI struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const char *name)
 {
-	return (goat3d_light*)g->scn->get_light(name);
+	int i, num = dynarr_size(g->lights);
+	for(i=0; i<num; i++) {
+		if(strcmp(g->lights[i].name, name) == 0) {
+			return g->lights[i];
+		}
+	}
+	return 0;
 }
 
 
 GOAT3DAPI struct goat3d_light *goat3d_create_light(void)
 {
-	return new goat3d_light;
+	struct goat3d_light *lt;
+
+	if(!(lt = malloc(sizeof *lt))) {
+		return 0;
+	}
+	if(g3dimpl_obj_init((struct object*)lt, OBJTYPE_LIGHT) == -1) {
+		free(lt);
+		return 0;
+	}
+	return lt;
 }
 
 GOAT3DAPI void goat3d_destroy_light(struct goat3d_light *lt)
 {
-	delete lt;
+	g3dimpl_obj_destroy((struct object*)lt);
+	free(lt);
 }
 
 
 /* cameras */
-GOAT3DAPI void goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam)
+GOAT3DAPI int goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam)
 {
-	g->scn->add_camera(cam);
+	struct goat3d_camera **arr;
+	if(!(arr = dynarr_push(g->cameras, &cam))) {
+		return -1;
+	}
+	g->cameras = arr;
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_camera_count(struct goat3d *g)
 {
-	return g->scn->get_camera_count();
+	return dynarr_size(g->cameras);
 }
 
 GOAT3DAPI struct goat3d_camera *goat3d_get_camera(struct goat3d *g, int idx)
 {
-	return (goat3d_camera*)g->scn->get_camera(idx);
+	return g->cameras[idx];
 }
 
 GOAT3DAPI struct goat3d_camera *goat3d_get_camera_by_name(struct goat3d *g, const char *name)
 {
-	return (goat3d_camera*)g->scn->get_camera(name);
+	int i, num = dynarr_size(g->cameras);
+	for(i=0; i<num; i++) {
+		if(strcmp(g->cameras[i]->name, name) == 0) {
+			return g->cameras[i];
+		}
+	}
+	return 0;
 }
 
 GOAT3DAPI struct goat3d_camera *goat3d_create_camera(void)
 {
-	return new goat3d_camera;
+	struct goat3d_camera *cam;
+
+	if(!(cam = malloc(sizeof *cam))) {
+		return 0;
+	}
+	if(g3dimpl_obj_init((struct object*)cam) == -1) {
+		free(cam);
+		return 0;
+	}
+	return cam;
 }
 
 GOAT3DAPI void goat3d_destroy_camera(struct goat3d_camera *cam)
 {
-	delete cam;
+	g3dimpl_obj_destroy((struct object*)cam);
+	free(cam);
 }
 
 
 
 // node
-GOAT3DAPI void goat3d_add_node(struct goat3d *g, struct goat3d_node *node)
+GOAT3DAPI int goat3d_add_node(struct goat3d *g, struct goat3d_node *node)
 {
-	g->scn->add_node(node);
+	struct goat3d_node **arr;
+	if(!(arr = dynarr_push(g->nodes, &node))) {
+		return -1;
+	}
+	g->nodes = arr;
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_node_count(struct goat3d *g)
 {
-	return g->scn->get_node_count();
+	return dynarr_size(g->nodes);
 }
 
 GOAT3DAPI struct goat3d_node *goat3d_get_node(struct goat3d *g, int idx)
 {
-	return (goat3d_node*)g->scn->get_node(idx);
+	return g->nodes[idx];
 }
 
 GOAT3DAPI struct goat3d_node *goat3d_get_node_by_name(struct goat3d *g, const char *name)
 {
-	return (goat3d_node*)g->scn->get_node(name);
+	int i, num = dynarr_size(g->nodes);
+	for(i=0; i<num; i++) {
+		if(strcmp(g->nodes[i].name, name) == 0) {
+			return g->nodes[i];
+		}
+	}
+	return 0;
 }
 
 GOAT3DAPI struct goat3d_node *goat3d_create_node(void)
 {
-	return new goat3d_node;
+	struct goat3d_node *node;
+
+	if(!(node = malloc(sizeof *node))) {
+		return 0;
+	}
+	if(anm_init_node(&node->anm) == -1) {
+		free(node);
+		return 0;
+	}
+	node->type = GOAT3D_NODE_NULL;
+	node->obj = 0;
+	node->child_count = 0;
+
+	return node;
 }
 
-GOAT3DAPI void goat3d_set_node_name(struct goat3d_node *node, const char *name)
+GOAT3DAPI void goat3d_destroy_node(struct goat3d_node *node)
 {
-	node->set_name(name);
+	anm_destroy_node(&node->anm);
+	free(node);
+}
+
+GOAT3DAPI int goat3d_set_node_name(struct goat3d_node *node, const char *name)
+{
+	return anm_set_node_name(&node->anm, name);
 }
 
 GOAT3DAPI const char *goat3d_get_node_name(const struct goat3d_node *node)
 {
-	return node->get_name();
+	return anm_get_node_name(&node->anm);
 }
 
 GOAT3DAPI void goat3d_set_node_object(struct goat3d_node *node, enum goat3d_node_type type, void *obj)
 {
-	node->set_object((Object*)obj);
+	node->obj = obj;
+	node->type = type;
 }
 
 GOAT3DAPI void *goat3d_get_node_object(const struct goat3d_node *node)
 {
-	return (void*)node->get_object();
+	return node->obj;
 }
 
 GOAT3DAPI enum goat3d_node_type goat3d_get_node_type(const struct goat3d_node *node)
 {
-	const Object *obj = node->get_object();
-	if(dynamic_cast<const Mesh*>(obj)) {
-		return GOAT3D_NODE_MESH;
-	}
-	if(dynamic_cast<const Light*>(obj)) {
-		return GOAT3D_NODE_LIGHT;
-	}
-	if(dynamic_cast<const Camera*>(obj)) {
-		return GOAT3D_NODE_CAMERA;
-	}
-
-	return GOAT3D_NODE_NULL;
+	return node->type;
 }
 
 GOAT3DAPI void goat3d_add_node_child(struct goat3d_node *node, struct goat3d_node *child)
 {
-	node->add_child(child);
+	anm_link_node(&node->anm, &child->anm);
+	node->child_count++;
 }
 
 GOAT3DAPI int goat3d_get_node_child_count(const struct goat3d_node *node)
 {
-	return node->get_children_count();
+	return node->child_count;
 }
 
 GOAT3DAPI struct goat3d_node *goat3d_get_node_child(const struct goat3d_node *node, int idx)
 {
-	return (goat3d_node*)node->get_child(idx);
+	struct anm_node *c = node->anm.child;
+	while(c && idx > 0) {
+		c = c->next;
+	}
+	return (struct goat3d_node*)c;
 }
 
 GOAT3DAPI struct goat3d_node *goat3d_get_node_parent(const struct goat3d_node *node)
 {
-	return (goat3d_node*)node->get_parent();
+	return (struct goat3d_node*)node->anm.parent;
 }
 
 GOAT3DAPI void goat3d_use_anim(struct goat3d_node *node, int idx)
 {
-	node->use_animation(idx);
+	anm_use_animation(&node->anm, idx);
 }
 
 GOAT3DAPI void goat3d_use_anims(struct goat3d_node *node, int aidx, int bidx, float t)
 {
-	node->use_animation(aidx, bidx, t);
+	anm_use_animations(&node->anm, aidx, bidx, t);
 }
 
 GOAT3DAPI void goat3d_use_anim_by_name(struct goat3d_node *node, const char *name)
 {
-	node->use_animation(name);
+	anm_use_animation(&node->anm, anm_find_animation(&node->anm, name));
 }
 
 GOAT3DAPI void goat3d_use_anims_by_name(struct goat3d_node *node, const char *aname, const char *bname, float t)
 {
-	node->use_animation(aname, bname, t);
+	int aidx = anm_find_animation(&node->anm, aname);
+	int bidx = anm_find_animation(&node->anm, bname);
+
+	if(aidx == -1) {
+		anm_use_animation(&node->anm, bidx);
+	}
+	if(bidx == -1) {
+		anm_use_animation(&node->anm, aidx);
+	}
+	anm_use_animations(&node->anm, aidx, bidx, t);
 }
 
 GOAT3DAPI int goat3d_get_active_anim(struct goat3d_node *node, int which)
 {
-	return node->get_active_animation_index(which);
+	return anm_get_active_animation_index(&node->anm, which);
 }
 
 GOAT3DAPI float goat3d_get_active_anim_mix(struct goat3d_node *node)
 {
-	return node->get_active_animation_mix();
+	return anm_get_active_animation_mix(&node->anm);
 }
 
 GOAT3DAPI int goat3d_get_anim_count(struct goat3d_node *node)
 {
-	return node->get_animation_count();
+	return anm_get_animation_count(&node->anm);
 }
 
 GOAT3DAPI void goat3d_add_anim(struct goat3d_node *root)
 {
-	root->add_animation();
+	int idx = anm_get_animation_count(&root->anm);
+	anm_add_animation(&root->anm);
+	anm_use_animation(&root->anm, idx);
 }
 
 GOAT3DAPI void goat3d_set_anim_name(struct goat3d_node *root, const char *name)
 {
-	root->set_animation_name(name);
+	anm_set_active_animation_name(&root->anm, name);
 }
 
 GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node)
 {
-	return node->get_animation_name();
+	return anm_get_active_animation_name(&node->anm);
+}
+
+enum { POSITION_TRACK, ROTATION_TRACK, SCALING_TRACK };
+static const int track_type_base[] = {ANM_TRACK_POS_X, ANM_TRACK_ROT_X, ANM_TRACK_SCL_X};
+static const int track_type_nelem[] = {3, 4, 4};
+
+static int get_key_count(struct anm_node *node, int trackid)
+{
+	struct anm_animation *anim = anm_get_active_animation(node, 0);
+	if(anim) {
+		return anim->tracks[track_type_base[trackid]].count;
+	}
+	return 0;
+}
+
+static long get_key_time(struct anm_node *node, int trackid, int idx)
+{
+	struct anm_animation *anim = anm_get_active_animation(node, 0);
+	struct anm_keyframe *key = anm_get_keyframe(anim->trakcs + track_type_base[trackid], idx);
+	return ANM_TM2MSEC(key->time);
+}
+
+static int get_key_value(struct anm_node *node, int trackid, int idx, float *val)
+{
+	struct anm_animation *anim = anm_get_active_animation(node, 0);
+	int i, nelem = track_type_nelem[trackid];
+	for(i=0; i<nelem; i++) {
+		struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid] + i, idx);
+		val[i] = key->val;
+	}
+	return nelem;
 }
 
 GOAT3DAPI long goat3d_get_anim_timeline(struct goat3d_node *root, long *tstart, long *tend)
 {
-	if(root->get_timeline_bounds(tstart, tend)) {
-		return *tend - *tstart;
+	int i, nkeys;
+	struct anm_node *c;
+	long node_start = LONG_MAX;
+	long node_end = LONG_MIN;
+
+	for(i=0; i<3; i++) {
+		if((nkeys = get_key_count(&root->anm, i)) > 0) {
+			long tmp = get_key_time(&root->anm, i, 0);
+			if(tmp < node_start) node_start = tmp;
+			tmp = get_key_time(&root->anm, i, nkeys - 1);
+			if(tmp > node_end) node_end = tmp;
+		}
+	}
+
+	c = root->anm.child;
+	while(c) {
+		long cstart, cend;
+		if(goat3d_get_anim_timeline((struct goat3d_node*)c, &cstart, &cend)) {
+			if(cstart < node_start) node_start = cstart;
+			if(cend > node_end) node_end = cend;
+		}
+		c = c->next;
+	}
+
+	if(node_start != LONG_MAX) {
+		*tstart = node_start;
+		*tend = node_end;
+		return node_end - node_start;
 	}
 	return -1;
 }
 
 GOAT3DAPI int goat3d_get_node_position_key_count(struct goat3d_node *node)
 {
-	return node->get_position_key_count();
+	return get_key_count(&node->anm, POSITION_TRACK);
 }
 
 GOAT3DAPI int goat3d_get_node_rotation_key_count(struct goat3d_node *node)
 {
-	return node->get_rotation_key_count();
+	return get_key_count(&node-anm, ROTATION_TRACK);
 }
 
 GOAT3DAPI int goat3d_get_node_scaling_key_count(struct goat3d_node *node)
 {
-	return node->get_scaling_key_count();
+	return get_key_count(&node->anm, SCALING_TRACK);
 }
 
 GOAT3DAPI long goat3d_get_node_position_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
 {
-	Vector3 pos = node->get_position_key_value(idx);
-	long tm = node->get_position_key_time(idx);
+	cgm_vec3 pos;
+	long tm;
+
+	get_key_value(&node->anm, POSITION_TRACK, idx, &pos.x);
+	tm = get_key_time(&node->anm, POSITION_TRACK, idx);
 
 	if(xptr) *xptr = pos.x;
 	if(yptr) *yptr = pos.y;
@@ -1182,8 +1324,11 @@ GOAT3DAPI long goat3d_get_node_position_key(struct goat3d_node *node, int idx, f
 
 GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr, float *wptr)
 {
-	Quaternion rot = node->get_rotation_key_value(idx);
-	long tm = node->get_rotation_key_time(idx);
+	cgm_quat rot;
+	long tm;
+
+	get_key_value(&node->anm, ROTATION_TRACK, idx, &rot.x);
+	tm = get_key_time(&node->anm, ROTATION_TRACK, idx);
 
 	if(xptr) *xptr = rot.v.x;
 	if(yptr) *yptr = rot.v.y;
@@ -1194,8 +1339,11 @@ GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, f
 
 GOAT3DAPI long goat3d_get_node_scaling_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
 {
-	Vector3 scale = node->get_scaling_key_value(idx);
-	long tm = node->get_scaling_key_time(idx);
+	cgm_vec3 scale;
+	long tm;
+
+	get_key_value(&node->anm, SCALING_TRACK, idx, &scale.x);
+	tm = get_key_time(&node->anm, SCALING_TRACK, idx);
 
 	if(xptr) *xptr = scale.x;
 	if(yptr) *yptr = scale.y;
@@ -1205,72 +1353,75 @@ GOAT3DAPI long goat3d_get_node_scaling_key(struct goat3d_node *node, int idx, fl
 
 GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec)
 {
-	node->set_position(Vector3(x, y, z), tmsec);
+	anm_set_position3f(&node->anm, x, y, z, ANM_MSEC2TM(tmsec));
 }
 
 GOAT3DAPI void goat3d_set_node_rotation(struct goat3d_node *node, float qx, float qy, float qz, float qw, long tmsec)
 {
-	node->set_rotation(Quaternion(qw, qx, qy, qz), tmsec);
+	anm_set_rotation4f(&node->anm, qx, qy, qz, qw, ANM_MSEC2TM(tmsec));
 }
 
 GOAT3DAPI void goat3d_set_node_scaling(struct goat3d_node *node, float sx, float sy, float sz, long tmsec)
 {
-	node->set_scaling(Vector3(sx, sy, sz), tmsec);
+	anm_set_scaling3f(&node->anm, sx, sy, sz, ANM_MSEC2TM(tmsec));
 }
 
 GOAT3DAPI void goat3d_set_node_pivot(struct goat3d_node *node, float px, float py, float pz)
 {
-	node->set_pivot(Vector3(px, py, pz));
+	anm_set_pivot(&node->anm, px, py, pz);
 }
 
 
 GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
-	Vector3 pos = node->get_node_position(tmsec);
-	*xptr = pos.x;
-	*yptr = pos.y;
-	*zptr = pos.z;
+	float pos[3];
+	anm_get_node_position(&node->anm, pos, ANM_MSEC2TM(tmsec));
+	*xptr = pos[0];
+	*yptr = pos[1];
+	*zptr = pos[2];
 }
 
 GOAT3DAPI void goat3d_get_node_rotation(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, float *wptr, long tmsec)
 {
-	Quaternion q = node->get_node_rotation(tmsec);
-	*xptr = q.v.x;
-	*yptr = q.v.y;
-	*zptr = q.v.z;
-	*wptr = q.s;
+	float rot[4];
+	anm_get_node_rotation(&node->anm, rot, ANM_MSEC2TM(tmsec));
+	*xptr = rot[0];
+	*yptr = rot[1];
+	*zptr = rot[2];
+	*wptr = rot[3];
 }
 
 GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
-	Vector3 scale = node->get_node_scaling(tmsec);
-	*xptr = scale.x;
-	*yptr = scale.y;
-	*zptr = scale.z;
+	float scale[3];
+	anm_get_node_scaling(&node->anm, scaling, ANM_MSEC2TM(tmsec));
+	*xptr = scale[0];
+	*yptr = scale[1];
+	*zptr = scale[2];
 }
 
 GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
 {
-	Vector3 pivot = node->get_pivot();
-	*xptr = pivot.x;
-	*yptr = pivot.y;
-	*zptr = pivot.z;
+	anm_get_pivot(&node->anm, xptr, yptr, zptr);
 }
 
 
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec)
 {
-	node->get_node_xform(tmsec, (Matrix4x4*)matrix);
+	anm_get_node_matrix(&node->anm, matrix, ANM_MSEC2TM(tmsec));
 }
 
 GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmin, float *bmax)
 {
-	AABox box = node->get_bounds();
+	struct aabox box;
+	g3dimpl_node_bounds(&box, &node->anm);
 
-	for(int i=0; i<3; i++) {
-		bmin[i] = box.bmin[i];
-		bmax[i] = box.bmax[i];
-	}
+	bmin[0] = box.min.x;
+	bmin[1] = box.min.y;
+	bmin[2] = box.min.z;
+	bmax[0] = box.max.x;
+	bmax[1] = box.max.y;
+	bmax[2] = box.max.z;
 }
 
 
@@ -1292,23 +1443,22 @@ static long seek_file(long offs, int whence, void *uptr)
 	return ftell((FILE*)uptr);
 }
 
-std::string g3dimpl::clean_filename(const char *str)
+static char *clean_filename(char *str)
 {
-	const char *last_slash = strrchr(str, '/');
-	if(!last_slash) {
+	char *last_slash, ptr;
+
+	if(!(last_slash = strrchr(str, '/'))) {
 		last_slash = strrchr(str, '\\');
 	}
-
 	if(last_slash) {
 		str = last_slash + 1;
 	}
 
-	char *buf = (char*)alloca(strlen(str) + 1);
-	char *dest = buf;
-	while(*str) {
-		char c = *str++;
-		*dest++ = tolower(c);
+	ptr = str;
+	while(*ptr) {
+		char c = tolower(*ptr);
+		*ptr++ = c;
 	}
-	*dest = 0;
-	return buf;
+	*ptr = 0;
+	return str;
 }
