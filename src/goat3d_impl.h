@@ -60,14 +60,10 @@ void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
 
 char *g3dimpl_clean_filename(char *str);
 
-int g3dimpl_scnload_bin(struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_anmload_bin(struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_scnload_text(struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_anmload_text(struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io);
 
-int g3dimpl_scnsave_bin(const struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_anmsave_bin(const struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_scnsave_text(const struct goat3d *g, struct goat3d_io *io);
-int g3dimpl_anmsave_text(const struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_anmsave(const struct goat3d *g, struct goat3d_io *io);
 
 #endif	/* GOAT3D_IMPL_H_ */

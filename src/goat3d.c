@@ -82,7 +82,7 @@ void goat3d_destroy(struct goat3d *g)
 
 void goat3d_clear(struct goat3d *g)
 {
-	int i, j, num;
+	int i, num;
 
 	num = dynarr_size(g->materials);
 	for(i=0; i<num; i++) {
@@ -211,12 +211,7 @@ GOAT3DAPI int goat3d_save_file(const struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_load_io(struct goat3d *g, struct goat3d_io *io)
 {
-	if(g3dimpl_scnload_bin(g, io)) {
-		if(!g3dimpl_scnload_text(g, io)) {
-			return -1;
-		}
-	}
-	return 0;
+	return g3dimpl_scnload(g, io);
 }
 
 GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
@@ -225,9 +220,9 @@ GOAT3DAPI int goat3d_save_io(const struct goat3d *g, struct goat3d_io *io)
 		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
-		return g3dimpl_scnsave_text(g, io);
+		/* TODO set treestore output format as text */
 	}
-	return g3dimpl_scnsave_bin(g, io);
+	return g3dimpl_scnsave(g, io);
 }
 
 /* save/load animations */
@@ -283,12 +278,7 @@ GOAT3DAPI int goat3d_save_anim_file(const struct goat3d *g, FILE *fp)
 
 GOAT3DAPI int goat3d_load_anim_io(struct goat3d *g, struct goat3d_io *io)
 {
-	if(g3dimpl_anmload_bin(g, io) == -1) {
-		if(g3dimpl_anmload_text(g, io) == -1) {
-			return -1;
-		}
-	}
-	return 0;
+	return g3dimpl_anmload(g, io);
 }
 
 GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
@@ -297,9 +287,9 @@ GOAT3DAPI int goat3d_save_anim_io(const struct goat3d *g, struct goat3d_io *io)
 		goat3d_logmsg(LOG_ERROR, "saving in the original xml format is no longer supported\n");
 		return -1;
 	} else if(goat3d_getopt(g, GOAT3D_OPT_SAVETEXT)) {
-		return g3dimpl_anmsave_text(g, io);
+		/* TODO set treestore save format as text */
 	}
-	return g3dimpl_anmsave_bin(g, io);
+	return g3dimpl_anmsave(g, io);
 }
 
 
