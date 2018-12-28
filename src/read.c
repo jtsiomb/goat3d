@@ -87,3 +87,23 @@ int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io)
 	tsio.write = io->write;
 	return -1;
 }
+
+static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *tsmtl)
+{
+}
+
+static char *read_material_attrib(struct material_attrib *attr, struct ts_node *tsnode)
+{
+	struct ts_node *child;
+	struct ts_attr *tsattr;
+	char *str;
+
+	if(!(ts_get_attr_str(tsnode, "name"))) {
+		return 0;
+	}
+
+}
+
+struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh)
+{
+}
