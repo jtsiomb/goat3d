@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef LOG_H_
 #define LOG_H_
 
-enum { LOG_ERROR, LOG_INFO };
+enum { LOG_ERROR, LOG_WARNING, LOG_INFO };
 
 void goat3d_logmsg(int prio, const char *fmt, ...);
 

@@ -15,10 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#include <assert.h>
 #include <treestore.h>
 #include "goat3d.h"
 #include "goat3d_impl.h"
 #include "log.h"
+#include "dynarr.h"
 
 struct key {
 	long tm;
@@ -39,17 +41,17 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 	tsio.write = io->write;
 
 	if(!(tsroot = ts_load_io(&tsio))) {
-		logmsg(LOG_ERROR, "failed to load scene\n");
+		goat3d_logmsg(LOG_ERROR, "failed to load scene\n");
 		return -1;
 	}
 	if(strcmp(tsroot->name, "scene") != 0) {
-		logmsg(LOG_ERROR, "invalid scene file, root node is not \"scene\"\n");
+		goat3d_logmsg(LOG_ERROR, "invalid scene file, root node is not \"scene\"\n");
 		ts_free_tree(tsroot);
 		return -1;
 	}
 
 	/* read all materials */
-	c = tsroot->children;
+	c = tsroot->child_list;
 	while(c) {
 		if(strcmp(c->name, "mtl") == 0) {
 			struct goat3d_material *mtl = read_material(g, c);
@@ -61,7 +63,7 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 	}
 
 	/* read all meshes */
-	c = tsroot->children;
+	c = tsroot->child_list;
 	while(c) {
 		if(strcmp(c->name, "mesh") == 0) {
 			struct goat3d_mesh *mesh = read_mesh(g, c);
@@ -90,20 +92,93 @@ int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io)
 
 static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *tsmtl)
 {
+	struct goat3d_material *mtl;
+	struct material_attrib mattr, *arr;
+	struct ts_node *c;
+	const char *str;
+
+	if(!(mtl = malloc(sizeof *mtl)) || g3dimpl_mtl_init(mtl) == -1) {
+		goat3d_logmsg(LOG_ERROR, "read_material: failed to allocate material\n");
+		return 0;
+	}
+
+	if(!(str = ts_get_attr_str(tsmtl, "name", 0)) || !*str) {
+		goat3d_logmsg(LOG_WARNING, "read_material: ignoring material without a name\n");
+		g3dimpl_mtl_destroy(mtl);
+		return 0;
+	}
+
+	/* read all material attributes */
+	c = tsmtl->child_list;
+	while(c) {
+		if(strcmp(c->name, "attr") == 0) {
+			if(read_material_attrib(&mattr, c)) {
+				if(!(arr = dynarr_push(mtl->attrib, &mattr))) {
+					goat3d_logmsg(LOG_ERROR, "read_material: failed to resize material attribute array\n");
+					g3dimpl_mtl_destroy(mtl);
+					return 0;
+				}
+				mtl->attrib = arr;
+			}
+		}
+		c = c->next;
+	}
+
+	if(dynarr_empty(mtl->attrib)) {
+		goat3d_logmsg(LOG_WARNING, "read_material: ignoring empty material: %s\n", mtl->name);
+		g3dimpl_mtl_destroy(mtl);
+		return 0;
+	}
+	return mtl;
 }
 
 static char *read_material_attrib(struct material_attrib *attr, struct ts_node *tsnode)
 {
-	struct ts_node *child;
+	int i;
 	struct ts_attr *tsattr;
-	char *str;
+	const char *name, *map;
 
-	if(!(ts_get_attr_str(tsnode, "name"))) {
-		return 0;
+	memset(attr, 0, sizeof *attr);
+
+	if((tsattr = ts_get_attr(tsnode, "val"))) {
+		attr->value.w = 1.0f;	/* default W to 1 if we get less than a float4 */
+
+		switch(tsattr->val.type) {
+		case TS_NUMBER:
+			attr->value.x = tsattr->val.fnum;
+			break;
+		case TS_VECTOR:
+			assert(tsattr->val.vec_size <= 4);
+			for(i=0; i<tsattr->val.vec_size; i++) {
+				(&attr->value.x)[i] = tsattr->val.vec[i];
+			}
+			break;
+		default: /* no valid val attribute found */
+			return 0;
+		}
 	}
 
+	if(!(name = ts_get_attr_str(tsnode, "name", 0)) || !*name) {
+		return 0;
+	}
+	if(!(attr->name = malloc(strlen(name) + 1))) {
+		goat3d_logmsg(LOG_ERROR, "read_material_attrib: failed to allocate name\n");
+		return 0;
+	}
+	strcpy(attr->name, name);
+
+	if((map = ts_get_attr_str(tsnode, "map", 0)) && *map) {
+		if(!(attr->map = malloc(strlen(map) + 1))) {
+			goat3d_logmsg(LOG_ERROR, "read_material_attrib: failed to allocate map name\n");
+			free(attr->name);
+			return 0;
+		}
+		strcpy(attr->map, map);
+	}
+	return attr->name;
 }
 
 struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh)
 {
+	return 0;	/* TODO */
 }
