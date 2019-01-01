@@ -41,11 +41,6 @@ struct goat3d {
 	int bbox_valid;
 };
 
-struct node_data {
-	enum goat3d_node_type type;
-	void *obj;
-};
-
 extern int goat3d_log_level;
 
 int goat3d_init(struct goat3d *g);

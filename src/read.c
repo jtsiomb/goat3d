@@ -83,10 +83,12 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 
 int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io)
 {
+	/*
 	struct ts_io tsio;
 	tsio.data = io->cls;
 	tsio.read = io->read;
 	tsio.write = io->write;
+	*/
 	return -1;
 }
 

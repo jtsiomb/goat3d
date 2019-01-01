@@ -22,6 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "log.h"
 #include "dynarr.h"
 
+static struct ts_node *create_mtltree(const struct goat3d_material *mtl);
+static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh);
+
 #define create_tsnode(n, p, nstr) \
 	do { \
 		int len = strlen(nstr); \
@@ -61,10 +64,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io)
 {
-	int i, j, num;
+	int i, num;
 	struct ts_io tsio;
-	struct ts_node *tsroot = 0, *tsenv, *tsmtl, *tsmesh, *tslight, *tscam, *tsnode;
-	struct ts_node *tsn;
+	struct ts_node *tsroot = 0, *tsn, *tsenv;
 	struct ts_attr *tsa;
 
 	tsio.data = io->cls;
@@ -81,32 +83,18 @@ int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io)
 
 	num = dynarr_size(g->materials);
 	for(i=0; i<num; i++) {
-		int num_attr;
-
-		create_tsnode(tsmtl, tsroot, "mtl");
-		create_tsattr(tsa, tsmtl, "name", TS_STRING);
-		if(ts_set_value_str(&tsa->val, g->materials[i]->name) == -1) {
+		if(!(tsn = create_mtltree(g->materials[i]))) {
 			goto err;
 		}
+		ts_add_child(tsroot, tsn);
+	}
 
-		num_attr = dynarr_size(g->materials[i]->attrib);
-		for(j=0; j<num_attr; j++) {
-			struct material_attrib *attr = g->materials[i]->attrib + j;
-
-			create_tsnode(tsn, tsmtl, "attr");
-			create_tsattr(tsa, tsn, "name", TS_STRING);
-			if(ts_set_value_str(&tsa->val, attr->name) == -1) {
-				goto err;
-			}
-			create_tsattr(tsa, tsn, "val", TS_VECTOR);
-			ts_set_valuefv(&tsa->val, 4, attr->value.x, attr->value.y, attr->value.z, attr->value.w);
-			if(attr->map) {
-				create_tsattr(tsa, tsn, "map", TS_STRING);
-				if(ts_set_value_str(&tsa->val, attr->map) == -1) {
-					goto err;
-				}
-			}
+	num = dynarr_size(g->meshes);
+	for(i=0; i<num; i++) {
+		if(!(tsn = create_meshtree(g->meshes[i]))) {
+			goto err;
 		}
+		ts_add_child(tsroot, tsn);
 	}
 
 	if(ts_save_io(tsroot, &tsio) == -1) {
@@ -123,4 +111,178 @@ err:
 int g3dimpl_anmsave(const struct goat3d *g, struct goat3d_io *io)
 {
 	return -1;
+}
+
+static struct ts_node *create_mtltree(const struct goat3d_material *mtl)
+{
+	int i, num_attr;
+	struct ts_node *tsn, *tsmtl = 0;
+	struct ts_attr *tsa;
+
+	create_tsnode(tsmtl, 0, "mtl");
+	create_tsattr(tsa, tsmtl, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, mtl->name) == -1) {
+		goto err;
+	}
+
+	num_attr = dynarr_size(mtl->attrib);
+	for(i=0; i<num_attr; i++) {
+		struct material_attrib *attr = mtl->attrib + i;
+
+		create_tsnode(tsn, tsmtl, "attr");
+		create_tsattr(tsa, tsn, "name", TS_STRING);
+		if(ts_set_value_str(&tsa->val, attr->name) == -1) {
+			goto err;
+		}
+		create_tsattr(tsa, tsn, "val", TS_VECTOR);
+		ts_set_valuefv(&tsa->val, 4, attr->value.x, attr->value.y, attr->value.z, attr->value.w);
+		if(attr->map) {
+			create_tsattr(tsa, tsn, "map", TS_STRING);
+			if(ts_set_value_str(&tsa->val, attr->map) == -1) {
+				goto err;
+			}
+		}
+	}
+	return tsmtl;
+
+err:
+	ts_free_tree(tsmtl);
+	return 0;
+}
+
+static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
+{
+	int i, num;
+	struct ts_node *tsmesh = 0, *tslist;
+	struct ts_attr *tsa;
+
+	create_tsnode(tsmesh, 0, "mesh");
+	create_tsattr(tsa, tsmesh, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, mesh->name) == -1) {
+		goto err;
+	}
+
+	if(mesh->mtl) {
+		create_tsattr(tsa, tsmesh, "material", TS_STRING);
+		if(ts_set_value_str(&tsa->val, mesh->mtl->name) == -1) {
+			goto err;
+		}
+	}
+
+	/* TODO option of saving separate mesh files */
+
+	if((num = dynarr_size(mesh->vertices))) {
+		create_tsnode(tslist, tsmesh, "vertex-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec3 *vptr = mesh->vertices + i;
+			create_tsattr(tsa, tslist, "vertex", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 3, vptr->x, vptr->y, vptr->z);
+		}
+	}
+
+	if((num = dynarr_size(mesh->normals))) {
+		create_tsnode(tslist, tsmesh, "normal-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec3 *nptr = mesh->normals + i;
+			create_tsattr(tsa, tslist, "normal", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 3, nptr->x, nptr->y, nptr->z);
+		}
+	}
+
+	if((num = dynarr_size(mesh->tangents))) {
+		create_tsnode(tslist, tsmesh, "tangent-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec3 *tptr = mesh->tangents + i;
+			create_tsattr(tsa, tslist, "tangent", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 3, tptr->x, tptr->y, tptr->z);
+		}
+	}
+
+	if((num = dynarr_size(mesh->texcoords))) {
+		create_tsnode(tslist, tsmesh, "texcoord-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec2 *uvptr = mesh->texcoords + i;
+			create_tsattr(tsa, tslist, "texcoord", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 3, uvptr->x, uvptr->y, 0.0f);
+		}
+	}
+
+	if((num = dynarr_size(mesh->skin_weights))) {
+		create_tsnode(tslist, tsmesh, "skinweight-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec4 *wptr = mesh->skin_weights + i;
+			create_tsattr(tsa, tslist, "skinweight", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 4, wptr->x, wptr->y, wptr->z, wptr->w);
+		}
+	}
+
+	if((num = dynarr_size(mesh->skin_matrices))) {
+		create_tsnode(tslist, tsmesh, "skinmatrix-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			int4 *iptr = mesh->skin_matrices + i;
+			create_tsattr(tsa, tslist, "skinmatrix", TS_VECTOR);
+			ts_set_valueiv(&tsa->val, 4, iptr->x, iptr->y, iptr->z, iptr->w);
+		}
+	}
+
+	if((num = dynarr_size(mesh->colors))) {
+		create_tsnode(tslist, tsmesh, "color-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			cgm_vec4 *cptr = mesh->colors + i;
+			create_tsattr(tsa, tslist, "color", TS_VECTOR);
+			ts_set_valuefv(&tsa->val, 4, cptr->x, cptr->y, cptr->z, cptr->w);
+		}
+	}
+
+	if((num = dynarr_size(mesh->bones))) {
+		create_tsnode(tslist, tsmesh, "bone-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			create_tsattr(tsa, tslist, "bone", TS_STRING);
+			if(ts_set_value_str(&tsa->val, mesh->bones[i]->name) == -1) {
+				goto err;
+			}
+		}
+	}
+
+	if((num = dynarr_size(mesh->faces))) {
+		create_tsnode(tslist, tsmesh, "face-list");
+		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		ts_set_valuei(&tsa->val, num);
+
+		for(i=0; i<num; i++) {
+			struct face *fptr = mesh->faces + i;
+			create_tsattr(tsa, tslist, "face", TS_VECTOR);
+			ts_set_valueiv(&tsa->val, 3, fptr->v[0], fptr->v[1], fptr->v[2]);
+		}
+	}
+
+	return tsmesh;
+
+err:
+	ts_free_tree(tsmesh);
+	return 0;
 }

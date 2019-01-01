@@ -23,23 +23,32 @@ SCENE
  |   +--MESH_NAME (string)
  |   +--MESH_MATERIAL (string:name|int:index)
  |   +--MESH_VERTEX_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_VERTEX (float3)
  |   +--MESH_NORMAL_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_NORMAL (float3)
  |   +--MESH_TANGENT_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_TANGENT (float3)
  |   +--MESH_TEXCOORD_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_TEXCOORD (float3)
  |   +--MESH_SKINWEIGHT_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_SKINWEIGHT (float4: 4 skin weights/vertex)
  |   +--MESH_SKINMATRIX_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_SKINMATRIX (int4: 4 matrix indices/vertex)
  |   +--MESH_COLOR_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_COLOR (float4)
- |   +--MESH_BONES_LIST
+ |   +--MESH_BONE_LIST
+ |   |   +--MESH_LIST_SIZE (int)
  |   |   +--MESH_BONE (int:node index | string:node name)
  |   +--MESH_FACE_LIST
- |   |   +--MESH_FACE (int4: 3 ints for vertex indices)
+ |   |   +--MESH_LIST_SIZE (int)
+ |   |   +--MESH_FACE (int3: 3 ints for vertex indices)
  |   +--MESH_FILE (string: filename)
  +--LIGHT
  |   +--LIGHT_NAME (string)

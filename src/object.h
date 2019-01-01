@@ -87,7 +87,7 @@ struct goat3d_mesh {
 	int4 *skin_matrices;
 	cgm_vec4 *colors;
 	struct face *faces;
-	struct anm_node *bones;
+	struct anm_node **bones;
 };
 
 struct goat3d_light {
