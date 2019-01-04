@@ -9,10 +9,8 @@ else
 	libgoat = $(goat_root)/libgoat3d.so.0.1
 endif
 
-CC = clang
-CXX = clang++
 CFLAGS = -pedantic -Wall -g -I$(goat_root)/src
-LDFLAGS = $(libgoat)
+LDFLAGS = -Wl,-rpath,$(goat_root) $(libgoat) -ltreestore
 
 $(bin): $(obj) $(libgoat)
 	$(CXX) -o $@ $(obj) $(LDFLAGS)

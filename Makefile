@@ -31,13 +31,21 @@ CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic)
 LDFLAGS = -lanim
 
 .PHONY: all
-all: $(lib_so) $(lib_a)
+all: $(lib_so) $(lib_a) $(soname) $(ldname)
 
 $(lib_so): $(obj)
 	$(CC) -o $@ $(shared) $(obj) $(LDFLAGS)
 
 $(lib_a): $(obj)
 	$(AR) rcs $@ $(obj)
+
+$(soname): $(lib_so)
+	rm -f $@
+	ln -s $< $@
+
+$(ldname): $(soname)
+	rm -f $@
+	ln -s $< $@
 
 -include $(dep)
 

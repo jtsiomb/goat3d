@@ -21,9 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 int g3dimpl_obj_init(struct object *o, int type)
 {
+	static int last_mesh, last_light, last_camera;
 	struct goat3d_mesh *m;
 	struct goat3d_light *lt;
 	struct goat3d_camera *cam;
+	char *name;
+
+	if(!(name = malloc(64))) {
+		return -1;
+	}
 
 	switch(type) {
 	case OBJTYPE_MESH:
@@ -38,6 +44,7 @@ int g3dimpl_obj_init(struct object *o, int type)
 		if(!(m->colors = dynarr_alloc(0, sizeof *m->colors))) goto err;
 		if(!(m->faces = dynarr_alloc(0, sizeof *m->faces))) goto err;
 		if(!(m->bones = dynarr_alloc(0, sizeof *m->bones))) goto err;
+		sprintf(name, "mesh%d", last_mesh++);
 		break;
 
 	case OBJTYPE_LIGHT:
@@ -48,6 +55,7 @@ int g3dimpl_obj_init(struct object *o, int type)
 		cgm_vcons(&lt->dir, 0, 0, 1);
 		lt->inner_cone = cgm_deg_to_rad(30);
 		lt->outer_cone = cgm_deg_to_rad(45);
+		sprintf(name, "light%d", last_light++);
 		break;
 
 	case OBJTYPE_CAMERA:
@@ -56,18 +64,21 @@ int g3dimpl_obj_init(struct object *o, int type)
 		cam->near_clip = 0.5f;
 		cam->far_clip = 500.0f;
 		cgm_vcons(&cam->up, 0, 1, 0);
+		sprintf(name, "camera%d", last_camera++);
 		break;
 
 	default:
 		return -1;
 	}
 
+	o->name = name;
 	o->type = type;
 	cgm_qcons(&o->rot, 0, 0, 0, 1);
 	cgm_vcons(&o->scale, 1, 1, 1);
 	return 0;
 
 err:
+	free(name);
 	g3dimpl_obj_destroy(o);
 	return -1;
 }

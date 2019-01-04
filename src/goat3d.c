@@ -61,7 +61,6 @@ int goat3d_init(struct goat3d *g)
 	if(!(g->cameras = dynarr_alloc(0, sizeof *g->cameras))) goto err;
 	if(!(g->nodes = dynarr_alloc(0, sizeof *g->nodes))) goto err;
 
-	goat3d_setopt(g, GOAT3D_OPT_SAVEXML, 1);
 	return 0;
 
 err:
@@ -89,35 +88,35 @@ void goat3d_clear(struct goat3d *g)
 		g3dimpl_mtl_destroy(g->materials[i]);
 		free(g->materials[i]);
 	}
-	dynarr_clear(g->materials);
+	DYNARR_CLEAR(g->materials);
 
 	num = dynarr_size(g->meshes);
 	for(i=0; i<num; i++) {
 		g3dimpl_obj_destroy((struct object*)g->meshes[i]);
 		free(g->meshes[i]);
 	}
-	dynarr_clear(g->meshes);
+	DYNARR_CLEAR(g->meshes);
 
 	num = dynarr_size(g->lights);
 	for(i=0; i<num; i++) {
 		g3dimpl_obj_destroy((struct object*)g->lights[i]);
 		free(g->lights[i]);
 	}
-	dynarr_clear(g->lights);
+	DYNARR_CLEAR(g->lights);
 
 	num = dynarr_size(g->cameras);
 	for(i=0; i<num; i++) {
 		g3dimpl_obj_destroy((struct object*)g->cameras[i]);
 		free(g->cameras[i]);
 	}
-	dynarr_clear(g->cameras);
+	DYNARR_CLEAR(g->cameras);
 
 	num = dynarr_size(g->nodes);
 	for(i=0; i<num; i++) {
 		anm_destroy_node(&g->nodes[i]->anm);
 		free(g->nodes[i]);
 	}
-	dynarr_clear(g->nodes);
+	DYNARR_CLEAR(g->nodes);
 
 	goat3d_set_name(g, "unnamed");
 	g->bbox_valid = 0;
@@ -796,14 +795,14 @@ static int im_use[NUM_GOAT3D_MESH_ATTRIBS];
 
 GOAT3DAPI void goat3d_begin(struct goat3d_mesh *mesh, enum goat3d_im_primitive prim)
 {
-	dynarr_clear(mesh->vertices);
-	dynarr_clear(mesh->normals);
-	dynarr_clear(mesh->tangents);
-	dynarr_clear(mesh->texcoords);
-	dynarr_clear(mesh->skin_weights);
-	dynarr_clear(mesh->skin_matrices);
-	dynarr_clear(mesh->colors);
-	dynarr_clear(mesh->faces);
+	DYNARR_CLEAR(mesh->vertices);
+	DYNARR_CLEAR(mesh->normals);
+	DYNARR_CLEAR(mesh->tangents);
+	DYNARR_CLEAR(mesh->texcoords);
+	DYNARR_CLEAR(mesh->skin_weights);
+	DYNARR_CLEAR(mesh->skin_matrices);
+	DYNARR_CLEAR(mesh->colors);
+	DYNARR_CLEAR(mesh->faces);
 
 	im_mesh = mesh;
 	memset(im_use, 0, sizeof im_use);

@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 	}
 
 	if(!fname) {
-		fname = "out.xml";
+		fname = "out.goat3d";
 	}
 
 	goat = goat3d_create();
@@ -161,7 +161,6 @@ int main(int argc, char **argv)
 	goat3d_set_mesh_mtl(mesh, mtl);
 	goat3d_add_mesh(goat, mesh);
 
-	goat3d_setopt(goat, GOAT3D_OPT_SAVEXML, 1);
 	goat3d_save(goat, fname);
 
 	goat3d_free(goat);
