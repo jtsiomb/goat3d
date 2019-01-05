@@ -153,7 +153,7 @@ err:
 static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 {
 	int i, num;
-	struct ts_node *tsmesh = 0, *tslist;
+	struct ts_node *tsmesh = 0, *tslist, *tsitem;
 	struct ts_attr *tsa;
 
 	create_tsnode(tsmesh, 0, "mesh");
@@ -178,7 +178,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec3 *vptr = mesh->vertices + i;
-			create_tsattr(tsa, tslist, "vertex", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "vertex");
+			create_tsattr(tsa, tsitem, "pos", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 3, vptr->x, vptr->y, vptr->z);
 		}
 	}
@@ -190,7 +191,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec3 *nptr = mesh->normals + i;
-			create_tsattr(tsa, tslist, "normal", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "normal");
+			create_tsattr(tsa, tsitem, "dir", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 3, nptr->x, nptr->y, nptr->z);
 		}
 	}
@@ -202,7 +204,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec3 *tptr = mesh->tangents + i;
-			create_tsattr(tsa, tslist, "tangent", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "tangent");
+			create_tsattr(tsa, tsitem, "dir", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 3, tptr->x, tptr->y, tptr->z);
 		}
 	}
@@ -214,7 +217,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec2 *uvptr = mesh->texcoords + i;
-			create_tsattr(tsa, tslist, "texcoord", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "texcoord");
+			create_tsattr(tsa, tsitem, "uv", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 3, uvptr->x, uvptr->y, 0.0f);
 		}
 	}
@@ -226,7 +230,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec4 *wptr = mesh->skin_weights + i;
-			create_tsattr(tsa, tslist, "skinweight", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "skinweight");
+			create_tsattr(tsa, tsitem, "weights", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 4, wptr->x, wptr->y, wptr->z, wptr->w);
 		}
 	}
@@ -238,7 +243,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			int4 *iptr = mesh->skin_matrices + i;
-			create_tsattr(tsa, tslist, "skinmatrix", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "skinmatrix");
+			create_tsattr(tsa, tsitem, "idx", TS_VECTOR);
 			ts_set_valueiv(&tsa->val, 4, iptr->x, iptr->y, iptr->z, iptr->w);
 		}
 	}
@@ -250,7 +256,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			cgm_vec4 *cptr = mesh->colors + i;
-			create_tsattr(tsa, tslist, "color", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "color");
+			create_tsattr(tsa, tsitem, "color", TS_VECTOR);
 			ts_set_valuefv(&tsa->val, 4, cptr->x, cptr->y, cptr->z, cptr->w);
 		}
 	}
@@ -261,7 +268,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
-			create_tsattr(tsa, tslist, "bone", TS_STRING);
+			create_tsnode(tsitem, tslist, "bone");
+			create_tsattr(tsa, tsitem, "name", TS_STRING);
 			if(ts_set_value_str(&tsa->val, mesh->bones[i]->name) == -1) {
 				goto err;
 			}
@@ -275,7 +283,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 		for(i=0; i<num; i++) {
 			struct face *fptr = mesh->faces + i;
-			create_tsattr(tsa, tslist, "face", TS_VECTOR);
+			create_tsnode(tsitem, tslist, "face");
+			create_tsattr(tsa, tsitem, "idx", TS_VECTOR);
 			ts_set_valueiv(&tsa->val, 3, fptr->v[0], fptr->v[1], fptr->v[2]);
 		}
 	}

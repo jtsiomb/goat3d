@@ -4,83 +4,95 @@ Goat3D scene file format
 Chunk structure
 ---------------
 
+Names in capital letters are nodes.
+Names in lower case are node attributes.
 Leaf nodes which carry actual data are marked with (type). Where choice is
 involved, options are seperated with the | symbol.
 
 SCENE
  +--ENV
- |   +--AMBIENT (float3)
+ |   +--color (float3)
  |   +--FOG
- |       +--FOG_COLOR (float3)
- |       +--FOG_EXP (float)
+ |       +--color (float3)
+ |       +--exp (float)
  +--MTL
  |   +--MTL_NAME (string)
  |   +--MTL_ATTR
- |       +--MTL_ATTR_NAME (string)
- |       +--MTL_ATTR_VAL (float|float3|float4)
- |       +--MTL_ATTR_MAP (string: filename)
+ |       +--name (string)
+ |       +--val (float|float3|float4)
+ |       +--map (string: filename)
  +--MESH
- |   +--MESH_NAME (string)
- |   +--MESH_MATERIAL (string:name|int:index)
+ |   +--name (string)
+ |   +--material (string:name|int:index)
  |   +--MESH_VERTEX_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_VERTEX (float3)
+ |   |   +--list-size (int)
+ |   |   +--MESH_VERTEX
+ |   |       +--pos (float3)
  |   +--MESH_NORMAL_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_NORMAL (float3)
+ |   |   +--list-size (int)
+ |   |   +--MESH_NORMAL
+ |   |       +--dir (float3)
  |   +--MESH_TANGENT_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_TANGENT (float3)
+ |   |   +--list-size (int)
+ |   |   +--MESH_TANGENT
+ |   |       +--dir (float3)
  |   +--MESH_TEXCOORD_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_TEXCOORD (float3)
+ |   |   +--list-size (int)
+ |   |   +--MESH_TEXCOORD
+ |   |       +--uv (float3)
  |   +--MESH_SKINWEIGHT_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_SKINWEIGHT (float4: 4 skin weights/vertex)
+ |   |   +--list-size (int)
+ |   |   +--MESH_SKINWEIGHT
+ |   |       +--weights (float4: 4 skin weights/vertex)
  |   +--MESH_SKINMATRIX_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_SKINMATRIX (int4: 4 matrix indices/vertex)
+ |   |   +--list-size (int)
+ |   |   +--MESH_SKINMATRIX
+ |   |       +--idx (int4: 4 matrix indices/vertex)
  |   +--MESH_COLOR_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_COLOR (float4)
+ |   |   +--list-size (int)
+ |   |   +--MESH_COLOR
+ |   |       +--color (float4)
  |   +--MESH_BONE_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_BONE (int:node index | string:node name)
+ |   |   +--list-size (int)
+ |   |   +--MESH_BONE
+ |   |       +--idx (int: node index)
+ |   |       +--name (string: node name)
  |   +--MESH_FACE_LIST
- |   |   +--MESH_LIST_SIZE (int)
- |   |   +--MESH_FACE (int3: 3 ints for vertex indices)
- |   +--MESH_FILE (string: filename)
+ |   |   +--list-size (int)
+ |   |   +--MESH_FACE
+ |   |       +--idx (int3: 3 ints for vertex indices)
+ |   +--file (string: filename)
  +--LIGHT
- |   +--LIGHT_NAME (string)
- |   +--LIGHT_POS (float3)
- |   +--LIGHT_COLOR (float3)
- |   +--LIGHT_ATTEN (float3: constant, linear, quadratic)
- |   +--LIGHT_DISTANCE (float)
- |   +--LIGHT_DIR (float3)
- |   +--LIGHT_CONE_INNER (float)
- |   +--LIGHT_CONE_OUTER (float)
+ |   +--name (string)
+ |   +--pos (float3)
+ |   +--color (float3)
+ |   +--atten (float3: constant, linear, quadratic)
+ |   +--distance (float)
+ |   +--dir (float3)
+ |   +--cone-inner (float)
+ |   +--cone-outer (float)
  +--CAMERA
- |   +--CAMERA_NAME (string)
- |   +--CAMERA_POS (float3)
- |   +--CAMERA_TARGET (float3)
- |   +--CAMERA_FOV (float: degrees)
- |   +--CAMERA_NEARCLIP (float)
- |   +--CAMERA_FARCLIP (float)
+ |   +--name (string)
+ |   +--pos (float3)
+ |   +--target (float3)
+ |   +--fov (float: degrees)
+ |   +--nearclip (float)
+ |   +--farclip (float)
  +--NODE
-     +--NODE_NAME (string)
-     +--NODE_PARENT (int: node index | string: node name)
-     +--NODE_MESH|NODE_LIGHT|NODE_CAMERA (int|string)
-     +--NODE_POS (float3)
-     +--NODE_ROT (float4: quaternion w + xi + yj + zk)
-     +--NODE_SCALE (float3)
-     +--NODE_PIVOT (float3)
-     +--NODE_MATRIX0 (float4: first row)
-     +--NODE_MATRIX1 (float4: second row)
-     +--NODE_MATRIX2 (float4: third row)
+     +--name (string)
+     +--parent (int: node index | string: node name)
+     +--mesh|light|camera (int|string)
+     +--pos (float3)
+     +--rot (float4: quaternion w + xi + yj + zk)
+     +--scale (float3)
+     +--pivot (float3)
+     +--matrix0 (float4: first row)
+     +--matrix1 (float4: second row)
+     +--matrix2 (float4: third row)
 
 NOTES:
  * Name chunks are mandatory. If something doesn't have a name, one must be made
    up, even if it's just "object%d".
- * In node chunks, both POS/ROT/SCALE, and MATRIX0/MATRIX1/MATRIX2 are mandatory
+ * In node chunks, both pos/rot/scale, and matrix0/matrix1/matrix2 are mandatory
    and they must agree. Makes it easy for the reader to pick the transformation
    data in whichever way is more convenient.
