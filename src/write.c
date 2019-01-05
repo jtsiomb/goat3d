@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 static struct ts_node *create_mtltree(const struct goat3d_material *mtl);
 static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh);
+static struct ts_node *create_lighttree(const struct goat3d_light *light);
+static struct ts_node *create_camtree(const struct goat3d_camera *cam);
 
 #define create_tsnode(n, p, nstr) \
 	do { \
@@ -96,6 +98,24 @@ int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io)
 		}
 		ts_add_child(tsroot, tsn);
 	}
+
+	num = dynarr_size(g->lights);
+	for(i=0; i<num; i++) {
+		if(!(tsn = create_lighttree(g->lights[i]))) {
+			goto err;
+		}
+		ts_add_child(tsroot, tsn);
+	}
+
+	num = dynarr_size(g->cameras);
+	for(i=0; i<num; i++) {
+		if(!(tsn = create_camtree(g->cameras[i]))) {
+			goto err;
+		}
+		ts_add_child(tsroot, tsn);
+	}
+
+	/* TODO nodes */
 
 	if(ts_save_io(tsroot, &tsio) == -1) {
 		goat3d_logmsg(LOG_ERROR, "g3dimpl_scnsave: failed\n");
@@ -293,5 +313,84 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 
 err:
 	ts_free_tree(tsmesh);
+	return 0;
+}
+
+static struct ts_node *create_lighttree(const struct goat3d_light *light)
+{
+	struct ts_node *tslight = 0;
+	struct ts_attr *tsa;
+
+	create_tsnode(tslight, 0, "light");
+	create_tsattr(tsa, tslight, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, light->name) == -1) {
+		goto err;
+	}
+
+	if(light->ltype != LTYPE_DIR) {
+		create_tsattr(tsa, tslight, "pos", TS_VECTOR);
+		ts_set_valuefv(&tsa->val, 3, light->pos.x, light->pos.y, light->pos.z);
+	}
+
+	if(light->ltype != LTYPE_POINT) {
+		create_tsattr(tsa, tslight, "dir", TS_VECTOR);
+		ts_set_valuefv(&tsa->val, 3, light->dir.x, light->dir.y, light->dir.z);
+	}
+
+	if(light->ltype == LTYPE_SPOT) {
+		create_tsattr(tsa, tslight, "cone-inner", TS_NUMBER);
+		ts_set_valuef(&tsa->val, light->inner_cone);
+		create_tsattr(tsa, tslight, "cone-outer", TS_NUMBER);
+		ts_set_valuef(&tsa->val, light->outer_cone);
+	}
+
+	create_tsattr(tsa, tslight, "color", TS_VECTOR);
+	ts_set_valuefv(&tsa->val, 3, light->color.x, light->color.y, light->color.z);
+
+	create_tsattr(tsa, tslight, "atten", TS_VECTOR);
+	ts_set_valuefv(&tsa->val, 3, light->attenuation.x, light->attenuation.y, light->attenuation.z);
+
+	create_tsattr(tsa, tslight, "distance", TS_NUMBER);
+	ts_set_valuef(&tsa->val, light->max_dist);
+
+	return tslight;
+
+err:
+	ts_free_tree(tslight);
+	return 0;
+}
+
+static struct ts_node *create_camtree(const struct goat3d_camera *cam)
+{
+	struct ts_node *tscam = 0;
+	struct ts_attr *tsa;
+
+	create_tsnode(tscam, 0, "camera");
+	create_tsattr(tsa, tscam, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, cam->name) == -1) {
+		goto err;
+	}
+
+	create_tsattr(tsa, tscam, "pos", TS_VECTOR);
+	ts_set_valuefv(&tsa->val, 3, cam->pos.x, cam->pos.y, cam->pos.z);
+
+	if(cam->camtype == CAMTYPE_TARGET) {
+		create_tsattr(tsa, tscam, "target", TS_VECTOR);
+		ts_set_valuefv(&tsa->val, 3, cam->target.x, cam->target.y, cam->target.z);
+	}
+
+	create_tsattr(tsa, tscam, "fov", TS_NUMBER);
+	ts_set_valuef(&tsa->val, cam->fov);
+
+	create_tsattr(tsa, tscam, "nearclip", TS_NUMBER);
+	ts_set_valuef(&tsa->val, cam->near_clip);
+
+	create_tsattr(tsa, tscam, "farclip", TS_NUMBER);
+	ts_set_valuef(&tsa->val, cam->far_clip);
+
+	return tscam;
+
+err:
+	ts_free_tree(tscam);
 	return 0;
 }

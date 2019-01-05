@@ -103,6 +103,7 @@ struct goat3d_light {
 struct goat3d_camera {
 	OBJECT_COMMON;
 	int camtype;
+	float fov;
 	float near_clip, far_clip;
 	cgm_vec3 target, up;
 };
