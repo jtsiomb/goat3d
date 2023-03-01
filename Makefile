@@ -5,7 +5,7 @@ dbg = -g
 opt = -O0
 # -------------------
 
-src = $(wildcard src/*.c)
+src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c)
 obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
 
@@ -27,7 +27,9 @@ else
 	pic = -fPIC
 endif
 
-CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic)
+incdir = -Ilibs/treestore
+
+CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(incdir) -MMD
 LDFLAGS = -lanim
 
 .PHONY: all
@@ -48,10 +50,6 @@ $(ldname): $(soname)
 	ln -s $< $@
 
 -include $(dep)
-
-%.d: %.c
-	@echo "generating depfile $@"
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 .PHONY: clean
 clean:

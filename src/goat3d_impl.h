@@ -61,4 +61,6 @@ int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io);
 int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io);
 int g3dimpl_anmsave(const struct goat3d *g, struct goat3d_io *io);
 
+int g3dimpl_loadmesh(struct goat3d_mesh *mesh, const char *fname);
+
 #endif	/* GOAT3D_IMPL_H_ */

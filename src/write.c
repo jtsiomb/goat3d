@@ -1,6 +1,6 @@
 /*
 goat3d - 3D scene, and animation file format library.
-Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2013-2023  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -192,8 +192,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	/* TODO option of saving separate mesh files */
 
 	if((num = dynarr_size(mesh->vertices))) {
-		create_tsnode(tslist, tsmesh, "vertex-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "vertex_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -205,8 +205,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->normals))) {
-		create_tsnode(tslist, tsmesh, "normal-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "normal_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -218,8 +218,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->tangents))) {
-		create_tsnode(tslist, tsmesh, "tangent-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "tangent_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -231,8 +231,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->texcoords))) {
-		create_tsnode(tslist, tsmesh, "texcoord-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "texcoord_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -244,8 +244,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->skin_weights))) {
-		create_tsnode(tslist, tsmesh, "skinweight-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "skinweight_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -257,8 +257,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->skin_matrices))) {
-		create_tsnode(tslist, tsmesh, "skinmatrix-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "skinmatrix_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -270,8 +270,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->colors))) {
-		create_tsnode(tslist, tsmesh, "color-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "color_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -283,22 +283,22 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 	}
 
 	if((num = dynarr_size(mesh->bones))) {
-		create_tsnode(tslist, tsmesh, "bone-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "bone_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
 			create_tsnode(tsitem, tslist, "bone");
 			create_tsattr(tsa, tsitem, "name", TS_STRING);
-			if(ts_set_value_str(&tsa->val, mesh->bones[i]->name) == -1) {
+			if(ts_set_value_str(&tsa->val, mesh->bones[i]->anm.name) == -1) {
 				goto err;
 			}
 		}
 	}
 
 	if((num = dynarr_size(mesh->faces))) {
-		create_tsnode(tslist, tsmesh, "face-list");
-		create_tsattr(tsa, tslist, "list-size", TS_NUMBER);
+		create_tsnode(tslist, tsmesh, "face_list");
+		create_tsattr(tsa, tslist, "list_size", TS_NUMBER);
 		ts_set_valuei(&tsa->val, num);
 
 		for(i=0; i<num; i++) {
@@ -338,9 +338,9 @@ static struct ts_node *create_lighttree(const struct goat3d_light *light)
 	}
 
 	if(light->ltype == LTYPE_SPOT) {
-		create_tsattr(tsa, tslight, "cone-inner", TS_NUMBER);
+		create_tsattr(tsa, tslight, "cone_inner", TS_NUMBER);
 		ts_set_valuef(&tsa->val, light->inner_cone);
-		create_tsattr(tsa, tslight, "cone-outer", TS_NUMBER);
+		create_tsattr(tsa, tslight, "cone_outer", TS_NUMBER);
 		ts_set_valuef(&tsa->val, light->outer_cone);
 	}
 

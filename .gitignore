@@ -3,3 +3,9 @@
 *.swp
 libgoat3d.a
 libgoat3d.so*
+converters/ass2goat/ass2goat
+goatview/goatview
+generators/goatprim/goatprim
+moc_*.cc
+*.obj
+*.goat3d

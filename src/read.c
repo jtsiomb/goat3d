@@ -1,6 +1,6 @@
 /*
 goat3d - 3D scene, and animation file format library.
-Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2013-2023  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -29,7 +29,11 @@ struct key {
 
 static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *tsmtl);
 static char *read_material_attrib(struct material_attrib *attr, struct ts_node *tsmattr);
-struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh);
+static struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh);
+
+static int read_veclist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
+static int read_intlist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
+static int read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts_node *tsnode);
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 {
@@ -100,11 +104,13 @@ static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *t
 	const char *str;
 
 	if(!(mtl = malloc(sizeof *mtl)) || g3dimpl_mtl_init(mtl) == -1) {
+		free(mtl);
 		goat3d_logmsg(LOG_ERROR, "read_material: failed to allocate material\n");
 		return 0;
 	}
 
 	if(!(str = ts_get_attr_str(tsmtl, "name", 0)) || !*str) {
+		/* XXX wait, we can refer to materials by index, why is the name important? */
 		goat3d_logmsg(LOG_WARNING, "read_material: ignoring material without a name\n");
 		g3dimpl_mtl_destroy(mtl);
 		return 0;
@@ -180,7 +186,268 @@ static char *read_material_attrib(struct material_attrib *attr, struct ts_node *
 	return attr->name;
 }
 
-struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh)
+static struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh)
 {
-	return 0;	/* TODO */
+	struct goat3d_mesh *mesh;
+	struct goat3d_material *mtl;
+	struct ts_node *c;
+	const char *str;
+	int num;
+
+	if(!(mesh = malloc(sizeof *mesh)) || g3dimpl_obj_init((struct object*)mesh, OBJTYPE_MESH)) {
+		goat3d_logmsg(LOG_ERROR, "read_mesh: failed to allocate mesh\n");
+		goto fail;
+	}
+
+	if((str = ts_get_attr_str(tsmesh, "name", 0))) {
+		goat3d_set_mesh_name(mesh, str);
+	}
+
+	/* material reference */
+	if((num = ts_get_attr_num(tsmesh, "material", -1)) >= 0) {
+		if((mtl = goat3d_get_mtl(g, num))) {
+			goat3d_set_mesh_mtl(mesh, mtl);
+		} else {
+			goat3d_logmsg(LOG_WARNING, "read_mesh: mesh %s refers to invalid material: %d\n",
+					mesh->name, num);
+		}
+	} else if((str = ts_get_attr_str(tsmesh, "material", 0))) {
+		if((mtl = goat3d_get_mtl_by_name(g, str))) {
+			goat3d_set_mesh_mtl(mesh, mtl);
+		} else {
+			goat3d_logmsg(LOG_WARNING, "read_mesh: mesh %s refers to invalid material: %s\n",
+					mesh->name, str);
+		}
+	}
+
+	/* external mesh data */
+	if((str = ts_get_attr_str(tsmesh, "file", 0))) {
+		const char *fname = str;
+		char *pathbuf;
+
+		if(g->search_path) {
+			pathbuf = alloca(strlen(str) + strlen(g->search_path) + 2);
+			sprintf(pathbuf, "%s/%s", g->search_path, str);
+			fname = pathbuf;
+		}
+
+		if(g3dimpl_loadmesh(mesh, fname) == -1) {
+			goat3d_logmsg(LOG_ERROR, "read_mesh: failed to load external mesh: %s\n", fname);
+			goto fail;
+		}
+
+		/* done loading, we can't have both an external mesh AND internal data,
+		 * if there's anything else hanging under this tsnode, ignore it.
+		 */
+		if(tsmesh->child_list) {
+			goat3d_logmsg(LOG_WARNING, "read_mesh: external mesh node also has unexpected children; ignoring.\n");
+		}
+		return mesh;
+	}
+
+	c = tsmesh->child_list;
+	while(c) {
+		if(strcmp(c->name, "vertex_list") == 0) {
+			if(read_veclist(mesh->vertices, 3, "vertex", "pos", c) == -1) {
+				goat3d_logmsg(LOG_ERROR, "read_mesh: failed to read vertex array for mesh %s\n",
+						mesh->name);
+				goto fail;
+			}
+
+		} else if(strcmp(c->name, "normal_list") == 0) {
+			if(read_veclist(mesh->normals, 3, "normal", "dir", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read normals array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "tangent_list") == 0) {
+			if(read_veclist(mesh->tangents, 3, "tangent", "dir", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read tangents array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "texcoord_list") == 0) {
+			if(read_veclist(mesh->texcoords, 2, "texcoord", "uv", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read texcoord array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "skinweight_list") == 0) {
+			if(read_veclist(mesh->skin_weights, 4, "skinweight", "weights", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read skin weights array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "skinmatrix_list") == 0) {
+			if(read_intlist(mesh->skin_matrices, 4, "skinmatrix", "idx", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read skin matrix index array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "color_list") == 0) {
+			if(read_veclist(mesh->colors, 4, "color", "color", c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read color array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "bone_list") == 0) {
+			if(read_bonelist(g, mesh->bones, c) == -1) {
+				goat3d_logmsg(LOG_WARNING, "read_mesh: failed to read bones array for mesh %s\n",
+						mesh->name);
+			}
+
+		} else if(strcmp(c->name, "face_list") == 0) {
+			if(read_intlist(mesh->faces, 3, "face", "idx", c) == -1) {
+				goat3d_logmsg(LOG_ERROR, "read_mesh: failed to read faces array for mesh %s\n",
+						mesh->name);
+				goto fail;
+			}
+		}
+		c = c->next;
+	}
+	return mesh;
+
+fail:
+	g3dimpl_obj_destroy((struct object*)mesh);
+	return 0;
+}
+
+
+static int read_veclist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tslist)
+{
+	int i, size;
+	struct ts_node *c;
+	struct ts_attr *attr;
+	float vec[4];
+
+	dynarr_clear(arr);
+
+	if((size = ts_get_attr_int(tslist, "list_size", -1)) <= 0) {
+		goat3d_logmsg(LOG_WARNING, "read_veclist: list_size attribute missing or invalid\n");
+		size = -1;
+	}
+
+	c = tslist->child_list;
+	while(c) {
+		if(strcmp(c->name, nodename) != 0) {
+			c = c->next;
+			continue;
+		}
+
+		if((attr = ts_get_attr(c, attrname)) && attr->val.type == TS_VECTOR) {
+			for(i=0; i<dim; i++) {
+				if(i >= attr->val.vec_size) {
+					vec[i] = 0;
+				} else {
+					vec[i] = attr->val.vec[i];
+				}
+			}
+
+			if(!(arr = dynarr_push(arr, vec))) {
+				goat3d_logmsg(LOG_ERROR, "read_veclist: failed to resize %s array\n",
+						nodename);
+				return -1;
+			}
+		}
+		c = c->next;
+	}
+
+	if(size > 0 && dynarr_size(arr) != size) {
+		goat3d_logmsg(LOG_WARNING, "read_veclist: expected %d items, read %d\n", size, dynarr_size(arr));
+	}
+	return 0;
+}
+
+static int read_intlist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tslist)
+{
+	int i, size;
+	struct ts_node *c;
+	struct ts_attr *attr;
+	int ivec[4];
+
+	dynarr_clear(arr);
+
+	if((size = ts_get_attr_int(tslist, "list_size", -1)) <= 0) {
+		goat3d_logmsg(LOG_WARNING, "read_intlist: list_size attribute missing or invalid\n");
+		size = -1;
+	}
+
+	c = tslist->child_list;
+	while(c) {
+		if(strcmp(c->name, nodename) != 0) {
+			c = c->next;
+			continue;
+		}
+
+		if((attr = ts_get_attr(c, attrname)) && attr->val.type == TS_VECTOR) {
+			for(i=0; i<dim; i++) {
+				if(i >= attr->val.vec_size) {
+					ivec[i] = 0;
+				} else {
+					ivec[i] = attr->val.vec[i];
+				}
+			}
+
+			if(!(arr = dynarr_push(arr, ivec))) {
+				goat3d_logmsg(LOG_ERROR, "read_intlist: failed to resize %s array\n",
+						nodename);
+				return -1;
+			}
+		}
+		c = c->next;
+	}
+
+	if(size > 0 && dynarr_size(arr) != size) {
+		goat3d_logmsg(LOG_WARNING, "read_intlist: expected %d items, read %d\n", size, dynarr_size(arr));
+	}
+	return 0;
+}
+
+static int read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts_node *tslist)
+{
+	int size, idx;
+	struct ts_node *c;
+	struct goat3d_node *bone;
+	const char *str;
+
+	dynarr_clear(arr);
+
+	if((size = ts_get_attr_int(tslist, "list_size", -1)) <= 0) {
+		goat3d_logmsg(LOG_WARNING, "read_bonelist: list_size attribute missing or invalid\n");
+		size = -1;
+	}
+
+	c = tslist->child_list;
+	while(c) {
+		if(strcmp(c->name, "bone") != 0) {
+			c = c->next;
+			continue;
+		}
+
+		bone = 0;
+
+		if((idx = ts_get_attr_int(c, "bone", -1)) >= 0) {
+			if(!(bone = goat3d_get_node(g, idx))) {
+				goat3d_logmsg(LOG_ERROR, "read_bonelist: reference to invalid bone: %d\n", idx);
+				return -1;
+			}
+
+		} else if((str = ts_get_attr_str(c, "bone", 0))) {
+			if(!(bone = goat3d_get_node_by_name(g, str))) {
+				goat3d_logmsg(LOG_ERROR, "read_bonelist: reference to invalid bone: %s\n", str);
+				return -1;
+			}
+		}
+
+		if(bone && !(arr = dynarr_push(arr, &bone))) {
+			goat3d_logmsg(LOG_ERROR, "read_bonelist: failed to resize bone array\n");
+			return -1;
+		}
+		c = c->next;
+	}
+
+	if(size > 0 && dynarr_size(arr) != size) {
+		goat3d_logmsg(LOG_WARNING, "read_bonelist: expected %d items, read %d\n", size, dynarr_size(arr));
+	}
+	return 0;
 }

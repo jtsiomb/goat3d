@@ -25,40 +25,40 @@ SCENE
  |   +--name (string)
  |   +--material (string:name|int:index)
  |   +--MESH_VERTEX_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_VERTEX
  |   |       +--pos (float3)
  |   +--MESH_NORMAL_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_NORMAL
  |   |       +--dir (float3)
  |   +--MESH_TANGENT_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_TANGENT
  |   |       +--dir (float3)
  |   +--MESH_TEXCOORD_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_TEXCOORD
  |   |       +--uv (float3)
  |   +--MESH_SKINWEIGHT_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_SKINWEIGHT
  |   |       +--weights (float4: 4 skin weights/vertex)
  |   +--MESH_SKINMATRIX_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_SKINMATRIX
  |   |       +--idx (int4: 4 matrix indices/vertex)
  |   +--MESH_COLOR_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_COLOR
  |   |       +--color (float4)
  |   +--MESH_BONE_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_BONE
  |   |       +--idx (int: node index)
  |   |       +--name (string: node name)
  |   +--MESH_FACE_LIST
- |   |   +--list-size (int)
+ |   |   +--list_size (int)
  |   |   +--MESH_FACE
  |   |       +--idx (int3: 3 ints for vertex indices)
  |   +--file (string: filename)
@@ -69,8 +69,8 @@ SCENE
  |   +--atten (float3: constant, linear, quadratic)
  |   +--distance (float)
  |   +--dir (float3)
- |   +--cone-inner (float)
- |   +--cone-outer (float)
+ |   +--cone_inner (float)
+ |   +--cone_outer (float)
  +--CAMERA
  |   +--name (string)
  |   +--pos (float3)
