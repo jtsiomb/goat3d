@@ -326,19 +326,27 @@ GOAT3DAPI const float *goat3d_get_ambient(const struct goat3d *g)
 
 GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax)
 {
-	int i, num_nodes;
-	struct aabox node_bbox;
+	int i, num_nodes, num_meshes;
+	struct aabox bbox;
 
 	if(!g->bbox_valid) {
 		g3dimpl_aabox_init((struct aabox*)&g->bbox);
 
-		num_nodes = dynarr_size(g->nodes);
-		for(i=0; i<num_nodes; i++) {
-			if(g->nodes[i]->anm.parent) {
-				continue;
+		if(dynarr_empty(g->nodes)) {
+			num_meshes = dynarr_size(g->meshes);
+			for(i=0; i<num_meshes; i++) {
+				g3dimpl_mesh_bounds(&bbox, g->meshes[i], 0);
+				g3dimpl_aabox_union((struct aabox*)&g->bbox, &g->bbox, &bbox);
 			}
-			g3dimpl_node_bounds(&node_bbox, &g->nodes[i]->anm);
-			g3dimpl_aabox_union((struct aabox*)&g->bbox, &g->bbox, &node_bbox);
+		} else {
+			num_nodes = dynarr_size(g->nodes);
+			for(i=0; i<num_nodes; i++) {
+				if(g->nodes[i]->anm.parent) {
+					continue;
+				}
+				g3dimpl_node_bounds(&bbox, &g->nodes[i]->anm);
+				g3dimpl_aabox_union((struct aabox*)&g->bbox, &g->bbox, &bbox);
+			}
 		}
 		((struct goat3d*)g)->bbox_valid = 1;
 	}
@@ -564,7 +572,25 @@ GOAT3DAPI struct goat3d_material *goat3d_get_mesh_mtl(struct goat3d_mesh *mesh)
 
 GOAT3DAPI int goat3d_get_mesh_attrib_count(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
 {
-	return dynarr_size(mesh->vertices);
+	switch(attrib) {
+	case GOAT3D_MESH_ATTR_VERTEX:
+		return dynarr_size(mesh->vertices);
+	case GOAT3D_MESH_ATTR_NORMAL:
+		return dynarr_size(mesh->normals);
+	case GOAT3D_MESH_ATTR_TANGENT:
+		return dynarr_size(mesh->tangents);
+	case GOAT3D_MESH_ATTR_TEXCOORD:
+		return dynarr_size(mesh->texcoords);
+	case GOAT3D_MESH_ATTR_SKIN_WEIGHT:
+		return dynarr_size(mesh->skin_weights);
+	case GOAT3D_MESH_ATTR_SKIN_MATRIX:
+		return dynarr_size(mesh->skin_matrices);
+	case GOAT3D_MESH_ATTR_COLOR:
+		return dynarr_size(mesh->colors);
+	default:
+		break;
+	}
+	return 0;
 }
 
 GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh)

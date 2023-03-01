@@ -8,4 +8,8 @@ goatview/goatview
 generators/goatprim/goatprim
 moc_*.cc
 *.obj
+*.mtl
+*.3ds
+*.gltf
+*.glb
 *.goat3d
