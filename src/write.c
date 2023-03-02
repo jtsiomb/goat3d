@@ -26,6 +26,7 @@ static struct ts_node *create_mtltree(const struct goat3d_material *mtl);
 static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh);
 static struct ts_node *create_lighttree(const struct goat3d_light *light);
 static struct ts_node *create_camtree(const struct goat3d_camera *cam);
+static struct ts_node *create_nodetree(const struct goat3d_node *node);
 
 #define create_tsnode(n, p, nstr) \
 	do { \
@@ -115,7 +116,13 @@ int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io)
 		ts_add_child(tsroot, tsn);
 	}
 
-	/* TODO nodes */
+	num = dynarr_size(g->nodes);
+	for(i=0; i<num; i++) {
+		if(!(tsn = create_nodetree(g->nodes[i]))) {
+			goto err;
+		}
+		ts_add_child(tsroot, tsn);
+	}
 
 	if(ts_save_io(tsroot, &tsio) == -1) {
 		goat3d_logmsg(LOG_ERROR, "g3dimpl_scnsave: failed\n");
@@ -392,5 +399,65 @@ static struct ts_node *create_camtree(const struct goat3d_camera *cam)
 
 err:
 	ts_free_tree(tscam);
+	return 0;
+}
+
+static struct ts_node *create_nodetree(const struct goat3d_node *node)
+{
+	struct ts_node *tsnode = 0;
+	struct ts_attr *tsa;
+	struct goat3d_node *par;
+	static const char *objtypestr[] = {"null", "mesh", "light", "camera"};
+	float vec[4];
+	float xform[16];
+
+	create_tsnode(tsnode, 0, "node");
+	create_tsattr(tsa, tsnode, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, goat3d_get_node_name(node)) == -1) {
+		goto err;
+	}
+
+	if((par = goat3d_get_node_parent(node))) {
+		create_tsattr(tsa, tsnode, "parent", TS_STRING);
+		if(ts_set_value_str(&tsa->val, goat3d_get_node_name(par)) == -1) {
+			goto err;
+		}
+	}
+
+	if(node->obj && node->type != GOAT3D_NODE_NULL) {
+		create_tsattr(tsa, tsnode, objtypestr[node->type], TS_STRING);
+		if(ts_set_value_str(&tsa->val, ((struct object*)node->obj)->name) == -1) {
+			goto err;
+		}
+	}
+
+	goat3d_get_node_position(node, vec, vec + 1, vec + 2, 0);
+	create_tsattr(tsa, tsnode, "pos", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 3, vec);
+
+	goat3d_get_node_rotation(node, vec, vec + 1, vec + 2, vec + 3, 0);
+	create_tsattr(tsa, tsnode, "rot", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 4, vec);
+
+	goat3d_get_node_scaling(node, vec, vec + 1, vec + 2, 0);
+	create_tsattr(tsa, tsnode, "scale", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 3, vec);
+
+	goat3d_get_node_pivot(node, vec, vec + 1, vec + 2);
+	create_tsattr(tsa, tsnode, "pivot", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 3, vec);
+
+	goat3d_get_node_matrix(node, xform, 0);
+	create_tsattr(tsa, tsnode, "matrix0", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 4, xform);
+	create_tsattr(tsa, tsnode, "matrix1", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 4, xform + 4);
+	create_tsattr(tsa, tsnode, "matrix2", TS_VECTOR);
+	ts_set_valuef_arr(&tsa->val, 4, xform + 8);
+
+	return tsnode;
+
+err:
+	ts_free_tree(tsnode);
 	return 0;
 }

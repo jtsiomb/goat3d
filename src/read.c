@@ -30,6 +30,7 @@ struct key {
 static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *tsmtl);
 static char *read_material_attrib(struct material_attrib *attr, struct ts_node *tsmattr);
 static struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh);
+static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node *tsnode);
 
 static void *read_veclist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
 static void *read_intlist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
@@ -37,8 +38,10 @@ static void *read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 {
+	int idx;
 	struct ts_io tsio;
 	struct ts_node *tsroot, *c;
+	const char *str;
 
 	tsio.data = io->cls;
 	tsio.read = io->read;
@@ -66,7 +69,29 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 		c = c->next;
 	}
 
-	/* read all meshes */
+	/* create placeholder nodes, only populating the name field, so that bone
+	 * references in meshes can be resolved. We'll read the rest of the node
+	 * info, including their mesh/light/camera references at the end.
+	 */
+	c = tsroot->child_list;
+	while(c) {
+		if(strcmp(c->name, "node") == 0) {
+			struct goat3d_node *node;
+
+			if(!(node = goat3d_create_node())) {
+				goat3d_logmsg(LOG_ERROR, "failed to allocate node\n");
+				c = c->next;
+				continue;
+			}
+			if((str = ts_get_attr_str(c, "name", 0))) {
+				goat3d_set_node_name(node, str);
+			}
+			goat3d_add_node(g, node);
+		}
+		c = c->next;
+	}
+
+	/* read all meshes, cameras and lights */
 	c = tsroot->child_list;
 	while(c) {
 		if(strcmp(c->name, "mesh") == 0) {
@@ -78,8 +103,17 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 		c = c->next;
 	}
 
-	/* read all nodes */
-	/* TODO */
+	/* now load the nodes properly */
+	idx = 0;
+	c = tsroot->child_list;
+	while(c) {
+		if(strcmp(c->name, "node") == 0) {
+			struct goat3d_node *node = goat3d_get_node(g, idx++);
+			assert(node);
+			read_node(g, node, c);
+		}
+		c = c->next;
+	}
 
 	ts_free_tree(tsroot);
 	return 0;
@@ -374,7 +408,6 @@ static void *read_veclist(void *arr, int dim, const char *nodename, const char *
 	if(size > 0 && dynarr_size(arr) != size) {
 		goat3d_logmsg(LOG_WARNING, "read_veclist: expected %d items, read %d\n", size, dynarr_size(arr));
 	}
-	goat3d_logmsg(LOG_INFO, "read_veclist: read %d %s\n", dynarr_size(arr), nodename);
 	return arr;
 }
 
@@ -472,4 +505,60 @@ static void *read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts
 		goat3d_logmsg(LOG_WARNING, "read_bonelist: expected %d items, read %d\n", size, dynarr_size(arr));
 	}
 	return arr;
+}
+
+#define GETREF(ptr, typestr, getname) \
+	do { \
+		ptr = 0; \
+		if((idx = ts_get_attr_int(tsnode, typestr, -1)) >= 0) { \
+			if(!(ptr = goat3d_get_##getname(g, idx))) { \
+				goat3d_logmsg(LOG_ERROR, "read_node: ignoring reference to invalid " typestr ": %d\n", idx); \
+			} \
+		} else if((str = ts_get_attr_str(tsnode, typestr, 0))) { \
+			if(!(ptr = goat3d_get_##getname##_by_name(g, str))) { \
+				goat3d_logmsg(LOG_ERROR, "read_node: ignoring reference to invalid " typestr ": %s\n", str); \
+			} \
+		} \
+	} while(0)
+
+static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node *tsnode)
+{
+	int idx;
+	const char *str;
+	struct goat3d_node *parent;
+	float *vec;
+
+	GETREF(parent, "parent", node);
+	if(parent) {
+		goat3d_add_node_child(parent, node);
+	}
+
+	node->type = GOAT3D_NODE_MESH;
+	GETREF(node->obj, "mesh", mesh);
+	if(!node->obj) {
+		node->type = GOAT3D_NODE_LIGHT;
+		GETREF(node->obj, "light", light);
+	}
+	if(!node->obj) {
+		node->type = GOAT3D_NODE_CAMERA;
+		GETREF(node->obj, "camera", camera);
+	}
+	if(!node->obj) {
+		node->type = GOAT3D_NODE_NULL;
+	}
+
+	if((vec = ts_get_attr_vec(tsnode, "pos", 0))) {
+		goat3d_set_node_position(node, vec[0], vec[1], vec[2], 0);
+	}
+	if((vec = ts_get_attr_vec(tsnode, "rot", 0))) {
+		goat3d_set_node_rotation(node, vec[0], vec[1], vec[2], vec[3], 0);
+	}
+	if((vec = ts_get_attr_vec(tsnode, "scale", 0))) {
+		goat3d_set_node_scaling(node, vec[0], vec[1], vec[2], 0);
+	}
+	if((vec = ts_get_attr_vec(tsnode, "pivot", 0))) {
+		goat3d_set_node_pivot(node, vec[0], vec[1], vec[2]);
+	}
+
+	return 0;
 }

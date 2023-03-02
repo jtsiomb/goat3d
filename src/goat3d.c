@@ -333,6 +333,7 @@ GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax
 		g3dimpl_aabox_init((struct aabox*)&g->bbox);
 
 		if(dynarr_empty(g->nodes)) {
+use_mesh_bounds:
 			num_meshes = dynarr_size(g->meshes);
 			for(i=0; i<num_meshes; i++) {
 				g3dimpl_mesh_bounds(&bbox, g->meshes[i], 0);
@@ -347,8 +348,17 @@ GOAT3DAPI int goat3d_get_bounds(const struct goat3d *g, float *bmin, float *bmax
 				g3dimpl_node_bounds(&bbox, &g->nodes[i]->anm);
 				g3dimpl_aabox_union((struct aabox*)&g->bbox, &g->bbox, &bbox);
 			}
+
+			/* in case the nodes are junk */
+			if(g->bbox.bmin.x > g->bbox.bmax.x) {
+				goto use_mesh_bounds;
+			}
 		}
 		((struct goat3d*)g)->bbox_valid = 1;
+	}
+
+	if(g->bbox.bmin.x > g->bbox.bmax.x) {
+		return -1;
 	}
 
 	bmin[0] = g->bbox.bmin.x;

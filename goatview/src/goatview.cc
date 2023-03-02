@@ -671,7 +671,7 @@ void GoatViewport::mouseMoveEvent(QMouseEvent *ev)
 
 static const char *about_str =
 	"GoatView - Goat3D scene file viewer<br>"
-	"Copyright (C) 2014 John Tsiombikas &lt;<a href=\"mailto:nuclear@mutantstargoat.com\">nuclear@mutantstargoat.com</a>&gt;<br>"
+	"Copyright (C) 2014-2023 John Tsiombikas &lt;<a href=\"mailto:nuclear@mutantstargoat.com\">nuclear@mutantstargoat.com</a>&gt;<br>"
 	"<br>"
 	"This program is free software: you can redistribute it and/or modify<br>"
 	"it under the terms of the GNU General Public License as published by<br>"
