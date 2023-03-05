@@ -1,5 +1,14 @@
-Goat3D animation file format
-----------------------------
+Goat3D animation file format v2
+-------------------------------
+
+Changes from v1
+---------------
+With the move from XML to treestore files, many things which were previously
+child nodes of track, changed to attributes of the track node. Also the "attr"
+field which defined the usage of each track, changed into a type node with
+explicit keyframe types.
+In Goat3D v2, the animations can be separate files, or part of the goat3d scene
+file hierarchy. See ANIM in goatfmt.
 
 Chunk structure
 ---------------
@@ -7,28 +16,32 @@ Multiple tracks might apply to the same node, to allow for different
 interpolation, extrapolation, and time ranges between position, rotation, and
 scaling tracks.
 
-ANIM
- +--ANIM_NAME
- |   +--<STRING>
- +--TRACK
-     +--TRACK_NAME
-     |   +--<STRING>
-     +--TRACK_NODE
-     |   +--<STRING>	(name of the scene node using this track)
-     +--TRACK_ATTR
-     |   +--<STRING>	(specify the attribute affected, see NOTE1)
-     +--TRACK_INTERP
-     |   +--<STRING>    ("step", "linear", "cubic")
-     +--TRACK_EXTRAP
-     |   +--<STRING>	("extend", "clamp", "repeat", "pingpong")
-     +--TRACK_KEY
-         +--TRACK_KEY_TIME
-         |   +--<INT>	(time in milliseconds)
-         +--TRACK_KEY_VALUE
-             +--<FLOAT|FLOAT3|FLOAT4>
+Names in capital letters are nodes.
+Names in lower case are node attributes.
+Leaf nodes which carry actual data are marked with (type). Where choice is
+involved, options are seperated with the | symbol.
 
-NOTE1: The attribute might be any user-defined string, but the following
-standard attribute names are specified:
- - "position" keys are (x,y,z) vectors
- - "rotation" keys are (x,y,z,w) quaternions, with w being the real part
- - "scaling" keys are (x,y,z) scale factors
+ANIM
+ +--name (string)
+ +--TRACK
+     +--name (string)
+     +--node (int: node index | string: node name - scene node using this track)
+     +--type (string - "pos","rot","scale","val","vec3","vec4","quat",see NOTE1)
+     +--interp (string - "step", "linear", "cubic")
+     +--extrap (string - "extend", "clamp", "repeat", "pingpong")
+     +--TRACK_KEY
+         +--time (int - time in milliseconds)
+         +--value (float|float3|float4)
+
+NOTE1: The track type can be a pre-defined usage, which implies a keyframe type,
+or it can be a generic track, defined by the keyframe type.
+The generic types are:
+    - "val": keys are scalar values.
+    - "vec3": keys are 3d vectors.
+    - "vec4": keys are 4d vectors.
+    - "quat": keys are quaternions, "linear" interpolation implies slerp.
+The pre-defined usage types should be used for all position/rotation/scaling
+tracks, and are the following:
+    - "pos": position keys of type "vec3".
+    - "rot": rotation keys of type "quat".
+    - "scale": scaling keys of type "vec3".

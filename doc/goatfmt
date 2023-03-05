@@ -16,7 +16,7 @@ SCENE
  |       +--color (float3)
  |       +--exp (float)
  +--MTL
- |   +--MTL_NAME (string)
+ |   +--name (string)
  |   +--MTL_ATTR
  |       +--name (string)
  |       +--val (float|float3|float4)
@@ -79,16 +79,17 @@ SCENE
  |   +--nearclip (float)
  |   +--farclip (float)
  +--NODE
-     +--name (string)
-     +--parent (int: node index | string: node name)
-     +--mesh|light|camera (int|string)
-     +--pos (float3)
-     +--rot (float4: quaternion w + xi + yj + zk)
-     +--scale (float3)
-     +--pivot (float3)
-     +--matrix0 (float4: first row)
-     +--matrix1 (float4: second row)
-     +--matrix2 (float4: third row)
+ |   +--name (string)
+ |   +--parent (int: node index | string: node name)
+ |   +--mesh|light|camera (int|string)
+ |   +--pos (float3)
+ |   +--rot (float4: quaternion w + xi + yj + zk)
+ |   +--scale (float3)
+ |   +--pivot (float3)
+ |   +--matrix0 (float4: first row)
+ |   +--matrix1 (float4: second row)
+ |   +--matrix2 (float4: third row)
+ +--ANIM (see doc/goatanimfmt)
 
 NOTES:
  * Name chunks are mandatory. If something doesn't have a name, one must be made
