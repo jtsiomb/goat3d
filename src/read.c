@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "goat3d_impl.h"
 #include "log.h"
 #include "dynarr.h"
+#include "anim/anim.h"
 
 struct key {
 	long tm;
@@ -30,11 +31,11 @@ struct key {
 static struct goat3d_material *read_material(struct goat3d *g, struct ts_node *tsmtl);
 static char *read_material_attrib(struct material_attrib *attr, struct ts_node *tsmattr);
 static struct goat3d_mesh *read_mesh(struct goat3d *g, struct ts_node *tsmesh);
-static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node *tsnode);
-
 static void *read_veclist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
 static void *read_intlist(void *arr, int dim, const char *nodename, const char *attrname, struct ts_node *tsnode);
 static void *read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts_node *tsnode);
+static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node *tsnode);
+static int read_anim(struct goat3d *g, struct ts_node *tsanim);
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 {
@@ -91,7 +92,7 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 		c = c->next;
 	}
 
-	/* read all meshes, cameras and lights */
+	/* read all meshes, cameras, lights, animations */
 	c = tsroot->child_list;
 	while(c) {
 		if(strcmp(c->name, "mesh") == 0) {
@@ -99,7 +100,10 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 			if(mesh) {
 				goat3d_add_mesh(g, mesh);
 			}
+		} else if(strcmp(c->name, "anim") == 0) {
+			read_anim(g, c);
 		}
+
 		c = c->next;
 	}
 
@@ -561,4 +565,35 @@ static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node 
 	}
 
 	return 0;
+}
+
+static int read_anim(struct goat3d *g, struct ts_node *tsanim)
+{
+	int idx;
+	struct ts_node *c;
+	const char *str;
+	struct anm_animation anim;
+	struct anm_track *trk;
+
+	if(!(str = ts_get_attr_str(tsanim, "name", 0))) {
+		goat3d_logmsg(LOG_WARNING, "read_anim: ignoring animation without a name\n");
+		return -1;
+	}
+
+	if(anm_init_animation(&anim) == -1) {
+		goat3d_logmsg(LOG_ERROR, "read_anim: failed to initialize animation: %s\n", str);
+		return -1;
+	}
+	anm_set_animation_name(&anim, str);
+
+	c = tsanim->child_list;
+	while(c) {
+		if(strcmp(c->name, "track") == 0) {
+			if(!(trk = read_track(g, c))) {
+				c = c->next;
+				continue;
+			}
+		}
+		c = c->next;
+	}
 }

@@ -5,13 +5,13 @@ dbg = -g
 opt = -O0
 # -------------------
 
-src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c)
+src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c) $(wildcard libs/anim/*.c)
 obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
 
 name = goat3d
-so_major = 0
-so_minor = 1
+so_major = 2
+so_minor = 0
 
 lib_a = lib$(name).a
 
@@ -27,10 +27,10 @@ else
 	pic = -fPIC
 endif
 
-incdir = -Ilibs/treestore
+incdir = -Ilibs/treestore -Ilibs/anim
 
 CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(incdir) -MMD
-LDFLAGS = -lanim
+LDFLAGS =
 
 .PHONY: all
 all: $(lib_so) $(lib_a) $(soname) $(ldname)
