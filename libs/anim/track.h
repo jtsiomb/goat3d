@@ -1,6 +1,6 @@
 /*
 libanim - hierarchical keyframe animation library
-Copyright (C) 2012-2014 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2012-2023 John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published
@@ -39,6 +39,8 @@ enum anm_extrapolator {
 };
 
 typedef long anm_time_t;
+#define ANM_TIME_MIN	LONG_MIN
+#define ANM_TIME_MAX	LONG_MAX
 #define ANM_TIME_INVAL	LONG_MIN
 
 #define ANM_SEC2TM(x)	((anm_time_t)((x) * 1000))
@@ -110,6 +112,13 @@ int anm_set_value(struct anm_track *track, anm_time_t tm, float val);
 
 /* evaluates and returns the value of the track for a particular time */
 float anm_get_value(struct anm_track *track, anm_time_t tm);
+
+/* evaluates a set of 4 tracks treated as a quaternion, to perform slerp instead
+ * of linear interpolation. Result is returned through the last argument, which
+ * is expected to point to an array of 4 floats (x,y,z,w)
+ */
+void anm_get_quat(struct anm_track *xtrk, struct anm_track *ytrk, struct anm_track *ztrk,
+		struct anm_track *wtrk, anm_time_t tm, float *quat);
 
 #ifdef __cplusplus
 }

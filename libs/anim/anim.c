@@ -630,66 +630,14 @@ static void get_node_rotation(cgm_quat *qres, struct anm_node *node, anm_time_t 
 	qres->z = anm_get_value(anim->tracks + ANM_TRACK_ROT_Z, tm);
 	qres->w = anm_get_value(anim->tracks + ANM_TRACK_ROT_W, tm);
 #else
-	int idx0, idx1, last_idx;
-	anm_time_t tstart, tend;
-	float t, dt;
 	struct anm_track *track_x, *track_y, *track_z, *track_w;
-	cgm_quat q1, q2;
 
 	track_x = anim->tracks + ANM_TRACK_ROT_X;
 	track_y = anim->tracks + ANM_TRACK_ROT_Y;
 	track_z = anim->tracks + ANM_TRACK_ROT_Z;
 	track_w = anim->tracks + ANM_TRACK_ROT_W;
 
-	if(!track_x->count) {
-		qres->x = track_x->def_val;
-		qres->y = track_y->def_val;
-		qres->z = track_z->def_val;
-		qres->w = track_w->def_val;
-		return;
-	}
-
-	last_idx = track_x->count - 1;
-
-	tstart = track_x->keys[0].time;
-	tend = track_x->keys[last_idx].time;
-
-	if(tstart == tend) {
-		qres->x = track_x->keys[0].val;
-		qres->y = track_y->keys[0].val;
-		qres->z = track_z->keys[0].val;
-		qres->w = track_w->keys[0].val;
-		return;
-	}
-
-	tm = anm_remap_time(track_x, tm, tstart, tend);
-
-	idx0 = anm_get_key_interval(track_x, tm);
-	assert(idx0 >= 0 && idx0 < track_x->count);
-	idx1 = idx0 + 1;
-
-	if(idx0 == last_idx) {
-		qres->x = track_x->keys[idx0].val;
-		qres->y = track_y->keys[idx0].val;
-		qres->z = track_z->keys[idx0].val;
-		qres->w = track_w->keys[idx0].val;
-		return;
-	}
-
-	dt = (float)(track_x->keys[idx1].time - track_x->keys[idx0].time);
-	t = (float)(tm - track_x->keys[idx0].time) / dt;
-
-	q1.x = track_x->keys[idx0].val;
-	q1.y = track_y->keys[idx0].val;
-	q1.z = track_z->keys[idx0].val;
-	q1.w = track_w->keys[idx0].val;
-
-	q2.x = track_x->keys[idx1].val;
-	q2.y = track_y->keys[idx1].val;
-	q2.z = track_z->keys[idx1].val;
-	q2.w = track_w->keys[idx1].val;
-
-	cgm_qslerp(qres, &q1, &q2, t);
+	anm_get_quat(track_x, track_y, track_z, track_w, tm, &qres->x);
 #endif
 }
 

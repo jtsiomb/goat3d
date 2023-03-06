@@ -1537,7 +1537,8 @@ GOAT3DAPI int goat3d_set_track_quat(struct goat3d_track *trk, long msec, float x
 
 GOAT3DAPI void goat3d_get_track_val(const struct goat3d_track *trk, long msec, float *valp)
 {
-	struct goat3d_key key = {0};
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
 
 	basetype = BASETYPE(trk->type);
 
@@ -1547,23 +1548,92 @@ GOAT3DAPI void goat3d_get_track_val(const struct goat3d_track *trk, long msec, f
 		return;
 	}
 
-	/* TODO CONT. */
+	*valp = anm_get_value(trk->trk[0], tm);
 }
 
 GOAT3DAPI void goat3d_get_track_vec3(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp)
 {
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC3) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec3 called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	*xp = anm_get_value(trk->trk[0], tm);
+	*yp = anm_get_value(trk->trk[1], tm);
+	*zp = anm_get_value(trk->trk[2], tm);
 }
 
 GOAT3DAPI void goat3d_get_track_vec4(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp, float *wp)
 {
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC4) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec4 called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	*xp = anm_get_value(trk->trk[0], tm);
+	*yp = anm_get_value(trk->trk[1], tm);
+	*zp = anm_get_value(trk->trk[2], tm);
+	*wp = anm_get_value(trk->trk[3], tm);
 }
 
 GOAT3DAPI void goat3d_get_track_quat(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp, float *wp)
 {
+	enum goat3d_track_type basetype;
+	float quat[4];
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_QUAT) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_quat called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	anm_get_quat(trk->trk, trk->trk + 1, trk->trk + 2, trk->trk + 3, tm, quat);
+	*xp = quat[0];
+	*yp = quat[1];
+	*zp = quat[2];
+	*wp = quat[3];
 }
 
 GOAT3DAPI long goat3d_get_track_timeline(const struct goat3d_track *trk, long *tstart, long *tend)
 {
+	int i, j, num;
+	enum goat3d_track_type basetype;
+	struct anm_keyframe *key;
+	anm_time_t start = ANM_TIME_MAX;
+	anm_time_t end = ANM_TIME_MIN;
+
+	basetype = BASETYPE(trk->type);
+	num = key_val_sz(basetype);
+
+	for(i=0; i<num; i++) {
+		for(j=0; j<trk->trk[i].count; j++) {
+			key = anm_get_keyframe(trk->trk + i, j);
+			if(key->tm < start) start = key->tm;
+			if(key->tm > end) end = key->tm;
+		}
+	}
+
+	if(end < start) {
+		return -1;
+	}
+	*tstart = ANM_TM2MSEC(start);
+	*tend = ANM_TM2MSEC(end);
+	return *tend - *tstart;
 }
 
 /* animation */
