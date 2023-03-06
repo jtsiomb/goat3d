@@ -1,6 +1,6 @@
 /*
 goat3d - 3D scene, and animation file format library.
-Copyright (C) 2013-2019  John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2013-2023  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cgmath/cgmath.h>
 #include "goat3d.h"
 #include "object.h"
+#include "g3danm.h"
 #include "aabox.h"
 
 struct goat3d {
@@ -36,6 +37,7 @@ struct goat3d {
 	struct goat3d_light **lights;
 	struct goat3d_camera **cameras;
 	struct goat3d_node **nodes;
+	struct goat3d_animation *anims;
 
 	struct aabox bbox;
 	int bbox_valid;
@@ -52,8 +54,6 @@ void goat3d_clear(struct goat3d *g);
 void io_fprintf(goat3d_io *io, const char *fmt, ...);
 void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
 */
-
-char *g3dimpl_clean_filename(char *str);
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io);
 int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io);

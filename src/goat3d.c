@@ -60,6 +60,7 @@ int goat3d_init(struct goat3d *g)
 	if(!(g->lights = dynarr_alloc(0, sizeof *g->lights))) goto err;
 	if(!(g->cameras = dynarr_alloc(0, sizeof *g->cameras))) goto err;
 	if(!(g->nodes = dynarr_alloc(0, sizeof *g->nodes))) goto err;
+	if(!(g->anims = dynarr_alloc(0, sizeof *g->anims))) goto err;
 
 	return 0;
 
@@ -77,6 +78,7 @@ void goat3d_destroy(struct goat3d *g)
 	dynarr_free(g->lights);
 	dynarr_free(g->cameras);
 	dynarr_free(g->nodes);
+	dynarr_free(g->anims);
 }
 
 void goat3d_clear(struct goat3d *g)
@@ -117,6 +119,11 @@ void goat3d_clear(struct goat3d *g)
 		free(g->nodes[i]);
 	}
 	DYNARR_CLEAR(g->nodes);
+
+	num = dynarr_size(g->anims);
+	for(i=0; i<num; i++) {
+		g3dimpl_anim_destroy(g->anims[i]);
+	}
 
 	goat3d_set_name(g, "unnamed");
 	g->bbox_valid = 0;
@@ -1214,210 +1221,15 @@ GOAT3DAPI struct goat3d_node *goat3d_get_node_parent(const struct goat3d_node *n
 	return (struct goat3d_node*)node->anm.parent;
 }
 
-GOAT3DAPI void goat3d_use_anim(struct goat3d_node *node, int idx)
-{
-	anm_use_animation(&node->anm, idx);
-}
-
-GOAT3DAPI void goat3d_use_anims(struct goat3d_node *node, int aidx, int bidx, float t)
-{
-	anm_use_animations(&node->anm, aidx, bidx, t);
-}
-
-GOAT3DAPI void goat3d_use_anim_by_name(struct goat3d_node *node, const char *name)
-{
-	anm_use_animation(&node->anm, anm_find_animation(&node->anm, name));
-}
-
-GOAT3DAPI void goat3d_use_anims_by_name(struct goat3d_node *node, const char *aname, const char *bname, float t)
-{
-	int aidx = anm_find_animation(&node->anm, aname);
-	int bidx = anm_find_animation(&node->anm, bname);
-
-	if(aidx == -1) {
-		anm_use_animation(&node->anm, bidx);
-	}
-	if(bidx == -1) {
-		anm_use_animation(&node->anm, aidx);
-	}
-	anm_use_animations(&node->anm, aidx, bidx, t);
-}
-
-GOAT3DAPI int goat3d_get_active_anim(struct goat3d_node *node, int which)
-{
-	return anm_get_active_animation_index(&node->anm, which);
-}
-
-GOAT3DAPI float goat3d_get_active_anim_mix(struct goat3d_node *node)
-{
-	return anm_get_active_animation_mix(&node->anm);
-}
-
-GOAT3DAPI int goat3d_get_anim_count(struct goat3d_node *node)
-{
-	return anm_get_animation_count(&node->anm);
-}
-
-GOAT3DAPI void goat3d_add_anim(struct goat3d_node *root)
-{
-	int idx = anm_get_animation_count(&root->anm);
-	anm_add_animation(&root->anm);
-	anm_use_animation(&root->anm, idx);
-}
-
-GOAT3DAPI void goat3d_set_anim_name(struct goat3d_node *root, const char *name)
-{
-	anm_set_active_animation_name(&root->anm, name);
-}
-
-GOAT3DAPI const char *goat3d_get_anim_name(struct goat3d_node *node)
-{
-	return anm_get_active_animation_name(&node->anm);
-}
-
-enum { POSITION_TRACK, ROTATION_TRACK, SCALING_TRACK };
-static const int track_type_base[] = {ANM_TRACK_POS_X, ANM_TRACK_ROT_X, ANM_TRACK_SCL_X};
-static const int track_type_nelem[] = {3, 4, 4};
-
-static int get_key_count(struct anm_node *node, int trackid)
-{
-	struct anm_animation *anim = anm_get_active_animation(node, 0);
-	if(anim) {
-		return anim->tracks[track_type_base[trackid]].count;
-	}
-	return 0;
-}
-
-static long get_key_time(struct anm_node *node, int trackid, int idx)
-{
-	struct anm_animation *anim = anm_get_active_animation(node, 0);
-	struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid], idx);
-	return ANM_TM2MSEC(key->time);
-}
-
-static int get_key_value(struct anm_node *node, int trackid, int idx, float *val)
-{
-	struct anm_animation *anim = anm_get_active_animation(node, 0);
-	int i, nelem = track_type_nelem[trackid];
-	for(i=0; i<nelem; i++) {
-		struct anm_keyframe *key = anm_get_keyframe(anim->tracks + track_type_base[trackid] + i, idx);
-		val[i] = key->val;
-	}
-	return nelem;
-}
-
-GOAT3DAPI long goat3d_get_anim_timeline(struct goat3d_node *root, long *tstart, long *tend)
-{
-	int i, nkeys;
-	struct anm_node *c;
-	long node_start = LONG_MAX;
-	long node_end = LONG_MIN;
-
-	for(i=0; i<3; i++) {
-		if((nkeys = get_key_count(&root->anm, i)) > 0) {
-			long tmp = get_key_time(&root->anm, i, 0);
-			if(tmp < node_start) node_start = tmp;
-			tmp = get_key_time(&root->anm, i, nkeys - 1);
-			if(tmp > node_end) node_end = tmp;
-		}
-	}
-
-	c = root->anm.child;
-	while(c) {
-		long cstart, cend;
-		if(goat3d_get_anim_timeline((struct goat3d_node*)c, &cstart, &cend)) {
-			if(cstart < node_start) node_start = cstart;
-			if(cend > node_end) node_end = cend;
-		}
-		c = c->next;
-	}
-
-	if(node_start != LONG_MAX) {
-		*tstart = node_start;
-		*tend = node_end;
-		return node_end - node_start;
-	}
-	return -1;
-}
-
-GOAT3DAPI int goat3d_get_node_position_key_count(struct goat3d_node *node)
-{
-	return get_key_count(&node->anm, POSITION_TRACK);
-}
-
-GOAT3DAPI int goat3d_get_node_rotation_key_count(struct goat3d_node *node)
-{
-	return get_key_count(&node->anm, ROTATION_TRACK);
-}
-
-GOAT3DAPI int goat3d_get_node_scaling_key_count(struct goat3d_node *node)
-{
-	return get_key_count(&node->anm, SCALING_TRACK);
-}
-
-GOAT3DAPI long goat3d_get_node_position_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
-{
-	cgm_vec3 pos;
-	long tm;
-
-	get_key_value(&node->anm, POSITION_TRACK, idx, &pos.x);
-	tm = get_key_time(&node->anm, POSITION_TRACK, idx);
-
-	if(xptr) *xptr = pos.x;
-	if(yptr) *yptr = pos.y;
-	if(zptr) *zptr = pos.z;
-	return tm;
-}
-
-GOAT3DAPI long goat3d_get_node_rotation_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr, float *wptr)
-{
-	cgm_quat rot;
-	long tm;
-
-	get_key_value(&node->anm, ROTATION_TRACK, idx, &rot.x);
-	tm = get_key_time(&node->anm, ROTATION_TRACK, idx);
-
-	if(xptr) *xptr = rot.x;
-	if(yptr) *yptr = rot.y;
-	if(zptr) *zptr = rot.z;
-	if(wptr) *wptr = rot.w;
-	return tm;
-}
-
-GOAT3DAPI long goat3d_get_node_scaling_key(struct goat3d_node *node, int idx, float *xptr, float *yptr, float *zptr)
-{
-	cgm_vec3 scale;
-	long tm;
-
-	get_key_value(&node->anm, SCALING_TRACK, idx, &scale.x);
-	tm = get_key_time(&node->anm, SCALING_TRACK, idx);
-
-	if(xptr) *xptr = scale.x;
-	if(yptr) *yptr = scale.y;
-	if(zptr) *zptr = scale.z;
-	return tm;
-}
-
-GOAT3DAPI void goat3d_set_node_position(struct goat3d_node *node, float x, float y, float z, long tmsec)
-{
-	anm_set_position3f(&node->anm, x, y, z, ANM_MSEC2TM(tmsec));
-}
-
-GOAT3DAPI void goat3d_set_node_rotation(struct goat3d_node *node, float qx, float qy, float qz, float qw, long tmsec)
-{
-	anm_set_rotation4f(&node->anm, qx, qy, qz, qw, ANM_MSEC2TM(tmsec));
-}
-
-GOAT3DAPI void goat3d_set_node_scaling(struct goat3d_node *node, float sx, float sy, float sz, long tmsec)
-{
-	anm_set_scaling3f(&node->anm, sx, sy, sz, ANM_MSEC2TM(tmsec));
-}
-
 GOAT3DAPI void goat3d_set_node_pivot(struct goat3d_node *node, float px, float py, float pz)
 {
 	anm_set_pivot(&node->anm, px, py, pz);
 }
 
+GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
+{
+	anm_get_pivot((struct anm_node*)&node->anm, xptr, yptr, zptr);
+}
 
 GOAT3DAPI void goat3d_get_node_position(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr, long tmsec)
 {
@@ -1447,12 +1259,6 @@ GOAT3DAPI void goat3d_get_node_scaling(const struct goat3d_node *node, float *xp
 	*zptr = scale[2];
 }
 
-GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr, float *yptr, float *zptr)
-{
-	anm_get_pivot((struct anm_node*)&node->anm, xptr, yptr, zptr);
-}
-
-
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix, long tmsec)
 {
 	anm_get_node_matrix((struct anm_node*)&node->anm, matrix, ANM_MSEC2TM(tmsec));
@@ -1470,6 +1276,386 @@ GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmi
 	bmax[1] = box.bmax.y;
 	bmax[2] = box.bmax.z;
 }
+
+/* keyframe track */
+enum {UNKNOWN, POSITION, ROTATION, SCALE};
+static const float trkdef[][4] = {
+	{0, 0, 0, 0},
+	{0, 0, 0, 1},
+	{0, 0, 0, 1},
+	{1, 1, 1, 1}
+};
+
+GOAT3DAPI struct goat3d_track *goat3d_create_track(void)
+{
+	int i;
+	struct goat3d_track *trk;
+
+	if(!(trk = calloc(1, sizeof *trk))) {
+		return 0;
+	}
+
+	for(i=0; i<4; i++) {
+		if(anm_init_track(trk->trk + i) == -1) {
+			while(--i >= 0) {
+				anm_destroy_track(trk->trk + i);
+			}
+			free(trk);
+			return 0;
+		}
+	}
+
+	return trk;
+}
+
+GOAT3DAPI void goat3d_destroy_track(struct goat3d_track *trk)
+{
+	int i;
+
+	if(!trk) return;
+
+	free(trk->name);
+
+	for(i=0; i<4; i++) {
+		anm_destroy_track(trk->trk + i);
+	}
+}
+
+GOAT3DAPI int goat3d_set_track_name(struct goat3d_track *trk, const char *name)
+{
+	char *str;
+	int len = strlen(name);
+
+	if(!(str = malloc(len + 1))) {
+		return -1;
+	}
+	memcpy(str, name, len + 1);
+
+	free(trk->name);
+	trk->name = str;
+	return 0;
+}
+
+GOAT3DAPI const char *goat3d_get_track_name(const struct goat3d_track *trk)
+{
+	return trk->name;
+}
+
+GOAT3DAPI void goat3d_set_track_type(struct goat3d_track *trk, enum goat3d_track_type type)
+{
+	trk->type = type;
+}
+
+GOAT3DAPI enum goat3d_track_type goat3d_get_track_type(const struct goat3d_track *trk)
+{
+	return trk->type;
+}
+
+GOAT3DAPI void goat3d_set_track_node(struct goat3d_track *trk, struct goat3d_node *node)
+{
+	trk->node = node;
+}
+
+GOAT3DAPI struct goat3d_node *goat3d_get_track_node(const struct goat3d_track *trk)
+{
+	return trk->node;
+}
+
+GOAT3DAPI void goat3d_set_track_interp(struct goat3d_track *trk, enum goat3d_interp in)
+{
+	int i;
+	for(i=0; i<4; i++) {
+		anm_set_track_interpolator(trk->trk + i, in);
+	}
+}
+
+GOAT3DAPI enum goat3d_interp goat3d_get_track_interp(const struct goat3d_track *trk)
+{
+	return trk->trk[0].interp;
+}
+
+GOAT3DAPI void goat3d_set_track_extrap(struct goat3d_track *trk, enum goat3d_extrap ex)
+{
+	int i;
+	for(i=0; i<4; i++) {
+		anm_set_track_extrapolator(trk->trk + i, ex);
+	}
+}
+
+GOAT3DAPI enum goat3d_extrap goat3d_get_track_extrap(const struct goat3d_track *trk)
+{
+	return trk->trk[0].extrap;
+}
+
+#define BASETYPE(type)	((int)(type) & 0xff)
+static const int key_val_sz[] = {1, 3, 4, 4};
+
+GOAT3DAPI int goat3d_set_track_key(struct goat3d_track *trk, struct goat3d_key *key)
+{
+	int i, num;
+	enum goat3d_track_type basetype;
+	long tm = ANM_MSEC2TM(key->val.tm);
+
+	basetype = BASETYPE(trk->type);	/* e.g. ROT -> QUAT */
+	num = key_val_sz[basetype];
+
+	for(i=0; i<num; i++) {
+		if(anm_set_value(trk->trk + i, tm, key->val[i]) == -1) {
+			return -1;
+		}
+	}
+	return 0;
+}
+
+GOAT3DAPI int goat3d_get_track_key(const struct goat3d_track *trk, int idx, struct goat3d_key *key)
+{
+	int i, num;
+	struct anm_keyframe *akey;
+	enum goat3d_track_type basetype;
+
+	basetype = BASETYPE(trk->type);
+	num = key_val_sz[basetype];
+
+	for(i=0; i<num; i++) {
+		if(!(akey = anm_get_keyframe(trk->trk + i, idx, key->val[i]))) {
+			return -1;
+		}
+		if(i == 0) {
+			key->tm = ANM_TM2MSEC(akey->tm);
+		}
+		key->val[i] = akey->val;
+	}
+	return 0;
+}
+
+GOAT3DAPI int goat3d_get_track_key_count(const struct goat3d_track *trk)
+{
+	return trk->trk[0].count;
+}
+
+static const char *trktypestr(enum goat3d_track_type type)
+{
+	switch(type) {
+	case GOAT3D_TRACK_VAL:
+		return "val";
+	case GOAT3D_TRACK_VEC3:
+		return "vec3";
+	case GOAT3D_TRACK_VEC4:
+		return "vec4";
+	case GOAT3D_TRACK_QUAT:
+		return "quat";
+	case GOAT3D_TRACK_POS:
+		return "pos";
+	case GOAT3D_TRACK_ROT:
+		return "rot";
+	case GOAT3D_TRACK_SCALE:
+		return "scale";
+	}
+	return 0;
+}
+
+GOAT3DAPI int goat3d_set_track_val(struct goat3d_track *trk, long msec, float val)
+{
+	struct goat3d_key key = {0};
+	enum goat3d_track_type basetype;
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VAL) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_val called on %s track\n",
+				trktypestr(trk->type));
+		return -1;
+	}
+
+	key.tm = msec;
+	key.val[0] = val;
+	return goat3d_set_track_key(trk, &key);
+}
+
+GOAT3DAPI int goat3d_set_track_vec3(struct goat3d_track *trk, long msec, float x, float y, float z)
+{
+	struct goat3d_key key = {0};
+	enum goat3d_track_type basetype;
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC3) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_vec3 called on %s track\n",
+				trktypestr(trk->type));
+		return -1;
+	}
+
+	key.tm = msec;
+	key.val[0] = x;
+	key.val[1] = y;
+	key.val[2] = z;
+	return goat3d_set_track_key(trk, &key);
+}
+
+GOAT3DAPI int goat3d_set_track_vec4(struct goat3d_track *trk, long msec, float x, float y, float z, float w)
+{
+	struct goat3d_key key = {0};
+	enum goat3d_track_type basetype;
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC4) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_vec4 called on %s track\n",
+				trktypestr(trk->type));
+		return -1;
+	}
+
+	key.tm = msec;
+	key.val[0] = x;
+	key.val[1] = y;
+	key.val[2] = z;
+	key.val[3] = w;
+	return goat3d_set_track_key(trk, &key);
+}
+
+GOAT3DAPI int goat3d_set_track_quat(struct goat3d_track *trk, long msec, float x, float y, float z, float w)
+{
+	struct goat3d_key key = {0};
+	enum goat3d_track_type basetype;
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_QUAT) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_quat called on %s track\n",
+				trktypestr(trk->type));
+		return -1;
+	}
+
+	key.tm = msec;
+	key.val[0] = x;
+	key.val[1] = y;
+	key.val[2] = z;
+	key.val[3] = w;
+	return goat3d_set_track_key(trk, &key);
+}
+
+
+GOAT3DAPI void goat3d_get_track_val(const struct goat3d_track *trk, long msec, float *valp)
+{
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VAL) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_val called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	*valp = anm_get_value(trk->trk[0], tm);
+}
+
+GOAT3DAPI void goat3d_get_track_vec3(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp)
+{
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC3) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec3 called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	*xp = anm_get_value(trk->trk[0], tm);
+	*yp = anm_get_value(trk->trk[1], tm);
+	*zp = anm_get_value(trk->trk[2], tm);
+}
+
+GOAT3DAPI void goat3d_get_track_vec4(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp, float *wp)
+{
+	enum goat3d_track_type basetype;
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_VEC4) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec4 called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	*xp = anm_get_value(trk->trk[0], tm);
+	*yp = anm_get_value(trk->trk[1], tm);
+	*zp = anm_get_value(trk->trk[2], tm);
+	*wp = anm_get_value(trk->trk[3], tm);
+}
+
+GOAT3DAPI void goat3d_get_track_quat(const struct goat3d_track *trk, long msec, float *xp, float *yp, float *zp, float *wp)
+{
+	enum goat3d_track_type basetype;
+	float quat[4];
+	anm_time_t tm = ANM_MSEC2TM(msec);
+
+	basetype = BASETYPE(trk->type);
+
+	if(basetype != GOAT3D_TRACK_QUAT) {
+		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_quat called on %s track\n",
+				trktypestr(trk->type));
+		return;
+	}
+
+	anm_get_quat(trk->trk, trk->trk + 1, trk->trk + 2, trk->trk + 3, tm, quat);
+	*xp = quat[0];
+	*yp = quat[1];
+	*zp = quat[2];
+	*wp = quat[3];
+}
+
+GOAT3DAPI long goat3d_get_track_timeline(const struct goat3d_track *trk, long *tstart, long *tend)
+{
+	int i, j, num;
+	enum goat3d_track_type basetype;
+	struct anm_keyframe *key;
+	anm_time_t start = ANM_TIME_MAX;
+	anm_time_t end = ANM_TIME_MIN;
+
+	basetype = BASETYPE(trk->type);
+	num = key_val_sz(basetype);
+
+	for(i=0; i<num; i++) {
+		for(j=0; j<trk->trk[i].count; j++) {
+			key = anm_get_keyframe(trk->trk + i, j);
+			if(key->tm < start) start = key->tm;
+			if(key->tm > end) end = key->tm;
+		}
+	}
+
+	if(end < start) {
+		return -1;
+	}
+	*tstart = ANM_TM2MSEC(start);
+	*tend = ANM_TM2MSEC(end);
+	return *tend - *tstart;
+}
+
+/* animation */
+GOAT3DAPI int goat3d_add_anim(struct goat3d *g, struct goat3d_anim *anim);
+GOAT3DAPI int goat3d_get_anim_count(struct goat3d *g);
+GOAT3DAPI struct goat3d_anim *goat3d_get_anim(struct goat3d *g, int idx);
+GOAT3DAPI struct goat3d_anim *goat3d_get_anim_by_name(struct goat3d *g, const char *name);
+
+GOAT3DAPI struct goat3d_anim *goat3d_create_anim(void);
+GOAT3DAPI void goat3d_destroy_anim(struct goat3d_anim *anim);
+
+GOAT3DAPI int goat3d_set_anim_name(struct goat3d_anim *anim, const char *name);
+GOAT3DAPI const char *goat3d_get_anim_name(const struct goat3d_anim *anim);
+
+GOAT3DAPI int goat3d_add_anim_track(struct goat3d_anim *anim, struct goat3d_track *trk);
+GOAT3DAPI struct goat3d_track *goat3d_get_anim_track(struct goat3d_anim *anim, int idx);
+GOAT3DAPI struct goat3d_track *goat3d_get_anim_track_by_name(struct goat3d_anim *anim, const char *name);
+GOAT3DAPI int goat3d_get_anim_track_count(const struct goat3d_anim *anim);
+
+GOAT3DAPI long goat3d_get_anim_timeline(const struct goat3d_anim *anim, long *tstart, long *tend);
+
+
 
 
 static long read_file(void *buf, size_t bytes, void *uptr)

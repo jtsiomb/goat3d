@@ -262,9 +262,28 @@ void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode
 {
 	int i;
 	struct goat3d_node *node;
+	struct goat3d_mesh *mesh;
 
 	node = goat3d_create_node();
 	goat3d_set_node_name(node, ainode->mName.data);
+
+	if(parent) {
+		goat3d_add_node_child(parent, node);
+	}
+
+	if(ainode->mNumMeshes) {
+		if(ainode->mNumMeshes > 1) {
+			fprintf(stderr, "process_node: %s has multiple meshes (%d), using only the first\n",
+					goat3d_get_node_name(node), ainode->mNumMeshes);
+		}
+		if(!(mesh = goat3d_get_mesh(goat, ainode->mMeshes[0]))) {
+			fprintf(stderr, "process_node: %s: invalid reference to mesh %d\n",
+					goat3d_get_node_name(node), ainode->mMeshes[0]);
+			goat3d_destroy_node(node);
+			return;
+		}
+		goat3d_set_node_object(node, GOAT3D_NODE_MESH, mesh);
+	}
 
 	for(i=0; i<ainode->mNumChildren; i++) {
 		process_node(goat, node, ainode->mChildren[i]);
