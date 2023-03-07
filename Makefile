@@ -27,7 +27,7 @@ else
 	pic = -fPIC
 endif
 
-incdir = -Ilibs/treestore -Ilibs/anim
+incdir = -Ilibs -Ilibs/treestore
 
 CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(incdir) -MMD
 LDFLAGS =
