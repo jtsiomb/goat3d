@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cgmath/cgmath.h"
 
 static int keycmp(const void *a, const void *b);
-static int find_prev_key(struct anm_keyframe *arr, int start, int end, anm_time_t tm);
+static int find_prev_key(const struct anm_keyframe *arr, int start, int end, anm_time_t tm);
 
 static float interp_step(float v0, float v1, float v2, float v3, float t);
 static float interp_linear(float v0, float v1, float v2, float v3, float t);
@@ -122,7 +122,7 @@ int anm_set_track_name(struct anm_track *track, const char *name)
 	return 0;
 }
 
-const char *anm_get_track_name(struct anm_track *track)
+const char *anm_get_track_name(const struct anm_track *track)
 {
 	return track->name;
 }
@@ -137,7 +137,7 @@ void anm_set_track_extrapolator(struct anm_track *track, enum anm_extrapolator e
 	track->extrap = ex;
 }
 
-anm_time_t anm_remap_time(struct anm_track *track, anm_time_t tm, anm_time_t start, anm_time_t end)
+anm_time_t anm_remap_time(const struct anm_track *track, anm_time_t tm, anm_time_t start, anm_time_t end)
 {
 	return remap_time[track->extrap](tm, start, end);
 }
@@ -173,7 +173,7 @@ static int keycmp(const void *a, const void *b)
 	return ((struct anm_keyframe*)a)->time - ((struct anm_keyframe*)b)->time;
 }
 
-struct anm_keyframe *anm_get_keyframe(struct anm_track *track, int idx)
+struct anm_keyframe *anm_get_keyframe(const struct anm_track *track, int idx)
 {
 	if(idx < 0 || idx >= track->count) {
 		return 0;
@@ -181,7 +181,7 @@ struct anm_keyframe *anm_get_keyframe(struct anm_track *track, int idx)
 	return track->keys + idx;
 }
 
-int anm_get_key_interval(struct anm_track *track, anm_time_t tm)
+int anm_get_key_interval(const struct anm_track *track, anm_time_t tm)
 {
 	int last;
 
@@ -197,7 +197,7 @@ int anm_get_key_interval(struct anm_track *track, anm_time_t tm)
 	return find_prev_key(track->keys, 0, last, tm);
 }
 
-static int find_prev_key(struct anm_keyframe *arr, int start, int end, anm_time_t tm)
+static int find_prev_key(const struct anm_keyframe *arr, int start, int end, anm_time_t tm)
 {
 	int mid;
 
@@ -224,7 +224,7 @@ int anm_set_value(struct anm_track *track, anm_time_t tm, float val)
 	return anm_set_keyframe(track, &key);
 }
 
-float anm_get_value(struct anm_track *track, anm_time_t tm)
+float anm_get_value(const struct anm_track *track, anm_time_t tm)
 {
 	int idx0, idx1, last_idx;
 	anm_time_t tstart, tend;
@@ -268,8 +268,8 @@ float anm_get_value(struct anm_track *track, anm_time_t tm)
 }
 
 
-void anm_get_quat(struct anm_track *xtrk, struct anm_track *ytrk, struct anm_track *ztrk,
-		struct anm_track *wtrk, anm_time_t tm, float *qres)
+void anm_get_quat(const struct anm_track *xtrk, const struct anm_track *ytrk,
+		const struct anm_track *ztrk, const struct anm_track *wtrk, anm_time_t tm, float *qres)
 {
 	int idx0, idx1, last_idx;
 	anm_time_t tstart, tend;

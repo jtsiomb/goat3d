@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef OBJECT_H_
 #define OBJECT_H_
 
-#include <cgmath/cgmath.h>
-#include <anim/anim.h>
+#include "cgmath/cgmath.h"
+#include "anim/anim.h"
 #include "goat3d.h"
 #include "aabox.h"
 
