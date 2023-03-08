@@ -297,7 +297,7 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh)
 		for(i=0; i<num; i++) {
 			create_tsnode(tsitem, tslist, "bone");
 			create_tsattr(tsa, tsitem, "name", TS_STRING);
-			if(ts_set_value_str(&tsa->val, mesh->bones[i]->anm.name) == -1) {
+			if(ts_set_value_str(&tsa->val, mesh->bones[i]->name) == -1) {
 				goto err;
 			}
 		}
@@ -431,15 +431,15 @@ static struct ts_node *create_nodetree(const struct goat3d_node *node)
 		}
 	}
 
-	goat3d_get_node_position(node, vec, vec + 1, vec + 2, 0);
+	goat3d_get_node_position(node, vec, vec + 1, vec + 2);
 	create_tsattr(tsa, tsnode, "pos", TS_VECTOR);
 	ts_set_valuef_arr(&tsa->val, 3, vec);
 
-	goat3d_get_node_rotation(node, vec, vec + 1, vec + 2, vec + 3, 0);
+	goat3d_get_node_rotation(node, vec, vec + 1, vec + 2, vec + 3);
 	create_tsattr(tsa, tsnode, "rot", TS_VECTOR);
 	ts_set_valuef_arr(&tsa->val, 4, vec);
 
-	goat3d_get_node_scaling(node, vec, vec + 1, vec + 2, 0);
+	goat3d_get_node_scaling(node, vec, vec + 1, vec + 2);
 	create_tsattr(tsa, tsnode, "scale", TS_VECTOR);
 	ts_set_valuef_arr(&tsa->val, 3, vec);
 
@@ -447,7 +447,7 @@ static struct ts_node *create_nodetree(const struct goat3d_node *node)
 	create_tsattr(tsa, tsnode, "pivot", TS_VECTOR);
 	ts_set_valuef_arr(&tsa->val, 3, vec);
 
-	goat3d_get_node_matrix(node, xform, 0);
+	goat3d_get_node_matrix(node, xform);
 	create_tsattr(tsa, tsnode, "matrix0", TS_VECTOR);
 	ts_set_valuef_arr(&tsa->val, 4, xform);
 	create_tsattr(tsa, tsnode, "matrix1", TS_VECTOR);

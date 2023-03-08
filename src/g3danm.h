@@ -28,12 +28,12 @@ struct goat3d_track {
 	struct goat3d_node *node;	/* node associated with this track */
 };
 
-struct goat3d_animation {
+struct goat3d_anim {
 	char *name;
-	struct goat3d_track *tracks;	/* dynarr */
+	struct goat3d_track **tracks;	/* dynarr */
 };
 
-int g3dimpl_anim_init(struct goat3d_animation *anim);
-void g3dimpl_anim_destroy(struct goat3d_animation *anim);
+int g3dimpl_anim_init(struct goat3d_anim *anim);
+void g3dimpl_anim_destroy(struct goat3d_anim *anim);
 
 #endif	/* G3DANM_H_ */

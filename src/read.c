@@ -552,13 +552,13 @@ static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node 
 	}
 
 	if((vec = ts_get_attr_vec(tsnode, "pos", 0))) {
-		goat3d_set_node_position(node, vec[0], vec[1], vec[2], 0);
+		goat3d_set_node_position(node, vec[0], vec[1], vec[2]);
 	}
 	if((vec = ts_get_attr_vec(tsnode, "rot", 0))) {
-		goat3d_set_node_rotation(node, vec[0], vec[1], vec[2], vec[3], 0);
+		goat3d_set_node_rotation(node, vec[0], vec[1], vec[2], vec[3]);
 	}
 	if((vec = ts_get_attr_vec(tsnode, "scale", 0))) {
-		goat3d_set_node_scaling(node, vec[0], vec[1], vec[2], 0);
+		goat3d_set_node_scaling(node, vec[0], vec[1], vec[2]);
 	}
 	if((vec = ts_get_attr_vec(tsnode, "pivot", 0))) {
 		goat3d_set_node_pivot(node, vec[0], vec[1], vec[2]);

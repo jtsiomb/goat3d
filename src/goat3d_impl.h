@@ -37,7 +37,7 @@ struct goat3d {
 	struct goat3d_light **lights;
 	struct goat3d_camera **cameras;
 	struct goat3d_node **nodes;
-	struct goat3d_animation *anims;
+	struct goat3d_anim **anims;
 
 	struct aabox bbox;
 	int bbox_valid;

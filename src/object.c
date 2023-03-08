@@ -189,11 +189,13 @@ struct material_attrib *g3dimpl_mtl_getattr(struct goat3d_material *mtl, const c
 	return ma;
 }
 
-void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n)
+void g3dimpl_node_bounds(struct aabox *bb, struct goat3d_node *n)
 {
-	struct object *obj = n->data;
-	struct anm_node *cn = n->child;
-	float *xform = anm_get_matrix(n, 0, 0);
+	struct object *obj = n->obj;
+	struct goat3d_node *cn = n->child;
+	float xform[16];
+
+	goat3d_get_matrix(n, xform);
 
 	if(obj && obj->type == OBJTYPE_MESH) {
 		g3dimpl_mesh_bounds(bb, (struct goat3d_mesh*)obj, xform);
