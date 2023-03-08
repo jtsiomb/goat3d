@@ -101,6 +101,8 @@ bool GoatView::load_scene(const char *fname)
 
 bool GoatView::load_anim(const char *fname)
 {
+	return false;
+	/*
 	if(!scene) {
 		QMessageBox::critical(this, "Error", "You must load a scene before loading any animations!");
 		return false;
@@ -143,6 +145,7 @@ bool GoatView::load_anim(const char *fname)
 
 	post_redisplay();
 	return true;
+	*/
 }
 
 bool GoatView::make_menu()
@@ -525,7 +528,7 @@ static void draw_node(goat3d_node *node)
 	if(!data) return;
 
 	float xform[16];
-	goat3d_get_node_matrix(node, xform, anim_time);
+	goat3d_get_matrix(node, xform);
 
 	glPushMatrix();
 	glMultTransposeMatrixf(xform);

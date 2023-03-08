@@ -36,6 +36,7 @@ static void *read_intlist(void *arr, int dim, const char *nodename, const char *
 static void *read_bonelist(struct goat3d *g, struct goat3d_node **arr, struct ts_node *tsnode);
 static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node *tsnode);
 static int read_anim(struct goat3d *g, struct ts_node *tsanim);
+static struct goat3d_track *read_track(struct goat3d *g, struct ts_node *tstrk);
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 {
@@ -569,22 +570,21 @@ static int read_node(struct goat3d *g, struct goat3d_node *node, struct ts_node 
 
 static int read_anim(struct goat3d *g, struct ts_node *tsanim)
 {
-	int idx;
 	struct ts_node *c;
 	const char *str;
-	struct anm_animation anim;
-	struct anm_track *trk;
+	struct goat3d_anim *anim;
+	struct goat3d_track *trk;
 
 	if(!(str = ts_get_attr_str(tsanim, "name", 0))) {
 		goat3d_logmsg(LOG_WARNING, "read_anim: ignoring animation without a name\n");
 		return -1;
 	}
 
-	if(anm_init_animation(&anim) == -1) {
+	if(!(anim = goat3d_create_anim())) {
 		goat3d_logmsg(LOG_ERROR, "read_anim: failed to initialize animation: %s\n", str);
 		return -1;
 	}
-	anm_set_animation_name(&anim, str);
+	goat3d_set_anim_name(anim, str);
 
 	c = tsanim->child_list;
 	while(c) {
@@ -593,7 +593,133 @@ static int read_anim(struct goat3d *g, struct ts_node *tsanim)
 				c = c->next;
 				continue;
 			}
+			goat3d_add_anim_track(anim, trk);
 		}
 		c = c->next;
 	}
+
+	goat3d_add_anim(g, anim);
+	return 0;
+}
+
+static int parsetype(const char *str)
+{
+	if(strcmp(str, "pos") == 0) return GOAT3D_TRACK_POS;
+	if(strcmp(str, "rot") == 0) return GOAT3D_TRACK_ROT;
+	if(strcmp(str, "scale") == 0) return GOAT3D_TRACK_SCALE;
+	if(strcmp(str, "val") == 0) return GOAT3D_TRACK_VAL;
+	if(strcmp(str, "vec3") == 0) return GOAT3D_TRACK_VEC3;
+	if(strcmp(str, "vec4") == 0) return GOAT3D_TRACK_VEC4;
+	if(strcmp(str, "quat") == 0) return GOAT3D_TRACK_QUAT;
+	return -1;
+}
+
+static int parseinterp(const char *str)
+{
+	if(strcmp(str, "step") == 0) return GOAT3D_INTERP_STEP;
+	if(strcmp(str, "linear") == 0) return GOAT3D_INTERP_LINEAR;
+	if(strcmp(str, "cubic") == 0) return GOAT3D_INTERP_CUBIC;
+	return -1;
+}
+
+static int parseextrap(const char *str)
+{
+	if(strcmp(str, "extend") == 0) return GOAT3D_EXTRAP_EXTEND;
+	if(strcmp(str, "clamp") == 0) return GOAT3D_EXTRAP_CLAMP;
+	if(strcmp(str, "repeat") == 0) return GOAT3D_EXTRAP_REPEAT;
+	if(strcmp(str, "pingpong") == 0) return GOAT3D_EXTRAP_PINGPONG;
+	return -1;
+}
+
+static struct goat3d_track *read_track(struct goat3d *g, struct ts_node *tstrk)
+{
+	int i, idx;
+	const char *str;
+	struct goat3d_track *trk;
+	struct goat3d_node *node;
+	struct goat3d_key key;
+	int type, in, ex;
+	struct ts_node *c;
+	struct ts_attr *tsattr;
+
+	if(!(str = ts_get_attr_str(tstrk, "type", 0)) || (type = parsetype(str)) == -1) {
+		goat3d_logmsg(LOG_WARNING, "read_track: ignoring track with missing or invalid type attribute\n");
+		return 0;
+	}
+
+	if((idx = ts_get_attr_int(tstrk, "node", -1)) >= 0) {
+		if(!(node = goat3d_get_node(g, idx))) {
+			goat3d_logmsg(LOG_WARNING, "read_track: ignoring track with invalid node reference (%d)\n", idx);
+			return 0;
+		}
+	} else if((str = ts_get_attr_str(tstrk, "node", 0))) {
+		if(!(node = goat3d_get_node_by_name(g, str))) {
+			goat3d_logmsg(LOG_WARNING, "read_track: ignoring track with invalid node reference (%s)\n", str);
+			return 0;
+		}
+	} else {
+		goat3d_logmsg(LOG_WARNING, "read_track: ignoring track with missing node reference\n");
+		return 0;
+	}
+
+	if(!(trk = goat3d_create_track())) {
+		goat3d_logmsg(LOG_ERROR, "read_track: failed to create new keyframe track\n");
+		return 0;
+	}
+	goat3d_set_track_node(trk, node);
+	goat3d_set_track_type(trk, type);
+
+	if((str = ts_get_attr_str(tstrk, "name", 0))) {
+		goat3d_set_track_name(trk, str);
+	}
+
+	if((str = ts_get_attr_str(tstrk, "interp", 0))) {
+		if((in = parseinterp(str)) == -1) {
+			goat3d_logmsg(LOG_WARNING, "read_track: ignoring invalid interpolation mode: %s\n", str);
+		} else {
+			goat3d_set_track_interp(trk, in);
+		}
+	}
+	if((str = ts_get_attr_str(tstrk, "extrap", 0))) {
+		if((ex = parseextrap(str)) == -1) {
+			goat3d_logmsg(LOG_WARNING, "read_track: ignoring invalid extrapolation mode: %s\n", str);
+		} else {
+			goat3d_set_track_extrap(trk, ex);
+		}
+	}
+
+	c = tstrk->child_list;
+	while(c) {
+		if(strcmp(c->name, "key") == 0) {
+			if((key.tm = ts_get_attr_int(c, "time", INT_MIN)) == INT_MIN) {
+				goat3d_logmsg(LOG_WARNING, "read_track: ignoring keyframe with missing or invalid time (%s)\n",
+						ts_get_attr_str(c, "time", ""));
+				c = c->next;
+				continue;
+			}
+			if(!(tsattr = ts_get_attr(c, "value")) || (tsattr->val.type != TS_NUMBER &&
+						tsattr->val.type != TS_VECTOR)) {
+				goat3d_logmsg(LOG_WARNING, "read_track: ignoring keyframe with missing or invalid value (%s)\n",
+						ts_get_attr_str(c, "value", ""));
+				c = c->next;
+				continue;
+			}
+
+			if(tsattr->val.type == TS_NUMBER) {
+				key.val[0] = tsattr->val.fnum;
+			} else {
+				for(i=0; i<4; i++) {
+					if(i < tsattr->val.vec_size) {
+						key.val[i] = tsattr->val.vec[i];
+					} else {
+						key.val[i] = 0;
+					}
+				}
+			}
+			goat3d_set_track_key(trk, &key);
+		}
+		c = c->next;
+	}
+
+	return trk;
 }
