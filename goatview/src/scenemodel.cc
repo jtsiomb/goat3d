@@ -50,7 +50,7 @@ SceneNodeData *SceneModel::get_node_data(goat3d_node *node) const
 Qt::ItemFlags SceneModel::flags(const QModelIndex &index) const
 {
 	if(!index.isValid()) {
-		return 0;
+		return Qt::NoItemFlags;
 	}
 
 	Qt::ItemFlags res = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
