@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "dynarr.h"
 #include "log.h"
 
-int g3dimpl_anim_init(struct goat3d_animation *anim)
+int g3dimpl_anim_init(struct goat3d_anim *anim)
 {
 	anim->name = 0;
 	if(!(anim->tracks = dynarr_alloc(0, sizeof *anim->tracks))) {
@@ -30,7 +30,7 @@ int g3dimpl_anim_init(struct goat3d_animation *anim)
 	return 0;
 }
 
-void g3dimpl_anim_destroy(struct goat3d_animation *anim)
+void g3dimpl_anim_destroy(struct goat3d_anim *anim)
 {
 	int i, num;
 
@@ -39,7 +39,7 @@ void g3dimpl_anim_destroy(struct goat3d_animation *anim)
 	free(anim->name);
 	num = dynarr_size(anim->tracks);
 	for(i=0; i<num; i++) {
-		goat3d_destroy_track(anim->tracks + i);
+		goat3d_destroy_track(anim->tracks[i]);
 	}
 	dynarr_free(anim->tracks);
 }

@@ -19,7 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OBJECT_H_
 
 #include "cgmath/cgmath.h"
-#include "anim/anim.h"
 #include "goat3d.h"
 #include "aabox.h"
 
@@ -109,10 +108,28 @@ struct goat3d_camera {
 };
 
 struct goat3d_node {
-	struct anm_node anm;	/* keep this at 0 offset */
+	char *name;
 	enum goat3d_node_type type;
 	void *obj;
 	int child_count;
+
+	cgm_vec3 pivot;
+	/* local transformation */
+	cgm_vec3 pos, scale;
+	cgm_quat rot;
+	/* values from animation evaluation, take precedence over the above if
+	 * has_anim is true
+	 */
+	cgm_vec3 apos, ascale;
+	cgm_quat arot;
+	int has_anim;
+	/* matrix computed from the above*/
+	float matrix[16];
+	int matrix_valid;
+
+	struct goat3d_node *parent;
+	struct goat3d_node *child;
+	struct goat3d_node *next;
 };
 
 int g3dimpl_obj_init(struct object *o, int type);
@@ -125,6 +142,6 @@ void g3dimpl_mtl_destroy(struct goat3d_material *mtl);
 struct material_attrib *g3dimpl_mtl_findattr(struct goat3d_material *mtl, const char *name);
 struct material_attrib *g3dimpl_mtl_getattr(struct goat3d_material *mtl, const char *name);
 
-void g3dimpl_node_bounds(struct aabox *bb, struct anm_node *n);
+void g3dimpl_node_bounds(struct aabox *bb, struct goat3d_node *n);
 
 #endif	/* OBJECT_H_ */
