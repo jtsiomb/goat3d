@@ -1,58 +1,29 @@
-goat3d v2
-=========
+goat3d
+======
 
 About
 -----
-Goat3D is a hierarchical 3D scene, character, and animation file format set,
-targeting mostly real-time applications.
+Goat3D is a hierarchical 3D scene, character, and animation file format, and
+acompanying read/write library, targeting mostly real-time applications.
 
 The specification defines a hierarchical structure (see `doc/goatfmt`, and
 `doc/goatanimfmt` for details), which can be stored in either text or binary
 form. An application using the provided library to read/write goat3d files,
 should be able to handle either variant, with no extra effort (NOTE: currently
 the binary format is not implemented). The animations can be part of the scene
-data tree, or in separate files.
+file, or in separate files.
 
-This project provides the specification of the file formats, a simple library
+This project provides the specification of the file format, a simple library
 with a clean C API for reading and writing files in the goat3d scene and
-animation file formats, as well as a number of tools dealing with such files.
+animation files, as well as a number of tools dealing with such files.
 
 Specifically, at the moment, the goat3d project provides the following:
  - *libgoat3d*, a library for reading and writing goat3d scene and animation files.
  - *ass2goat*, a universal 3D asset conversion utility based on the excellent
    assimp library, from a huge number of 3D file formats to the goat3d file
    format.
- - *goatview*, a 3D scene and animation preview tool, based on OpenGL.
+ - *goatview*, a 3D scene and animation preview tool, based on OpenGL and Qt.
  - *goatprim*, a procedural 3D model (primitive) generator for quick testing.
-
-Changes in v2
--------------
-An animation (`ANIM` node) can be in a separate file like the original goat3d
-specification, or as a child of `SCENE`, in the same file as the main scene
-description.
-
-The API and internal data structures have changed a bit around the animation and
-node tree parts, making v2 source and binary incompatible with the original
-version.
-
-All the code has been re-written in ISO C89 for maximum portability, and the
-text file format changed from representing the data tree as XML, to using a
-simple curtly-braces hierarchical format based on `libtreestore` (included under
-`libs` in the goat3d source code).
-
-A number of unmaintained tools have been dropped, opting to support the
-`ass2goat` assimp converter pipeline, instead of keeping a bunch of half-baked
-exporters for various programs that used to support a subset of the goat3d
-features. The blender exporter might return at some point, but I have no
-intention to maintain exporters for any other programs at this stage.
-Contributions are certainly welcome, as well as anyone who wishes to write and
-maintain some other specific tool/exporter.
-
-Another change is that visual studio project files for windows have been
-dropped. The supported way to build windows binaries is with mingw either on
-windows, or cross-compiled from a UNIX system. If someone wishes to contribute
-and maintain files for alternative build systems, I'm willing to include them,
-as long as they can reside in a separate directory, like `contrib/vcbuild`.
 
 License
 -------
