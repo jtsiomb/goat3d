@@ -4,17 +4,14 @@ goat3d v2
 About
 -----
 Goat3D is a hierarchical 3D scene, character, and animation file format set,
-targeting mostly real-time applications. The goat3d specification defines 2
-complimentary file formats:
- - The main goat3d file format defines meshes, lights, cameras, environmental
-   parameters, materials, and transformation hierarchies.
- - The animation file format defines a sequence of keyframes and interpolation
-   parameters, for any number of nodes, defined in the main scene file.
+targeting mostly real-time applications.
 
 The specification defines a hierarchical structure (see `doc/goatfmt`, and
 `doc/goatanimfmt` for details), which can be stored in either text or binary
 form. An application using the provided library to read/write goat3d files,
-should be able to handle either variant, with no extra effort.
+should be able to handle either variant, with no extra effort (NOTE: currently
+the binary format is not implemented). The animations can be part of the scene
+data tree, or in separate files.
 
 This project provides the specification of the file formats, a simple library
 with a clean C API for reading and writing files in the goat3d scene and
@@ -34,15 +31,19 @@ An animation (`ANIM` node) can be in a separate file like the original goat3d
 specification, or as a child of `SCENE`, in the same file as the main scene
 description.
 
-The rest of the changes in goat3d v2 are strictly in the implementation, and do
-not affect user programs at all. All the code has been re-written in C, and
-`libtreestore` is used to read/write text and binary hierarchical files
-following the structure defined by goat3d.
+The API and internal data structures have changed a bit around the animation and
+node tree parts, making v2 source and binary incompatible with the original
+version.
 
-A number of unmaintained tools have been dropped (for now), opting to support
-the `ass2goat` assimp converter pipeline, instead of keeping a bunch of
-half-baked exporters for various programs that used to support a subset of the
-goat3d features. The blender exporter might return at some point, but I have no
+All the code has been re-written in ISO C89 for maximum portability, and the
+text file format changed from representing the data tree as XML, to using a
+simple curtly-braces hierarchical format based on `libtreestore` (included under
+`libs` in the goat3d source code).
+
+A number of unmaintained tools have been dropped, opting to support the
+`ass2goat` assimp converter pipeline, instead of keeping a bunch of half-baked
+exporters for various programs that used to support a subset of the goat3d
+features. The blender exporter might return at some point, but I have no
 intention to maintain exporters for any other programs at this stage.
 Contributions are certainly welcome, as well as anyone who wishes to write and
 maintain some other specific tool/exporter.
@@ -55,7 +56,7 @@ as long as they can reside in a separate directory, like `contrib/vcbuild`.
 
 License
 -------
-Copyright (C) 2014-2018 John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2014-2023 John Tsiombikas <nuclear@member.fsf.org>
 
 Goat3D is free software, you may use, modify and/or redistribute it under the
 terms of the GNU Lesser General Public License v3, or at your option any later
