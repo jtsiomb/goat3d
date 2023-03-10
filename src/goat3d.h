@@ -103,6 +103,7 @@ enum goat3d_option {
 
 struct goat3d;
 struct goat3d_material;
+struct goat3d_mtlattr;
 struct goat3d_mesh;
 struct goat3d_light;
 struct goat3d_camera;
@@ -180,6 +181,10 @@ GOAT3DAPI const float *goat3d_get_mtl_attrib(struct goat3d_material *mtl, const 
 GOAT3DAPI int goat3d_set_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib, const char *mapname);
 GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, const char *attrib);
 
+GOAT3DAPI int goat3d_get_mtl_attrib_count(struct goat3d_material *mtl);
+GOAT3DAPI const char *goat3d_get_mtl_attrib_name(struct goat3d_material *mtl, int idx);
+
+
 /* meshes */
 GOAT3DAPI int goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh);
 GOAT3DAPI int goat3d_get_mesh_count(struct goat3d *g);
@@ -195,6 +200,7 @@ GOAT3DAPI const char *goat3d_get_mesh_name(const struct goat3d_mesh *mesh);
 GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_material *mtl);
 GOAT3DAPI struct goat3d_material *goat3d_get_mesh_mtl(struct goat3d_mesh *mesh);
 
+GOAT3DAPI int goat3d_get_mesh_vertex_count(struct goat3d_mesh *mesh);
 GOAT3DAPI int goat3d_get_mesh_attrib_count(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib);
 GOAT3DAPI int goat3d_get_mesh_face_count(struct goat3d_mesh *mesh);
 
@@ -249,7 +255,7 @@ GOAT3DAPI void goat3d_color4f(float x, float y, float z, float w);
 
 GOAT3DAPI void goat3d_get_mesh_bounds(const struct goat3d_mesh *mesh, float *bmin, float *bmax);
 
-/* lights */
+/* lights (TODO) */
 GOAT3DAPI int goat3d_add_light(struct goat3d *g, struct goat3d_light *lt);
 GOAT3DAPI int goat3d_get_light_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_light *goat3d_get_light(struct goat3d *g, int idx);
@@ -258,7 +264,10 @@ GOAT3DAPI struct goat3d_light *goat3d_get_light_by_name(struct goat3d *g, const 
 GOAT3DAPI struct goat3d_light *goat3d_create_light(void);
 GOAT3DAPI void goat3d_destroy_light(struct goat3d_light *lt);
 
-/* cameras */
+GOAT3DAPI int goat3d_set_light_name(struct goat3d_light *lt, const char *name);
+GOAT3DAPI const char *goat3d_get_light_name(const struct goat3d_light *lt);
+
+/* cameras (TODO) */
 GOAT3DAPI int goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam);
 GOAT3DAPI int goat3d_get_camera_count(struct goat3d *g);
 GOAT3DAPI struct goat3d_camera *goat3d_get_camera(struct goat3d *g, int idx);
@@ -266,6 +275,9 @@ GOAT3DAPI struct goat3d_camera *goat3d_get_camera_by_name(struct goat3d *g, cons
 
 GOAT3DAPI struct goat3d_camera *goat3d_create_camera(void);
 GOAT3DAPI void goat3d_destroy_camera(struct goat3d_camera *cam);
+
+GOAT3DAPI int goat3d_set_camera_name(struct goat3d_camera *cam, const char *name);
+GOAT3DAPI const char *goat3d_get_camera_name(const struct goat3d_camera *cam);
 
 /* nodes */
 GOAT3DAPI int goat3d_add_node(struct goat3d *g, struct goat3d_node *node);

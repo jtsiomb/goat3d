@@ -28,6 +28,22 @@ static long write_file(const void *buf, size_t bytes, void *uptr);
 static long seek_file(long offs, int whence, void *uptr);
 static char *clean_filename(char *str);
 
+static const char *def_scn_name = "unnamed";
+
+#define SETNAME(dest, str)	\
+	do { \
+		char *tmpname; \
+		int len = strlen(str); \
+		if(!(tmpname = malloc(len + 1))) { \
+			return -1; \
+		} \
+		memcpy(tmpname, str, len + 1); \
+		free(dest); \
+		dest = tmpname; \
+		return 0; \
+	} while(0)
+
+
 GOAT3DAPI struct goat3d *goat3d_create(void)
 {
 	struct goat3d *g;
@@ -52,7 +68,6 @@ int goat3d_init(struct goat3d *g)
 {
 	memset(g, 0, sizeof *g);
 
-	if(goat3d_set_name(g, "unnamed") == -1) goto err;
 	cgm_vcons(&g->ambient, 0.05, 0.05, 0.05);
 
 	if(!(g->materials = dynarr_alloc(0, sizeof *g->materials))) goto err;
@@ -124,7 +139,7 @@ void goat3d_clear(struct goat3d *g)
 		g3dimpl_anim_destroy(g->anims[i]);
 	}
 
-	goat3d_set_name(g, "unnamed");
+	g->name = 0;
 	g->bbox_valid = 0;
 }
 
@@ -173,7 +188,12 @@ GOAT3DAPI int goat3d_load(struct goat3d *g, const char *fname)
 		}
 	}
 
-	res = goat3d_load_file(g, fp);
+	if((res = goat3d_load_file(g, fp)) == 0) {
+		const char *name;
+		if((name = goat3d_get_name(g)) == def_scn_name) {
+			goat3d_set_name(g, slash ? slash + 1 : fname);
+		}
+	}
 	fclose(fp);
 	return res;
 }
@@ -312,7 +332,7 @@ GOAT3DAPI int goat3d_set_name(struct goat3d *g, const char *name)
 
 GOAT3DAPI const char *goat3d_get_name(const struct goat3d *g)
 {
-	return g->name;
+	return g->name ? g->name : def_scn_name;
 }
 
 GOAT3DAPI void goat3d_set_ambient(struct goat3d *g, const float *amb)
@@ -426,15 +446,7 @@ GOAT3DAPI void goat3d_destroy_mtl(struct goat3d_material *mtl)
 
 GOAT3DAPI int goat3d_set_mtl_name(struct goat3d_material *mtl, const char *name)
 {
-	char *tmp;
-	int len = strlen(name);
-	if(!(tmp = malloc(len + 1))) {
-		return -1;
-	}
-	memcpy(tmp, name, len + 1);
-	free(mtl->name);
-	mtl->name = tmp;
-	return 0;
+	SETNAME(mtl->name, name);
 }
 
 GOAT3DAPI const char *goat3d_get_mtl_name(const struct goat3d_material *mtl)
@@ -505,6 +517,16 @@ GOAT3DAPI const char *goat3d_get_mtl_attrib_map(struct goat3d_material *mtl, con
 	return ma->map;
 }
 
+GOAT3DAPI const char *goat3d_get_mtl_attrib_name(struct goat3d_material *mtl, int idx)
+{
+	return mtl->attrib[idx].name;
+}
+
+GOAT3DAPI int goat3d_get_mtl_attrib_count(struct goat3d_material *mtl)
+{
+	return dynarr_size(mtl->attrib);
+}
+
 // ---- meshes ----
 GOAT3DAPI int goat3d_add_mesh(struct goat3d *g, struct goat3d_mesh *mesh)
 {
@@ -559,16 +581,7 @@ GOAT3DAPI void goat3d_destroy_mesh(struct goat3d_mesh *mesh)
 
 GOAT3DAPI int goat3d_set_mesh_name(struct goat3d_mesh *mesh, const char *name)
 {
-	char *tmpname;
-	int len = strlen(name);
-
-	if(!(tmpname = malloc(len + 1))) {
-		return -1;
-	}
-	memcpy(tmpname, name, len + 1);
-	free(mesh->name);
-	mesh->name = tmpname;
-	return 0;
+	SETNAME(mesh->name, name);
 }
 
 GOAT3DAPI const char *goat3d_get_mesh_name(const struct goat3d_mesh *mesh)
@@ -584,6 +597,11 @@ GOAT3DAPI void goat3d_set_mesh_mtl(struct goat3d_mesh *mesh, struct goat3d_mater
 GOAT3DAPI struct goat3d_material *goat3d_get_mesh_mtl(struct goat3d_mesh *mesh)
 {
 	return mesh->mtl;
+}
+
+GOAT3DAPI int goat3d_get_mesh_vertex_count(struct goat3d_mesh *mesh)
+{
+	return dynarr_size(mesh->vertices);
 }
 
 GOAT3DAPI int goat3d_get_mesh_attrib_count(struct goat3d_mesh *mesh, enum goat3d_mesh_attrib attrib)
@@ -1058,6 +1076,15 @@ GOAT3DAPI void goat3d_destroy_light(struct goat3d_light *lt)
 	free(lt);
 }
 
+GOAT3DAPI int goat3d_set_light_name(struct goat3d_light *lt, const char *name)
+{
+	SETNAME(lt->name, name);
+}
+
+GOAT3DAPI const char *goat3d_get_light_name(const struct goat3d_light *lt)
+{
+	return lt->name;
+}
 
 /* cameras */
 GOAT3DAPI int goat3d_add_camera(struct goat3d *g, struct goat3d_camera *cam)
@@ -1111,9 +1138,17 @@ GOAT3DAPI void goat3d_destroy_camera(struct goat3d_camera *cam)
 	free(cam);
 }
 
+GOAT3DAPI int goat3d_set_camera_name(struct goat3d_camera *cam, const char *name)
+{
+	SETNAME(cam->name, name);
+}
 
+GOAT3DAPI const char *goat3d_get_camera_name(const struct goat3d_camera *cam)
+{
+	return cam->name;
+}
 
-// node
+/* node */
 GOAT3DAPI int goat3d_add_node(struct goat3d *g, struct goat3d_node *node)
 {
 	struct goat3d_node **arr;
@@ -1170,16 +1205,7 @@ GOAT3DAPI void goat3d_destroy_node(struct goat3d_node *node)
 
 GOAT3DAPI int goat3d_set_node_name(struct goat3d_node *node, const char *name)
 {
-	char *tmpname;
-	int len = strlen(name);
-
-	if(!(tmpname = malloc(len + 1))) {
-		return -1;
-	}
-	memcpy(tmpname, name, len + 1);
-	free(node->name);
-	node->name = tmpname;
-	return 0;
+	SETNAME(node->name, name);
 }
 
 GOAT3DAPI const char *goat3d_get_node_name(const struct goat3d_node *node)
@@ -1221,7 +1247,7 @@ GOAT3DAPI int goat3d_get_node_child_count(const struct goat3d_node *node)
 GOAT3DAPI struct goat3d_node *goat3d_get_node_child(const struct goat3d_node *node, int idx)
 {
 	struct goat3d_node *c = node->child;
-	while(c && idx > 0) {
+	while(c && idx-- > 0) {
 		c = c->next;
 	}
 	return c;
@@ -1424,17 +1450,7 @@ GOAT3DAPI void goat3d_destroy_track(struct goat3d_track *trk)
 
 GOAT3DAPI int goat3d_set_track_name(struct goat3d_track *trk, const char *name)
 {
-	char *str;
-	int len = strlen(name);
-
-	if(!(str = malloc(len + 1))) {
-		return -1;
-	}
-	memcpy(str, name, len + 1);
-
-	free(trk->name);
-	trk->name = str;
-	return 0;
+	SETNAME(trk->name, name);
 }
 
 GOAT3DAPI const char *goat3d_get_track_name(const struct goat3d_track *trk)
@@ -1799,16 +1815,7 @@ GOAT3DAPI void goat3d_destroy_anim(struct goat3d_anim *anim)
 
 GOAT3DAPI int goat3d_set_anim_name(struct goat3d_anim *anim, const char *name)
 {
-	char *tmpname;
-	int len = strlen(name);
-
-	if(!(tmpname = malloc(len + 1))) {
-		return -1;
-	}
-	memcpy(tmpname, name, len + 1);
-	free(anim->name);
-	anim->name = tmpname;
-	return 0;
+	SETNAME(anim->name, name);
 }
 
 GOAT3DAPI const char *goat3d_get_anim_name(const struct goat3d_anim *anim)
