@@ -22,6 +22,7 @@ Specifically, at the moment, the goat3d project provides the following:
  - *ass2goat*, a universal 3D asset conversion utility based on the excellent
    assimp library, from a huge number of 3D file formats to the goat3d file
    format.
+ - *goatinfo*, a command-line tool for inspecting the contents of goat3d files.
  - *goatview*, a 3D scene and animation preview tool, based on OpenGL and Qt.
  - *goatprim*, a procedural 3D model (primitive) generator for quick testing.
 
