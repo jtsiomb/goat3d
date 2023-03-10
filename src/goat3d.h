@@ -24,7 +24,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef WIN32
 #define GOAT3DAPI	__declspec(dllexport)
 #else
+#ifdef __GNUC__
+#define GOAT3DAPI	__attribute__((visibility("default")))
+#else
 #define GOAT3DAPI
+#endif
 #endif
 
 #define GOAT3D_MAT_ATTR_DIFFUSE			"diffuse"

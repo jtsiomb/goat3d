@@ -57,7 +57,7 @@ int anm_init_track(struct anm_track *track)
 {
 	memset(track, 0, sizeof *track);
 
-	if(!(track->keys = anm_dynarr_alloc(0, sizeof *track->keys))) {
+	if(!(track->keys = dynarr_alloc(0, sizeof *track->keys))) {
 		return -1;
 	}
 	track->interp = ANM_INTERP_LINEAR;
@@ -67,7 +67,7 @@ int anm_init_track(struct anm_track *track)
 
 void anm_destroy_track(struct anm_track *track)
 {
-	anm_dynarr_free(track->keys);
+	dynarr_free(track->keys);
 }
 
 struct anm_track *anm_create_track(void)
@@ -93,7 +93,7 @@ void anm_copy_track(struct anm_track *dest, const struct anm_track *src)
 {
 	free(dest->name);
 	if(dest->keys) {
-		anm_dynarr_free(dest->keys);
+		dynarr_free(dest->keys);
 	}
 
 	if(src->name) {
@@ -102,7 +102,7 @@ void anm_copy_track(struct anm_track *dest, const struct anm_track *src)
 	}
 
 	dest->count = src->count;
-	dest->keys = anm_dynarr_alloc(src->count, sizeof *dest->keys);
+	dest->keys = dynarr_alloc(src->count, sizeof *dest->keys);
 	memcpy(dest->keys, src->keys, src->count * sizeof *dest->keys);
 
 	dest->def_val = src->def_val;
@@ -158,7 +158,7 @@ int anm_set_keyframe(struct anm_track *track, struct anm_keyframe *key)
 	} else {
 		/* ... it's a new key, add it and re-sort them */
 		void *tmp;
-		if(!(tmp = anm_dynarr_push(track->keys, key))) {
+		if(!(tmp = dynarr_push(track->keys, key))) {
 			return -1;
 		}
 		track->keys = tmp;

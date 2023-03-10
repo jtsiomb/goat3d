@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LIBANIM_TRACK_H_
 
 #include <limits.h>
-#include "config.h"
+/*#include "config.h"*/
 
 enum anm_interpolator {
 	ANM_INTERP_STEP,

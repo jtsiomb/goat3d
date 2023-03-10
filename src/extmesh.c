@@ -15,7 +15,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "goat3d_impl.h"
+#include "g3dscn.h"
 #include "log.h"
 
 int g3dimpl_loadmesh(struct goat3d_mesh *mesh, const char *fname)

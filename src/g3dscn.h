@@ -1,6 +1,6 @@
 /*
 goat3d - 3D scene, and animation file format library.
-Copyright (C) 2013-2018  John Tsiombikas <nuclear@member.fsf.org>
+Copyright (C) 2013-2023  John Tsiombikas <nuclear@member.fsf.org>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as published by
@@ -15,11 +15,12 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef OBJECT_H_
-#define OBJECT_H_
+#ifndef GOAT3D_SCENE_H_
+#define GOAT3D_SCENE_H_
 
 #include "cgmath/cgmath.h"
 #include "goat3d.h"
+#include "g3danm.h"
 #include "aabox.h"
 
 enum {
@@ -132,6 +133,35 @@ struct goat3d_node {
 	struct goat3d_node *next;
 };
 
+
+struct goat3d {
+	unsigned int flags;
+	char *search_path;
+
+	char *name;
+	cgm_vec3 ambient;
+
+	/* dynamic arrays */
+	struct goat3d_material **materials;
+	struct goat3d_mesh **meshes;
+	struct goat3d_light **lights;
+	struct goat3d_camera **cameras;
+	struct goat3d_node **nodes;
+	struct goat3d_anim **anims;
+
+	struct aabox bbox;
+	int bbox_valid;
+};
+
+extern int goat3d_log_level;
+
+/* defined in goat3d.c, declared here to keep them out of the public API */
+int goat3d_init(struct goat3d *g);
+void goat3d_destroy(struct goat3d *g);
+
+void goat3d_clear(struct goat3d *g);
+
+/* defined in g3dscn.c */
 int g3dimpl_obj_init(struct object *o, int type);
 void g3dimpl_obj_destroy(struct object *o);
 
@@ -144,4 +174,20 @@ struct material_attrib *g3dimpl_mtl_getattr(struct goat3d_material *mtl, const c
 
 void g3dimpl_node_bounds(struct aabox *bb, struct goat3d_node *n);
 
-#endif	/* OBJECT_H_ */
+/*
+void io_fprintf(goat3d_io *io, const char *fmt, ...);
+void io_vfprintf(goat3d_io *io, const char *fmt, va_list ap);
+*/
+
+/* defined in read.c */
+int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_anmload(struct goat3d *g, struct goat3d_io *io);
+
+/* defined in write.c */
+int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io);
+int g3dimpl_anmsave(const struct goat3d *g, struct goat3d_io *io);
+
+/* defined in extmesh.c */
+int g3dimpl_loadmesh(struct goat3d_mesh *mesh, const char *fname);
+
+#endif	/* GOAT3D_SCENE_H_ */

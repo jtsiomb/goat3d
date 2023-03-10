@@ -5,12 +5,12 @@ dbg = -g
 opt = -O0
 # -------------------
 
-src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c) $(wildcard libs/anim/*.c)
+src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c)
 obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
 
 name = goat3d
-so_major = 2
+so_major = 1
 so_minor = 0
 
 lib_a = lib$(name).a
@@ -29,7 +29,7 @@ endif
 
 incdir = -Ilibs -Ilibs/treestore
 
-CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(incdir) -MMD
+CFLAGS = -pedantic -Wall -fvisibility=hidden $(dbg) $(opt) $(pic) $(incdir) -MMD
 LDFLAGS = -lm
 
 .PHONY: all

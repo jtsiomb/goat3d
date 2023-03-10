@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef AABOX_H_
 #define AABOX_H_
 
-#include <cgmath/cgmath.h>
+#include "cgmath/cgmath.h"
 
 struct aabox {
 	cgm_vec3 bmin, bmax;

@@ -16,7 +16,7 @@ You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <string.h>
-#include "object.h"
+#include "g3dscn.h"
 #include "dynarr.h"
 
 int g3dimpl_obj_init(struct object *o, int type)

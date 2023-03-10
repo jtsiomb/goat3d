@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define G3DANM_H_
 
 #include "goat3d.h"
-#include "anim/track.h"
+#include "track.h"
 
 struct goat3d_track {
 	char *name;

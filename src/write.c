@@ -17,10 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include <stdlib.h>
 #include <string.h>
-#include <treestore.h>
-#include "goat3d_impl.h"
+#include "g3dscn.h"
 #include "log.h"
 #include "dynarr.h"
+#include "treestore.h"
 
 static struct ts_node *create_mtltree(const struct goat3d_material *mtl);
 static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh);
