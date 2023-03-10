@@ -43,3 +43,26 @@ void g3dimpl_anim_destroy(struct goat3d_anim *anim)
 	}
 	dynarr_free(anim->tracks);
 }
+
+
+const char *g3dimpl_trktypestr(enum goat3d_track_type type)
+{
+	switch(type) {
+	case GOAT3D_TRACK_VAL:
+		return "val";
+	case GOAT3D_TRACK_VEC3:
+		return "vec3";
+	case GOAT3D_TRACK_VEC4:
+		return "vec4";
+	case GOAT3D_TRACK_QUAT:
+		return "quat";
+	case GOAT3D_TRACK_POS:
+		return "pos";
+	case GOAT3D_TRACK_ROT:
+		return "rot";
+	case GOAT3D_TRACK_SCALE:
+		return "scale";
+	}
+	return 0;
+}
+

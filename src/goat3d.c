@@ -1558,27 +1558,6 @@ GOAT3DAPI int goat3d_get_track_key_count(const struct goat3d_track *trk)
 	return trk->trk[0].count;
 }
 
-static const char *trktypestr(enum goat3d_track_type type)
-{
-	switch(type) {
-	case GOAT3D_TRACK_VAL:
-		return "val";
-	case GOAT3D_TRACK_VEC3:
-		return "vec3";
-	case GOAT3D_TRACK_VEC4:
-		return "vec4";
-	case GOAT3D_TRACK_QUAT:
-		return "quat";
-	case GOAT3D_TRACK_POS:
-		return "pos";
-	case GOAT3D_TRACK_ROT:
-		return "rot";
-	case GOAT3D_TRACK_SCALE:
-		return "scale";
-	}
-	return 0;
-}
-
 GOAT3DAPI int goat3d_set_track_val(struct goat3d_track *trk, long msec, float val)
 {
 	struct goat3d_key key = {0};
@@ -1588,7 +1567,7 @@ GOAT3DAPI int goat3d_set_track_val(struct goat3d_track *trk, long msec, float va
 
 	if(basetype != GOAT3D_TRACK_VAL) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_val called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return -1;
 	}
 
@@ -1606,7 +1585,7 @@ GOAT3DAPI int goat3d_set_track_vec3(struct goat3d_track *trk, long msec, float x
 
 	if(basetype != GOAT3D_TRACK_VEC3) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_vec3 called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return -1;
 	}
 
@@ -1626,7 +1605,7 @@ GOAT3DAPI int goat3d_set_track_vec4(struct goat3d_track *trk, long msec, float x
 
 	if(basetype != GOAT3D_TRACK_VEC4) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_vec4 called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return -1;
 	}
 
@@ -1647,7 +1626,7 @@ GOAT3DAPI int goat3d_set_track_quat(struct goat3d_track *trk, long msec, float x
 
 	if(basetype != GOAT3D_TRACK_QUAT) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_set_track_quat called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return -1;
 	}
 
@@ -1669,7 +1648,7 @@ GOAT3DAPI void goat3d_get_track_val(const struct goat3d_track *trk, long msec, f
 
 	if(basetype != GOAT3D_TRACK_VAL) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_val called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return;
 	}
 
@@ -1685,7 +1664,7 @@ GOAT3DAPI void goat3d_get_track_vec3(const struct goat3d_track *trk, long msec, 
 
 	if(basetype != GOAT3D_TRACK_VEC3) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec3 called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return;
 	}
 
@@ -1703,7 +1682,7 @@ GOAT3DAPI void goat3d_get_track_vec4(const struct goat3d_track *trk, long msec, 
 
 	if(basetype != GOAT3D_TRACK_VEC4) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_vec4 called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return;
 	}
 
@@ -1723,7 +1702,7 @@ GOAT3DAPI void goat3d_get_track_quat(const struct goat3d_track *trk, long msec, 
 
 	if(basetype != GOAT3D_TRACK_QUAT) {
 		goat3d_logmsg(LOG_WARNING, "goat3d_get_track_quat called on %s track\n",
-				trktypestr(trk->type));
+				g3dimpl_trktypestr(trk->type));
 		return;
 	}
 

@@ -114,6 +114,12 @@ int convert(const char *infname)
 		process_node(goat, 0, aiscn->mRootNode->mChildren[i]);
 	}
 
+	for(i=0; i<aiscn->mNumAnimations; i++) {
+		if(process_anim(goat, aiscn->mAnimations[i]) == -1) {
+			return -1;
+		}
+	}
+
 	goat3d_save(goat, outfname);
 	goat3d_free(goat);
 	aiReleaseImport(aiscn);

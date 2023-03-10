@@ -36,4 +36,6 @@ struct goat3d_anim {
 int g3dimpl_anim_init(struct goat3d_anim *anim);
 void g3dimpl_anim_destroy(struct goat3d_anim *anim);
 
+const char *g3dimpl_trktypestr(enum goat3d_track_type type);
+
 #endif	/* G3DANM_H_ */

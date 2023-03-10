@@ -27,6 +27,8 @@ static struct ts_node *create_meshtree(const struct goat3d_mesh *mesh);
 static struct ts_node *create_lighttree(const struct goat3d_light *light);
 static struct ts_node *create_camtree(const struct goat3d_camera *cam);
 static struct ts_node *create_nodetree(const struct goat3d_node *node);
+static struct ts_node *create_animtree(const struct goat3d_anim *anim);
+static struct ts_node *create_tracktree(const struct goat3d_track *trk);
 
 #define create_tsnode(n, p, nstr) \
 	do { \
@@ -119,6 +121,14 @@ int g3dimpl_scnsave(const struct goat3d *g, struct goat3d_io *io)
 	num = dynarr_size(g->nodes);
 	for(i=0; i<num; i++) {
 		if(!(tsn = create_nodetree(g->nodes[i]))) {
+			goto err;
+		}
+		ts_add_child(tsroot, tsn);
+	}
+
+	num = dynarr_size(g->anims);
+	for(i=0; i<num; i++) {
+		if(!(tsn = create_animtree(g->anims[i]))) {
 			goto err;
 		}
 		ts_add_child(tsroot, tsn);
@@ -459,5 +469,96 @@ static struct ts_node *create_nodetree(const struct goat3d_node *node)
 
 err:
 	ts_free_tree(tsnode);
+	return 0;
+}
+
+static struct ts_node *create_animtree(const struct goat3d_anim *anim)
+{
+	int i, num_trk;
+	struct ts_node *tsanim, *tstrk;
+	struct ts_attr *tsa;
+
+	create_tsnode(tsanim, 0, "anim");
+	create_tsattr(tsa, tsanim, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, goat3d_get_anim_name(anim)) == -1) {
+		goto err;
+	}
+
+
+	num_trk = goat3d_get_anim_track_count(anim);
+	for(i=0; i<num_trk; i++) {
+		if((tstrk = create_tracktree(goat3d_get_anim_track(anim, i)))) {
+			ts_add_child(tsanim, tstrk);
+		}
+	}
+
+	return tsanim;
+
+err:
+	ts_free_tree(tsanim);
+	return 0;
+}
+
+static const char *instr[] = {"step", "linear", "cubic"};
+static const char *exstr[] = {"extend", "clamp", "repeat", "pingpong"};
+
+static struct ts_node *create_tracktree(const struct goat3d_track *trk)
+{
+	int i, num_keys;
+	struct ts_node *tstrk, *tskey;
+	struct ts_attr *tsa;
+	struct goat3d_key key;
+	enum goat3d_track_type basetype;
+
+	create_tsnode(tstrk, 0, "track");
+	create_tsattr(tsa, tstrk, "name", TS_STRING);
+	if(ts_set_value_str(&tsa->val, goat3d_get_track_name(trk)) == -1) {
+		goto err;
+	}
+
+	create_tsattr(tsa, tstrk, "type", TS_STRING);
+	if(ts_set_value_str(&tsa->val, g3dimpl_trktypestr(trk->type)) == -1) {
+		goto err;
+	}
+	basetype = trk->type & 0xff;
+
+	create_tsattr(tsa, tstrk, "interp", TS_STRING);
+	if(ts_set_value_str(&tsa->val, instr[trk->trk[0].interp]) == -1) {
+		goto err;
+	}
+	create_tsattr(tsa, tstrk, "extrap", TS_STRING);
+	if(ts_set_value_str(&tsa->val, exstr[trk->trk[0].extrap]) == -1) {
+		goto err;
+	}
+
+	if(trk->node) {
+		create_tsattr(tsa, tstrk, "node", TS_STRING);
+		if(ts_set_value_str(&tsa->val, trk->node->name) == -1) {
+			goto err;
+		}
+	}
+
+	num_keys = goat3d_get_track_key_count(trk);
+	for(i=0; i<num_keys; i++) {
+		goat3d_get_track_key(trk, i, &key);
+
+		create_tsnode(tskey, tstrk, "key");
+		create_tsattr(tsa, tskey, "time", TS_NUMBER);
+		ts_set_valuei(&tsa->val, key.tm);
+
+		if(basetype == GOAT3D_TRACK_VAL) {
+			create_tsattr(tsa, tskey, "value", TS_NUMBER);
+			ts_set_valuef(&tsa->val, key.val[0]);
+		} else {
+			static const int typecount[] = {1, 3, 4, 4};
+			create_tsattr(tsa, tskey, "value", TS_VECTOR);
+			ts_set_valuef_arr(&tsa->val, typecount[basetype], key.val);
+		}
+	}
+
+	return tstrk;
+
+err:
+	ts_free_tree(tstrk);
 	return 0;
 }
