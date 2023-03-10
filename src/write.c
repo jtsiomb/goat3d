@@ -509,11 +509,14 @@ static struct ts_node *create_tracktree(const struct goat3d_track *trk)
 	struct ts_attr *tsa;
 	struct goat3d_key key;
 	enum goat3d_track_type basetype;
+	const char *str;
 
 	create_tsnode(tstrk, 0, "track");
-	create_tsattr(tsa, tstrk, "name", TS_STRING);
-	if(ts_set_value_str(&tsa->val, goat3d_get_track_name(trk)) == -1) {
-		goto err;
+	if((str = goat3d_get_track_name(trk))) {
+		create_tsattr(tsa, tstrk, "name", TS_STRING);
+		if(ts_set_value_str(&tsa->val, str) == -1) {
+			goto err;
+		}
 	}
 
 	create_tsattr(tsa, tstrk, "type", TS_STRING);
