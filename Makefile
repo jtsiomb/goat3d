@@ -30,7 +30,7 @@ endif
 incdir = -Ilibs -Ilibs/treestore
 
 CFLAGS = -pedantic -Wall $(dbg) $(opt) $(pic) $(incdir) -MMD
-LDFLAGS =
+LDFLAGS = -lm
 
 .PHONY: all
 all: $(lib_so) $(lib_a) $(soname) $(ldname)

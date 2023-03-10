@@ -5,6 +5,7 @@ libgoat3d.a
 libgoat3d.so*
 converters/ass2goat/ass2goat
 goatview/goatview
+goatinfo/goatinfo
 generators/goatprim/goatprim
 moc_*.cc
 *.obj
@@ -13,3 +14,4 @@ moc_*.cc
 *.gltf
 *.glb
 *.goat3d
+core
