@@ -14,7 +14,7 @@ warn = -Wall
 
 CFLAGS = $(warn) -g $(pic) -I$(goat_root)/src $(qtinc)
 CXXFLAGS = -std=c++11 $(CFLAGS)
-LDFLAGS = -Wl,-rpath=$(goat_root) -L$(goat_root) -lgoat3d $(libgl) $(qtlib) -lanim -ltreestore
+LDFLAGS = -Wl,-rpath=$(goat_root) -L$(goat_root) -lgoat3d $(libgl) $(qtlib)
 MOC = moc
 
 qtinc = `pkg-config --cflags Qt5Gui Qt5Core Qt5OpenGL`

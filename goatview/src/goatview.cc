@@ -3,9 +3,10 @@
 #include <map>
 #include "opengl.h"
 #include <QtOpenGL/QtOpenGL>
-#include <vmath/vmath.h>
 #include "goatview.h"
 #include "goat3d.h"
+
+#define DEG_TO_RAD(x)	((x) * M_PI / 180.0)
 
 static void draw_grid();
 static void draw_grid(float sz, int nlines, float alpha = 1.0f);
@@ -85,7 +86,10 @@ bool GoatView::load_scene(const char *fname)
 
 	float bmin[3], bmax[3];
 	if(goat3d_get_bounds(scene, bmin, bmax) != -1) {
-		float bsize = (Vector3(bmax[0], bmax[1], bmax[2]) - Vector3(bmin[0], bmin[1], bmin[2])).length();
+		float dx = bmax[0] - bmin[0];
+		float dy = bmax[1] - bmin[1];
+		float dz = bmax[2] - bmin[2];
+		float bsize = sqrt(dx * dx + dy * dy + dz * dz);
 		cam_dist = bsize / tan(DEG_TO_RAD(fov) / 2.0);
 		printf("bounds size: %f, cam_dist: %f\n", bsize, cam_dist);
 	}
