@@ -5,16 +5,16 @@ obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
 bin = ass2goat
 
-CFLAGS = -pedantic -Wall -g $(goatinc)
-LDFLAGS = -lgoat3d -lassimp -ltreestore
+goat_root = ../..
+goatinc = -I$(goat_root)/src
+
+CFLAGS = -pedantic -Wall -g $(goatinc) -MMD
+LDFLAGS = -Wl,-rpath=$(goat_root) -L$(goat_root) -lgoat3d -lassimp -ltreestore
 
 $(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)
 
 -include $(dep)
-
-%.d: %.c
-	@$(CPP) $(CFLAGS) $< -MM -MT $(@:.d=.o) >$@
 
 .PHONY: clean
 clean:

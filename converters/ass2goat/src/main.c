@@ -294,67 +294,85 @@ void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode
 
 int process_anim(struct goat3d *goat, struct aiAnimation *aianim)
 {
-	int i, j, num_nodes, rnodes_count;
-	const char *anim_name;
+	int i, j;
+	struct goat3d_anim *anim;
+	struct goat3d_node *node;
+	struct goat3d_track *trk;
+	const char *node_name;
 
-	if(aianim->mName.length <= 0) {
-		anim_name = "unnamed";
-	} else {
-		anim_name = aianim->mName.data;
+	if(!(anim = goat3d_create_anim())) {
+		fprintf(stderr, "failed to create animation\n");
+		return -1;
 	}
-
-	num_nodes = goat3d_get_node_count(goat);
-
-	rnodes_count = 0;
-	for(i=0; i<num_nodes; i++) {
-		int anim_idx;
-		struct goat3d_node *n = goat3d_get_node(goat, i);
-		/* skip non-root nodes */
-		if(goat3d_get_node_parent(n)) {
-			break;
-		}
-
-		/* then add another animation to those root nodes */
-		anim_idx = goat3d_get_anim_count(n);
-		goat3d_add_anim(n);
-		goat3d_use_anim(n, anim_idx);
-
-		goat3d_set_anim_name(n, anim_name);
-	}
+	goat3d_set_anim_name(anim, aianim->mName.length <= 0 ? "unnamed" : aianim->mName.data);
 
 	/* for each animation "channel" ... */
 	for(i=0; i<(int)aianim->mNumChannels; i++) {
-		struct goat3d_node *node;
 		struct aiNodeAnim *ainodeanim = aianim->mChannels[i];
 
 		/* find the node it refers to */
-		const char *nodename = ainodeanim->mNodeName.data;
-		if(!(node = goat3d_get_node_by_name(goat, nodename))) {
-			fprintf(stderr, "failed to process animation for unknown node: %s\n", nodename);
-			return -1;
+		node_name = ainodeanim->mNodeName.data;
+		if(!(node = goat3d_get_node_by_name(goat, node_name))) {
+			fprintf(stderr, "failed to process animation for unknown node: %s\n", node_name);
+			goto err;
 		}
 
 		/* add all the keys ... */
-		for(j=0; j<(int)ainodeanim->mNumPositionKeys; j++) {
-			struct aiVectorKey *key = ainodeanim->mPositionKeys + j;
-			long tm = assimp_time(aianim, key->mTime);
-			goat3d_set_node_position(node, key->mValue.x, key->mValue.y, key->mValue.z, tm);
+		if(ainodeanim->mNumPositionKeys > 0) {
+			if(!(trk = goat3d_create_track())) {
+				fprintf(stderr, "failed to allocate position track\n");
+				goto err;
+			}
+			goat3d_set_track_type(trk, GOAT3D_TRACK_POS);
+			goat3d_set_track_node(trk, node);
+
+			for(j=0; j<(int)ainodeanim->mNumPositionKeys; j++) {
+				struct aiVectorKey *key = ainodeanim->mPositionKeys + j;
+				long tm = assimp_time(aianim, key->mTime);
+				goat3d_set_track_vec3(trk, tm, key->mValue.x, key->mValue.y, key->mValue.z);
+			}
+			goat3d_add_anim_track(anim, trk);
 		}
 
-		for(j=0; j<(int)ainodeanim->mNumRotationKeys; j++) {
-			struct aiQuatKey *key = ainodeanim->mRotationKeys + j;
-			long tm = assimp_time(aianim, key->mTime);
-			goat3d_set_node_rotation(node, key->mValue.x, key->mValue.y, key->mValue.z, key->mValue.w, tm);
+		if(ainodeanim->mNumRotationKeys > 0) {
+			if(!(trk = goat3d_create_track())) {
+				fprintf(stderr, "failed to allocate rotation track\n");
+				goto err;
+			}
+			goat3d_set_track_type(trk, GOAT3D_TRACK_ROT);
+			goat3d_set_track_node(trk, node);
+
+			for(j=0; j<(int)ainodeanim->mNumRotationKeys; j++) {
+				struct aiQuatKey *key = ainodeanim->mRotationKeys + j;
+				long tm = assimp_time(aianim, key->mTime);
+				goat3d_set_track_quat(trk, tm, key->mValue.x, key->mValue.y, key->mValue.z, key->mValue.w);
+			}
+			goat3d_add_anim_track(anim, trk);
 		}
 
-		for(j=0; j<(int)ainodeanim->mNumScalingKeys; j++) {
-			struct aiVectorKey *key = ainodeanim->mScalingKeys + j;
-			long tm = assimp_time(aianim, key->mTime);
-			goat3d_set_node_scaling(node, key->mValue.x, key->mValue.y, key->mValue.z, tm);
+		if(ainodeanim->mNumScalingKeys > 0) {
+			if(!(trk = goat3d_create_track())) {
+				fprintf(stderr, "failed to allocate scaling track\n");
+				goto err;
+			}
+			goat3d_set_track_type(trk, GOAT3D_TRACK_SCALE);
+			goat3d_set_track_node(trk, node);
+
+			for(j=0; j<(int)ainodeanim->mNumScalingKeys; j++) {
+				struct aiVectorKey *key = ainodeanim->mScalingKeys + j;
+				long tm = assimp_time(aianim, key->mTime);
+				goat3d_set_track_vec3(trk, tm, key->mValue.x, key->mValue.y, key->mValue.z);
+			}
+			goat3d_add_anim_track(anim, trk);
 		}
 	}
 
+	goat3d_add_anim(goat, anim);
 	return 0;
+
+err:
+	goat3d_destroy_anim(anim);
+	return -1;
 }
 
 static int output_filename(char *buf, int bufsz, const char *fname, const char *suffix)
