@@ -5,7 +5,7 @@ dbg = -g
 opt = -O0
 # -------------------
 
-src = $(wildcard src/*.c) $(wildcard libs/treestore/*.c)
+src = $(wildcard src/*.c) $(wildcard libs/treestor/*.c)
 obj = $(src:.c=.o)
 dep = $(obj:.o=.d)
 
@@ -27,7 +27,7 @@ else
 	pic = -fPIC
 endif
 
-incdir = -Ilibs -Ilibs/treestore
+incdir = -Ilibs -Ilibs/treestor
 
 CFLAGS = -pedantic -Wall -fvisibility=hidden $(dbg) $(opt) $(pic) $(incdir) -MMD
 LDFLAGS = -lm
@@ -81,3 +81,16 @@ uninstall:
 		rm -f $(DESTDIR)$(PREFIX)/lib/$(soname) && \
 		rm -f $(DESTDIR)$(PREFIX)/lib/$(ldname) || \
 		true
+
+
+.PHONY: minpack
+minpack:
+	mkdir -p /tmp/goat3d/src
+	mkdir -p /tmp/goat3d/include
+	cp src/*.c src/*.h /tmp/goat3d/src
+	mv /tmp/goat3d/src/goat3d.h /tmp/goat3d/include
+	cp README.md /tmp/goat3d
+	cp COPYING* /tmp/goat3d
+	cd /tmp; tar czvf goat3d-minpack.tar.gz goat3d
+	mv /tmp/goat3d-minpack.tar.gz .
+	rm -r /tmp/goat3d

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <assert.h>
-#include "treestore.h"
+#include "treestor.h"
 #include "dynarr.h"
 
 struct parser {

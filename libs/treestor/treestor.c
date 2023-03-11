@@ -3,7 +3,7 @@
 #include <string.h>
 #include <errno.h>
 #include <assert.h>
-#include "treestore.h"
+#include "treestor.h"
 
 #ifdef WIN32
 #include <malloc.h>
