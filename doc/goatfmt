@@ -26,39 +26,48 @@ SCENE
  |   +--material (string:name|int:index)
  |   +--MESH_VERTEX_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 3 32-bit floats)
  |   |   +--MESH_VERTEX
  |   |       +--pos (float3)
  |   +--MESH_NORMAL_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 3 32-bit floats)
  |   |   +--MESH_NORMAL
  |   |       +--dir (float3)
  |   +--MESH_TANGENT_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 3 32-bit floats)
  |   |   +--MESH_TANGENT
  |   |       +--dir (float3)
  |   +--MESH_TEXCOORD_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 3 32-bit floats)
  |   |   +--MESH_TEXCOORD
  |   |       +--uv (float3)
  |   +--MESH_SKINWEIGHT_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 4 32-bit floats)
  |   |   +--MESH_SKINWEIGHT
  |   |       +--weights (float4: 4 skin weights/vertex)
  |   +--MESH_SKINMATRIX_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 4 32-bit ints)
  |   |   +--MESH_SKINMATRIX
  |   |       +--idx (int4: 4 matrix indices/vertex)
  |   +--MESH_COLOR_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 4 32-bit floats)
  |   |   +--MESH_COLOR
  |   |       +--color (float4)
  |   +--MESH_BONE_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size 32-bit ints)
  |   |   +--MESH_BONE
  |   |       +--idx (int: node index)
  |   |       +--name (string: node name)
  |   +--MESH_FACE_LIST
  |   |   +--list_size (int)
+ |   |   +--base64 (string: base64-encoded data list_size * 3 32-bit ints)
  |   |   +--MESH_FACE
  |   |       +--idx (int3: 3 ints for vertex indices)
  |   +--file (string: filename)
@@ -97,3 +106,9 @@ NOTES:
  * In node chunks, both pos/rot/scale, and matrix0/matrix1/matrix2 are mandatory
    and they must agree. Makes it easy for the reader to pick the transformation
    data in whichever way is more convenient.
+ * Mesh data can be specified either as a series of VERTEX/NORMAL/... chunks
+   in the corresponding MESH_*_LIST chunk, or as a base64-encoded binary blob,
+   in the "base64" attribute of the MESH_*_LIST chunk. The results are undefined
+   if a single mesh data list has both the base64 attribute and data sub-chunks.
+   Binary data are stored in little-endian byte order (LSB-first).
+   Floating point values are in the 32bit IEEE754 format.

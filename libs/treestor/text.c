@@ -346,34 +346,58 @@ end:
 	return res;
 }
 
+#define IO_WRITE(buf, sz) \
+	do { \
+		if(io->write(buf, sz, io->data) < sz) { \
+			fprintf(stderr, "failed to write %d bytes\n", sz); \
+			goto end; \
+		} \
+	} while(0)
+
 static int print_attr(struct ts_attr *attr, struct ts_io *io, int level)
 {
-	char *buf, *val;
-	int sz;
+	char buf[64];
+	char *val = 0;
+	int sz, slen, res = -1;
+
+	if(attr->val.type == TS_STRING) {
+		slen = strlen(attr->val.str);
+
+		if(level >= 0) {
+			sz = sprintf(buf, "%s%s = \"", indent(level + 1), attr->name);
+			IO_WRITE(buf, sz);
+			IO_WRITE(attr->val.str, slen);
+			IO_WRITE("\"\n", 2);
+		} else {
+			sz = sprintf(buf, " %s = \"", attr->name);
+			IO_WRITE(buf, sz);
+			IO_WRITE(attr->val.str, slen);
+			IO_WRITE("\" ", 2);
+		}
+		return 0;
+	}
 
 	if(!(val = value_to_str(&attr->val))) {
 		return -1;
 	}
-
-	sz = (level >= 0 ? level : 0) + strlen(attr->name) + ts_dynarr_size(val) + 5;
-	if(!(buf = malloc(sz))) {
-		perror("print_attr: failed to allocate name buffer");
-		ts_dynarr_free(val);
-	}
+	slen = ts_dynarr_size(val) - 1;
 
 	if(level >= 0) {
-		sz = sprintf(buf, "%s%s = %s\n", indent(level + 1), attr->name, val);
+		sz = sprintf(buf, "%s%s = ", indent(level + 1), attr->name);
+		IO_WRITE(buf, sz);
+		IO_WRITE(val, slen);
+		IO_WRITE("\n", 1);
 	} else {
-		sz = sprintf(buf, " %s = %s ", attr->name, val);
+		sz = sprintf(buf, " %s = ", attr->name);
+		IO_WRITE(buf, sz);
+		IO_WRITE(val, slen);
+		IO_WRITE(" ", 1);
 	}
-	if(io->write(buf, sz, io->data) < sz) {
-		ts_dynarr_free(val);
-		free(buf);
-		return -1;
-	}
+
+	res = 0;
+end:
 	ts_dynarr_free(val);
-	free(buf);
-	return 0;
+	return res;
 }
 
 static char *append_dynstr(char *dest, char *s)
@@ -430,8 +454,9 @@ static char *value_to_str(struct ts_value *value)
 		break;
 
 	default:
-		sprintf(buf, "\"%s\"", value->str);
-		str = append_dynstr(str, buf);
+		str = append_dynstr(str, "\"");
+		str = append_dynstr(str, value->str);
+		str = append_dynstr(str, "\"");
 	}
 
 	return str;

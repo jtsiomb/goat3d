@@ -93,6 +93,7 @@ int convert(const char *infname)
 	}
 
 	goat = goat3d_create();
+	goat3d_setopt(goat, GOAT3D_OPT_SAVEBINDATA, 1);
 
 	for(i=0; i<(int)aiscn->mNumMaterials; i++) {
 		struct aiMaterial *aimat = aiscn->mMaterials[i];

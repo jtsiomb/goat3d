@@ -127,6 +127,8 @@ struct val_list_node {
 
 int ts_set_value_str(struct ts_value *tsv, const char *str)
 {
+	if(!str) return -1;
+
 	if(tsv->str) {
 		ts_destroy_value(tsv);
 		if(ts_init_value(tsv) == -1) {
