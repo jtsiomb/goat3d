@@ -6,10 +6,10 @@ dep = $(obj:.o=.d)
 bin = ass2goat
 
 goat_root = ../..
-goatinc = -I$(goat_root)/src
+goatinc = -I$(goat_root)/src -I$(goat_root)/libs
 
 CFLAGS = -pedantic -Wall -g $(goatinc) -MMD
-LDFLAGS = -Wl,-rpath=$(goat_root) -L$(goat_root) -lgoat3d -lassimp -ltreestore
+LDFLAGS = -Wl,-rpath=$(goat_root) -L$(goat_root) -lgoat3d -lassimp -lm
 
 $(bin): $(obj)
 	$(CC) -o $@ $(obj) $(LDFLAGS)

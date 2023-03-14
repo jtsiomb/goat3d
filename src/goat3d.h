@@ -371,6 +371,7 @@ GOAT3DAPI const char *goat3d_get_anim_name(const struct goat3d_anim *anim);
 GOAT3DAPI int goat3d_add_anim_track(struct goat3d_anim *anim, struct goat3d_track *trk);
 GOAT3DAPI struct goat3d_track *goat3d_get_anim_track(const struct goat3d_anim *anim, int idx);
 GOAT3DAPI struct goat3d_track *goat3d_get_anim_track_by_name(const struct goat3d_anim *anim, const char *name);
+GOAT3DAPI struct goat3d_track *goat3d_get_anim_track_by_type(const struct goat3d_anim *anim, enum goat3d_track_type type);
 GOAT3DAPI int goat3d_get_anim_track_count(const struct goat3d_anim *anim);
 
 GOAT3DAPI long goat3d_get_anim_timeline(const struct goat3d_anim *anim, long *tstart, long *tend);

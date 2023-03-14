@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "goat3d.h"
+#include "cgmath/cgmath.h"
 #include "assimp/cimport.h"
 #include "assimp/postprocess.h"
 #include "assimp/scene.h"
@@ -267,9 +268,13 @@ void process_mesh(struct goat3d *goat, struct goat3d_mesh *mesh, struct aiMesh *
 
 void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode *ainode)
 {
-	int i;
+	int i, j;
 	struct goat3d_node *node;
 	struct goat3d_mesh *mesh;
+	cgm_vec3 vec;
+	cgm_quat quat;
+	float xform[16];
+	ai_real *aimat;
 
 	node = goat3d_create_node();
 	goat3d_set_node_name(node, ainode->mName.data);
@@ -277,6 +282,20 @@ void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode
 	if(parent) {
 		goat3d_add_node_child(parent, node);
 	}
+
+	aimat = &ainode->mTransformation.a1;
+	for(i=0; i<4; i++) {
+		for(j=0; j<4; j++) {
+			xform[j*4+i] = aimat[i*4+j];
+		}
+	}
+	cgm_mget_translation(xform, &vec);
+	goat3d_set_node_position(node, vec.x, vec.y, vec.z);
+	cgm_mget_rotation(xform, &quat);
+	cgm_qnormalize(&quat);
+	goat3d_set_node_rotation(node, quat.x, quat.y, quat.z, quat.w);
+	cgm_mget_scaling(xform, &vec);
+	goat3d_set_node_scaling(node, vec.x, vec.y, vec.z);
 
 	if(ainode->mNumMeshes) {
 		if(ainode->mNumMeshes > 1) {
