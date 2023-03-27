@@ -108,9 +108,10 @@ void print_overview(struct goat3d *g)
 
 	printf("Scene: \"%s\"\n", goat3d_get_name(g));
 
-	goat3d_get_bounds(g, bmin, bmax);
-	printf("Bounds: %f %f %f - %f %f %f\n", bmin[0], bmin[1], bmin[2], bmax[0],
-			bmax[1], bmax[2]);
+	if(goat3d_get_bounds(g, bmin, bmax) != -1) {
+		printf("Bounds: %f %f %f - %f %f %f\n", bmin[0], bmin[1], bmin[2], bmax[0],
+				bmax[1], bmax[2]);
+	}
 
 	nmtl = goat3d_get_mtl_count(g);
 	nmesh = goat3d_get_mesh_count(g);

@@ -47,6 +47,8 @@ static struct goat3d_track *read_track(struct goat3d *g, struct ts_node *tstrk);
 
 GOAT3DAPI void *goat3d_b64decode(const char *str, void *buf, int *bufsz);
 #define b64decode goat3d_b64decode
+/* defined in readgltf.c */
+int g3dimpl_loadgltf(struct goat3d *g, struct goat3d_io *io);
 
 
 int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
@@ -55,6 +57,11 @@ int g3dimpl_scnload(struct goat3d *g, struct goat3d_io *io)
 	struct ts_io tsio;
 	struct ts_node *tsroot, *c;
 	const char *str;
+
+	/* attempt to load it as gltf first */
+	if((g3dimpl_loadgltf(g, io)) == 0) {
+		return 0;
+	}
 
 	tsio.data = io->cls;
 	tsio.read = io->read;
