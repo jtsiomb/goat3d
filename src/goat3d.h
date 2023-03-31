@@ -318,7 +318,7 @@ GOAT3DAPI void goat3d_get_node_pivot(const struct goat3d_node *node, float *xptr
 
 GOAT3DAPI void goat3d_get_node_matrix(const struct goat3d_node *node, float *matrix);
 /* same as above, but also takes hierarchy into account */
-GOAT3DAPI void goat3d_get_matrix(const struct goat3d_node *Node, float *matrix);
+GOAT3DAPI void goat3d_get_matrix(const struct goat3d_node *node, float *matrix);
 
 GOAT3DAPI void goat3d_get_node_bounds(const struct goat3d_node *node, float *bmin, float *bmax);
 
