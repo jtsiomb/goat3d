@@ -298,10 +298,7 @@ void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode
 	goat3d_set_node_scaling(node, vec.x, vec.y, vec.z);
 
 	if(ainode->mNumMeshes) {
-		if(ainode->mNumMeshes > 1) {
-			fprintf(stderr, "process_node: %s has multiple meshes (%d), using only the first\n",
-					goat3d_get_node_name(node), ainode->mNumMeshes);
-		}
+
 		if(!(mesh = goat3d_get_mesh(goat, ainode->mMeshes[0]))) {
 			fprintf(stderr, "process_node: %s: invalid reference to mesh %d\n",
 					goat3d_get_node_name(node), ainode->mMeshes[0]);
@@ -309,6 +306,31 @@ void process_node(struct goat3d *goat, struct goat3d_node *parent, struct aiNode
 			return;
 		}
 		goat3d_set_node_object(node, GOAT3D_NODE_MESH, mesh);
+
+		if(ainode->mNumMeshes > 1) {
+			char *name = alloca(strlen(ainode->mName.data) + 32);
+			struct goat3d_node *cnode;
+
+			fprintf(stderr, "process_node: %s has multiple meshes (%d), creating dummy child nodes\n",
+					goat3d_get_node_name(node), ainode->mNumMeshes);
+
+			for(i=1; i<ainode->mNumMeshes; i++) {
+				sprintf(name, "%s-dummy%03d", ainode->mName.data, i);
+
+				if(!(mesh = goat3d_get_mesh(goat, ainode->mMeshes[i]))) {
+					fprintf(stderr, "process_node: %s(%d): skipping dummy for invalid mesh %d\n",
+							goat3d_get_node_name(node), i, ainode->mMeshes[i]);
+					continue;
+				}
+
+				cnode = goat3d_create_node();
+				goat3d_add_node(goat, cnode);
+				goat3d_add_node_child(node, cnode);
+
+				goat3d_set_node_name(cnode, name);
+				goat3d_set_node_object(cnode, GOAT3D_NODE_MESH, mesh);
+			}
+		}
 	}
 
 	for(i=0; i<ainode->mNumChildren; i++) {
